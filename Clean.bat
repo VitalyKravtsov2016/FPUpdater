@@ -4,6 +4,8 @@ del /S *.rsm
 del /S *.dsm
 del /S *.map
 del /S *.log
-del /S *.exe
-del /S SmScale.dll
-del /S SmFiscalPrinter.dll
+
+@echo off
+for %%f in (*.exe) do (
+    if not "%%f"=="dfu-util-static.exe" del "%%f"
+)
