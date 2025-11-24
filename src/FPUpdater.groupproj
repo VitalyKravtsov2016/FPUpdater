@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{995CD2FE-6A1A-45F5-9496-399627AEA956}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="FPUpdater\FPUpdater.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\tests\Acceptance\Acceptance.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="FPUpdater">
+        <MSBuild Projects="FPUpdater\FPUpdater.dproj"/>
+    </Target>
+    <Target Name="FPUpdater:Clean">
+        <MSBuild Projects="FPUpdater\FPUpdater.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FPUpdater:Make">
+        <MSBuild Projects="FPUpdater\FPUpdater.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Acceptance">
+        <MSBuild Projects="..\tests\Acceptance\Acceptance.dproj"/>
+    </Target>
+    <Target Name="Acceptance:Clean">
+        <MSBuild Projects="..\tests\Acceptance\Acceptance.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Acceptance:Make">
+        <MSBuild Projects="..\tests\Acceptance\Acceptance.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="FPUpdater;Acceptance"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="FPUpdater:Clean;Acceptance:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="FPUpdater:Make;Acceptance:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

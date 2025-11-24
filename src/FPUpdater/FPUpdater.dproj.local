@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899.12.30 00:00:00.000.429,C:\Projects\src\fwupdater2\src\fwupdater2\units\UpdatePolicy.pas=C:\Projects\src\fwupdater2\src\fwupdater2\units\fwrules.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.638,C:\Projects\src\drvfr\fwupdater\forms\fmuMain.pas=C:\Projects\src\drvfr\fwupdater\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.097,=C:\Projects\src\fwupdater2\src\fwupdater2\units\LangUtils.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.415,=C:\Projects\src\fwupdater2\src\fwupdater2\units\GlobalConst.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.057,=C:\Projects\src\fwupdater2\src\fwupdater2\units\StringUtils.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.648,=C:\Projects\src\fwupdater2\src\fwupdater2\units\DriverTypes.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.782,=C:\Projects\src\fwupdater2\src\fwupdater2\units\TextEncoding.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.178,D:\projects\TorgBalance\fwupdater2\src\FPUpdater\fwupdater2.dproj=D:\projects\TorgBalance\fwupdater2\src\FPUpdater\FPUpdater.dproj</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.356,C:\Projects\src\drvfr\fwupdater\units\FirmwareUpdater.pas=C:\Projects\src\drvfr\fwupdater\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.007,=C:\Projects\src\drvfr\fwupdater\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.697,=C:\Projects\src\drvfr\fwupdater\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.606,=C:\Projects\src\drvfr\fwupdater\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.638,C:\Projects\src\drvfr\fwupdater\forms\fmuMain.dfm=C:\Projects\src\drvfr\fwupdater\Unit1.dfm</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.393,C:\Projects\src\drvfr\fwupdater\forms\msgformunit.pas=C:\Projects\src\drvfr\fwupdater\forms\fmuUnsupported.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.237,C:\Projects\src\fwupdater2\src\fwupdater2\fwupdater.dproj=C:\Projects\src\fwupdater2\src\fwupdater2\fwupdater2.dproj</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.614,=C:\Projects\src\fwupdater2\src\fwupdater2\units\XModem.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.818,=C:\Projects\src\fwupdater2\src\fwupdater2\units\FptrTypes.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.940,=C:\Projects\src\fwupdater2\src\fwupdater2\units\ComportUtils.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.399,=C:\Projects\src\fwupdater2\src\fwupdater2\units\gnugettext.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.346,C:\Projects\src\drvfr\fwupdater\units\RNDISAdapter.pas=C:\Projects\src\drvfr\fwupdater\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.344,C:\Projects\src\fwupdater2\src\fwupdater2\units\SystemUtils.pas=C:\Projects\src\fwupdater2\src\fwupdater2\units\execproc.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.248,=C:\Projects\src\fwupdater2\src\fwupdater2\units\FileUtils.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.744,=C:\Projects\src\fwupdater2\src\fwupdater2\units\AsyncSerialPort.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.033,=C:\Projects\src\fwupdater2\src\fwupdater2\units\PrinterTypes.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.990,=C:\Projects\src\fwupdater2\src\fwupdater2\units\DeviceSearch.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.819,C:\Projects\src\fwupdater2\src\fwupdater2\units\UpdateItem.pas=C:\Projects\src\fwupdater2\src\fwupdater2\units\UpdatePolicy.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.393,C:\Projects\src\drvfr\fwupdater\forms\msgformunit.dfm=C:\Projects\src\drvfr\fwupdater\forms\fmuUnsupported.dfm</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.827,=C:\Projects\src\fwupdater2\src\fwupdater2\units\NotifyThread.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.574,=C:\Projects\src\fwupdater2\src\fwupdater2\units\untUtil.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.185,=C:\Projects\src\fwupdater2\src\fwupdater2\units\BinUtils.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.159,=C:\Projects\src\drvfr\fwupdater\units\untVInfo.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.661,=C:\Projects\src\fwupdater2\src\fwupdater2\units\SearchPort.pas</Transaction>
+  </Transactions>
+</BorlandProject>

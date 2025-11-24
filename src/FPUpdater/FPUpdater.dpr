@@ -1,0 +1,45 @@
+program FPUpdater;
+
+uses
+  Vcl.Forms,
+  fmuMain in 'forms\fmuMain.pas' {fmMain},
+  fmuUnsupported in 'forms\fmuUnsupported.pas' {fmUnsupported},
+  untDriver in 'units\untDriver.pas',
+  DrvFRLib_TLB in 'units\DrvFRLib_TLB.pas',
+  DriverError in 'units\DriverError.pas',
+  LogFile in 'units\LogFile.pas',
+  SystemUtils in 'units\SystemUtils.pas',
+  FirmwareUpdater in 'units\FirmwareUpdater.pas',
+  RNDISAdapter in 'units\RNDISAdapter.pas',
+  untVInfo in 'units\untVInfo.pas',
+  NotifyThread in 'units\NotifyThread.pas',
+  UpdateItem in 'units\UpdateItem.pas',
+  StringUtils in 'units\StringUtils.pas',
+  BinUtils in 'units\BinUtils.pas',
+  FptrTypes in 'units\FptrTypes.pas',
+  TextEncoding in 'units\TextEncoding.pas',
+  LangUtils in 'units\LangUtils.pas',
+  DriverTypes in 'units\DriverTypes.pas',
+  GlobalConst in 'units\GlobalConst.pas',
+  XModem in 'units\XModem.pas',
+  AsyncSerialPort in 'units\AsyncSerialPort.pas',
+  FileUtils in 'units\FileUtils.pas',
+  gnugettext in 'units\gnugettext.pas',
+  DeviceSearch in 'units\DeviceSearch.pas',
+  SearchPort in 'units\SearchPort.pas',
+  PrinterTypes in 'units\PrinterTypes.pas',
+  untUtil in 'units\untUtil.pas',
+  ComportUtils in 'units\ComportUtils.pas';
+
+{$R *.res}
+{$R arhive.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.Title := 'Прошивальщик';
+  Application.CreateForm(TfmMain, fmMain);
+  Application.CreateForm(TfmUnsupported, fmUnsupported);
+  fmMain.Position := poDesktopCenter;
+  Application.Run;
+end.
