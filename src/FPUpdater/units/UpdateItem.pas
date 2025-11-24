@@ -25,15 +25,10 @@ type
   { TUpdateParams }
 
   TUpdateParams = record
-    FFDMarking: Boolean;
-    FFDPawnshop: Boolean;
-    FFDInsurance: Boolean;
-    DocumentSentTimeoutInMin: Integer;
+    DocSentTimeoutInSec: Integer;       // Таймаут отправки документов в ОФД
     SaveTables: Boolean;                // Восстанавливать значения таблиц
     RestoreCashRegister: Boolean;       // Восстанавливать регистр наличных
     PrintStatus: Boolean;               // Печатать на чековой ленте
-    ServerKM: string;                   // Сервер КМ
-    PortKM: Integer;                    // Порт сервера КМ
     FFDNeedUpdate: TFFDNeedUpdate;      // Нужно ли перерегистрировать ФН
   end;
 
@@ -149,7 +144,7 @@ begin
     if Json.FindValue('build') <> nil then
       Item.Build := JsonGetInteger(Json, 'build');
 
-    Tables := Json.FindValue('Tables');
+    Tables := Json.FindValue('updatetables');
     if (Tables <> nil) and (Tables is TJSONArray) then
     begin
       JSONArray := Tables as TJSONArray;
@@ -221,15 +216,10 @@ begin
     JSONValue := JSONObject.FindValue('Params');
     if JSONValue <> nil then
     begin
-      Params.FFDMarking := JsonGetBoolean(JSONValue, 'FFDMarking');
-      Params.FFDPawnshop := JsonGetBoolean(JSONValue, 'FFDPawnshop');
-      Params.FFDInsurance := JsonGetBoolean(JSONValue, 'FFDInsurance');
-      Params.DocumentSentTimeoutInMin := JsonGetInteger(JSONValue, 'DocumentSentTimeoutInMin');
       Params.SaveTables := JsonGetBoolean(JSONValue, 'SaveTables');
-      Params.RestoreCashRegister := JsonGetBoolean(JSONValue, 'RestoreCashRegister');
       Params.PrintStatus := JsonGetBoolean(JSONValue, 'PrintStatus');
-      Params.ServerKM := JsonGetString(JSONValue, 'ServerKM');
-      Params.PortKM := JsonGetInteger(JSONValue, 'PortKM');
+      Params.DocSentTimeoutInSec := JsonGetInteger(JSONValue, 'DocSentTimeoutInSec');
+      Params.RestoreCashRegister := JsonGetBoolean(JSONValue, 'RestoreCashRegister');
       Params.FFDNeedUpdate := TFFDNeedUpdate(JsonGetInteger(JSONValue, 'FFDNeedUpdate'));
     end;
   finally

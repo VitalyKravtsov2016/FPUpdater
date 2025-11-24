@@ -343,9 +343,8 @@ begin
     Driver.OFDExchangeSuspended := True;
     Driver.UpdateFirmwareSuspended := True;
     Driver.PluginsEnabled := False;
-    DrvCheck(Driver, Driver.ServerConnect);
-    Driver.ComNumber := PortNumber;
     Driver.ConnectionType := FConnectionType;
+    Driver.ComNumber := PortNumber;
     ResultCode := Driver.LockPort;
     if ResultCode = 0 then
     begin

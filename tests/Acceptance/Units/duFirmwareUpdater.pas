@@ -31,6 +31,7 @@ type
     procedure SetUp; override;
     procedure TearDown; override;
   published
+    procedure TestFindUpdateItem;
     procedure TestFindDeviceLocal;
     procedure TestDiscoverDevice;
 
@@ -47,7 +48,9 @@ type
 
     procedure TestUpdateFirmwareShtrih;
     procedure TestFirmwareUpdateRNDIS3;
-    procedure TestFindUpdateItem;
+    procedure TestFNFiscalization;
+    procedure TestGetOfdParams;
+    procedure TestLoadParams;
   end;
 
 implementation
@@ -67,7 +70,8 @@ end;
 procedure TFirmwareUpdaterTest.SetUp;
 begin
   Updater := TFirmwareUpdater.Create;
-  Updater.Path := GetFilesPath;
+  //Updater.Path := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'data\';
+  Updater.Path := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'test\';
   Updater.DeleteLog;
   Updater.LoadParameters;
 end;
@@ -302,7 +306,9 @@ var
   SearchParams: TSearchParams;
 begin
   SearchParams.Port := PORT_VCOM;
-  SearchParams.Serial := '0478110006079411';
+  SearchParams.Serial := '';
+  //SearchParams.Serial := '0478110006079411';
+  //SearchParams.Serial := '0374360004103321';
   SearchParams.Timeout := FirmwareRebootTimeout;
   if not Updater.FindDeviceLocal(SearchParams) then
     raise Exception.Create('Устройство не найдено');
@@ -313,7 +319,9 @@ var
   SearchParams: TSearchParams;
 begin
   SearchParams.Port := PORT_VCOM;
-  SearchParams.Serial := '0478110006079411';
+  SearchParams.Serial := '';
+  //SearchParams.Serial := '0478110006079411';
+  //SearchParams.Serial := '0374360004103321';
   SearchParams.Timeout := FirmwareRebootTimeout;
   Updater.DiscoverDevice(SearchParams);
 end;
@@ -338,18 +346,10 @@ begin
   SetVComConnection;
 end;
 
-procedure TFirmwareUpdaterTest.TestUpdateFFD;
-begin
-  Updater.UpdateFFD;
-end;
-
 procedure TFirmwareUpdaterTest.UpdateLoader(const Serial, FileName: string;
   BootVer: Integer);
-var
-  Path: string;
 begin
-  Path := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'test\';
-  Updater.DfuUploadFile(Path, FileName);
+  Updater.DfuUploadFile(Updater.Path, FileName);
   Updater.DelayInMs(LoaderRebootDelay);
   Updater.WaitForDevice(Serial, LoaderRebootTimeout);
   Updater.CheckLoaderUpdated(BootVer);
@@ -386,10 +386,34 @@ begin
   if (Ecr.FirmwareVersion <> 'C.3')or(Ecr.FirmwareBuild <> 62776) then
   begin
     Path := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'test\';
-    Updater.DfuUploadFile(Path, 'sm_app_62776.bin');
+    Updater.DfuUploadFile(Path, 'sm_app_62928_c1.bin');
     Updater.DelayInMs(LoaderRebootDelay);
     Updater.WaitForDevice(Ecr.Serial, FirmwareRebootTimeout);
   end;
+end;
+
+procedure TFirmwareUpdaterTest.TestFNFiscalization;
+begin
+  // Проверка что ФН отладочный
+  Driver.Check(Driver.FNGetVersion);
+  if Driver.FNSoftType <> 0 then
+    raise Exception.Create('ФН должен быть отладочным');
+
+  Driver.Check(Driver.FNGetStatus);
+  if Driver.FNLifeState > 3 then
+  begin
+    // Сброс ФН
+    Driver.RequestType := 22;
+    Driver.Check(Driver.FNResetState);
+  end;
+  // Фискализация ФН
+  Driver.INN := '9706048530';
+  Driver.KKTRegistrationNumber := '0000000000003505';
+  Driver.TaxType := 1;
+  Driver.WorkMode := 0;
+  Driver.Timeout := 10000;
+  Driver.Check(Driver.FNBuildRegistrationReport);
+  Driver.Timeout := 1000;
 end;
 
 procedure TFirmwareUpdaterTest.TestFirmwareUpdateRNDIS3;
@@ -397,9 +421,6 @@ var
   Ecr: TEcrInfo;
   FirmwareDate: string;
 begin
-  Updater.Path := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'test\';
-  Updater.LoadParameters;
-
   TestUpdateFirmwareShtrih;
   SetRndisConnection;
   Updater.UpdateFirmware;
@@ -411,15 +432,58 @@ begin
   CheckEquals(7099, Ecr.FirmwareBuild, 'Ecr.FirmwareBuild <> 7099');
   FirmwareDate := FormatDateTime('dd.mm.yyyy', Ecr.FirmwareDate);
   CheckEquals('20.11.2025', FirmwareDate, 'Ecr.FirmwareDate <> 20.11.2025');
+end;
 
+procedure TFirmwareUpdaterTest.TestGetOfdParams;
+var
+  IsFound: Boolean;
+  Item: TUpdateItem;
+  OfdParams: TOfdParams;
+begin
+  IsFound := False;
+  for Item in Updater.Items do
+  begin
+    if Item.Action = ACTION_UPDATE_FIRMWARE then
+    begin
+      IsFound := True;
+      Break;
+    end;
+  end;
+  Check(IsFound, 'Не найден элемент обновления');
+  Check(Updater.GetOfdParams(Item, '', OfdParams), 'GetOfdParams');
+  CheckEquals('192.168.144.138', OfdParams.ServerKM, 'OfdParams.ServerKM');
+  CheckEquals(8789, OfdParams.PortKM, 'OfdParams.PortKM');
 end;
 
 
-(*
-  SaveTables(GetFilesPath + 'TablesBefore.csv');
-  SaveTables(GetFilesPath + 'TablesAfter.csv');
+procedure TFirmwareUpdaterTest.TestLoadParams;
+begin
+  CheckEquals(True, Updater.Params.SaveTables, 'Params.SaveTables');
+  CheckEquals(False, Updater.Params.PrintStatus, 'Params.PrintStatus');
+  CheckEquals(Ord(FFD12), Ord(Updater.Params.FFDNeedUpdate), 'Params.FFDNeedUpdate');
+  CheckEquals(True, Updater.Params.RestoreCashRegister, 'Params.RestoreCashRegister');
+  CheckEquals(5, Updater.Params.DocSentTimeoutInSec, 'Params.DocSentTimeoutInSec');
+end;
 
-*)
+procedure TFirmwareUpdaterTest.TestUpdateFFD;
+var
+  IsFound: Boolean;
+  Item: TUpdateItem;
+  OfdParams: TOfdParams;
+begin
+  IsFound := False;
+  for Item in Updater.Items do
+  begin
+    if Item.Action = ACTION_UPDATE_FIRMWARE then
+    begin
+      IsFound := True;
+      Break;
+    end;
+  end;
+  Check(IsFound, 'Не найден элемент обновления');
+  Updater.UpdateFFD(Item);
+end;
+
 
 initialization
   RegisterTest('', TFirmwareUpdaterTest.Suite);

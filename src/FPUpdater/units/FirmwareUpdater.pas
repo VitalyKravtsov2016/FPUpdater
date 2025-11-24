@@ -99,6 +99,14 @@ const
   BAUD_RATE_CODE_921600 = 9;
 
 type
+  { TOfdParams }
+
+  TOfdParams = record
+    Inn: string;
+    ServerKM: string;
+    PortKM: Integer;
+  end;
+
   { TSearchParams }
 
   TSearchParams = record
@@ -164,7 +172,6 @@ type
     FItems: TUpdateItems;
     FParams: TUpdateParams;
   public
-    procedure UpdateFFD;
     procedure UpdateStatus;
     procedure DeleteLog;
     procedure LoadFiles;
@@ -180,7 +187,6 @@ type
     procedure CheckFirmwareUpdated(const Item: TUpdateItem);
     procedure DelayInMs(DelayInMs: Integer);
     procedure SetBaudRate(BaudRate: Integer);
-    procedure ChangeFFD(AFFD: TFFDNeedUpdate);
     procedure Feed(ALineCount: Integer);
     procedure PrintText(const AStr: string);
     procedure CheckAllDocumentsSent;
@@ -219,9 +225,13 @@ type
     function FindDevice(const Serial: string): Boolean;
     procedure DiscoverDevice(const Params: TSearchParams);
     function FindDeviceLocal(const Params: TSearchParams): Boolean;
-    procedure GetServerKMParams(const INNOFD: string; var ServerKM: string;
-      var PortKM: Integer);
     function FindItemIndex(const Ecr: TEcrInfo; Action: Integer): Integer;
+    function FindOfdParams(const OfdInn: string;
+      var OfdParams: TOfdParams): Boolean;
+    function GetOfdParams(const UpdateItem: TUpdateItem; const OfdInn: string;
+      var OfdParams: TOfdParams): Boolean;
+    procedure UpdateFFD(const Item: TUpdateItem);
+    procedure ChangeFFD(const Item: TUpdateItem; AFFD: TFFDNeedUpdate);
   public
     constructor Create;
     destructor Destroy; override;
@@ -237,35 +247,29 @@ type
     function CheckEcrUpdateable: Boolean;
 
     property Items: TUpdateItems read FItems;
+    property Params: TUpdateParams read FParams;
     property Path: string read FPath write FPath;
     property Status: TUpdateStatus read GetStatus;
   end;
 
 implementation
 
-type
-  TOfdParams = record
-    INN: string;
-    ServerKM: string;
-    PortKM: Integer;
-  end;
-
 const
-  OFDParamsArray: array[1..13] of TOfdParams =
+  OfdParamsArray: array[1..13] of TOfdParams =
   (
-    (INN: '7728699517'; ServerKM: 'connect.ofd-ya.ru'; PortKM: 7797),
-    (INN: '7709364346'; ServerKM: 'k-server.1-ofd.ru'; PortKM: 7788),
-    (INN: '9715260691'; ServerKM: 'ofdp.platformaofd.ru'; PortKM: 21102),
-    (INN: '7704211201'; ServerKM: 'f1.taxcom.ru'; PortKM: 8777),
-    (INN: '6658497833'; ServerKM: 'ofd.kontur.ru'; PortKM: 7778),
-    (INN: '4029017981'; ServerKM: 'ofd.astralnalog.ru'; PortKM: 7777),
-    (INN: '7841465198'; ServerKM: 'crpt.ofd.ru'; PortKM: 7000),
-    (INN: '7605016030'; ServerKM: 'kkt.sbis.ru'; PortKM: 7777),
-    (INN: '7704358518'; ServerKM: 'kkt.ofd.yandex.net'; PortKM: 54321),
-    (INN: '5902034504'; ServerKM: 'kkt.ofd-initpro.ru'; PortKM: 9996),
-    (INN: '7729642175'; ServerKM: 'crpt.e-ofd.ru'; PortKM: 5555),
-    (INN: '2310031475'; ServerKM: 'kkt.ofd-magnit.ru'; PortKM: 7005),
-    (INN: '7713076301'; ServerKM: 'ofd.beeline.ru'; PortKM: 8765)
+    (Inn: '7728699517'; ServerKM: 'connect.Ofd-ya.ru'; PortKM: 7797),
+    (Inn: '7709364346'; ServerKM: 'k-server.1-Ofd.ru'; PortKM: 7788),
+    (Inn: '9715260691'; ServerKM: 'Ofdp.platformaOfd.ru'; PortKM: 21102),
+    (Inn: '7704211201'; ServerKM: 'f1.taxcom.ru'; PortKM: 8777),
+    (Inn: '6658497833'; ServerKM: 'Ofd.kontur.ru'; PortKM: 7778),
+    (Inn: '4029017981'; ServerKM: 'Ofd.astralnalog.ru'; PortKM: 7777),
+    (Inn: '7841465198'; ServerKM: 'crpt.Ofd.ru'; PortKM: 7000),
+    (Inn: '7605016030'; ServerKM: 'kkt.sbis.ru'; PortKM: 7777),
+    (Inn: '7704358518'; ServerKM: 'kkt.Ofd.yandex.net'; PortKM: 54321),
+    (Inn: '5902034504'; ServerKM: 'kkt.Ofd-initpro.ru'; PortKM: 9996),
+    (Inn: '7729642175'; ServerKM: 'crpt.e-Ofd.ru'; PortKM: 5555),
+    (Inn: '2310031475'; ServerKM: 'kkt.Ofd-magnit.ru'; PortKM: 7005),
+    (Inn: '7713076301'; ServerKM: 'Ofd.beeline.ru'; PortKM: 8765)
   );
 
 function FFDToStr(AFFDVer: Integer): string;
@@ -632,7 +636,7 @@ begin
       DelayInMs(FirmwareRebootDelay);
       WaitForDevice(EcrInfo.Serial, FirmwareRebootTimeout);
       // Перерегистрация ФФД
-      //UpdateFFD;
+      UpdateFFD(Item);
     end;
   end else
   begin
@@ -641,9 +645,9 @@ begin
   SetStatusText('Обновление выполнено успешно');
 end;
 
-procedure TFirmwareUpdater.UpdateFFD;
+procedure TFirmwareUpdater.UpdateFFD(const Item: TUpdateItem);
 begin
-  ChangeFFD(FParams.FFDNeedUpdate);
+  ChangeFFD(Item, FParams.FFDNeedUpdate);
 end;
 
 procedure TFirmwareUpdater.WriteLicenses(const Ecr: TEcrInfo);
@@ -1400,15 +1404,15 @@ begin
   end;
 end;
 
-procedure TFirmwareUpdater.ChangeFFD(AFFD: TFFDNeedUpdate);
+procedure TFirmwareUpdater.ChangeFFD(const Item: TUpdateItem;
+  AFFD: TFFDNeedUpdate);
 var
   FFDVer: Integer;
   WorkModeEx: Byte;
-
-  INNOFD: string;
-  ServerKM: string;
-  PortKM: Integer;
+  OfdParams: TOfdParams;
+  OfdInn: string;
 begin
+  CheckAllDocumentsSent;
   case AFFD of
     NoUpdateNeeded:
     begin
@@ -1430,44 +1434,29 @@ begin
     PrintText('О ЗАВЕРШЕНИИ ПЕРЕРЕГИСТРАЦИИ');
     Feed(14);
   end;
-  WorkModeEx := Driver.ReadTableInt(18, 1, 21);
-  if FFDVer = 2 then
-    WorkModeEx := WorkModeEx and  $0F
-  else
-  begin
-    if FParams.FFDMarking then
-      SetBit(WorkModeEx, 4);
-
-    if FParams.FFDPawnshop then
-      SetBit(WorkModeEx, 5);
-
-    if FParams.FFDInsurance then
-      SetBit(WorkModeEx, 6);
-  end;
-  CheckAllDocumentsSent;
   Driver.Check(Driver.FNBuildCalculationStateReport);
   Driver.WaitForPrinting;
   SetStatusText('Перерегистрация ККТ на ' + FFDToStr(FFDVer));
+
   Driver.WriteTableInt(17, 1, 17, FFDVer);
-  Driver.WriteTableInt(18, 1, 21, WorkModeEx);
-  Driver.WriteTableInt(18, 1, 22, 2097216); // причина - Смена ФФД + изменение версии модели
+  OfdInn := Driver.ReadTableStr(18, 1, 12);
+  if GetOfdParams(Item, OfdInn, OfdParams) then
+  begin
+    if OfdParams.ServerKM <> '' then
+      Driver.WriteTableStr(19, 1, 5, OfdParams.ServerKM);
+    if OfdParams.PortKM <> 0 then
+      Driver.WriteTableInt(19, 1, 6, OfdParams.PortKM);
+  end;
+
   Driver.RegistrationReasonCode := 4; // Изменение настроек ККТ
-  Driver.INN := Trim(Driver.ReadTableStr(18, 1, 2));
+  Driver.Inn := Trim(Driver.ReadTableStr(18, 1, 2));
   Driver.KKTRegistrationNumber := Trim(Driver.ReadTableStr(18, 1, 3));
   Driver.TaxType := Driver.ReadTableInt(18, 1, 5);
   Driver.WorkMode := Driver.ReadTableInt(18, 1, 6);
   Logger.Debug('FNBuildReregistrationReport');
   Driver.Check(Driver.FNBuildReregistrationReport);
   Driver.WaitForPrinting;
-  INNOFD := Driver.ReadTableStr(18, 1, 12);
-  Logger.Debug('INN OFD: ' + INNOFD);
-  GetServerKMParams(INNOFD, ServerKM, PortKM);
-  if ServerKM <> '' then
-  begin
-    Logger.Debug('Запись настроек сервера КМ');
-    Driver.WriteTableStr(19, 1, 5, ServerKM);
-    Driver.WriteTableInt(19, 1, 6, PortKM);
-  end;
+
   if FParams.PrintStatus then
   begin
     Feed(2);
@@ -1515,7 +1504,7 @@ begin
     Driver.Check(Driver.FNGetInfoExchangeStatus);
     if Driver.MessageCount = 0 then Break;
 
-    IsTimeout := Abs(GetTickCount - TickCount) > (1000 * 60 * FParams.DocumentSentTimeoutInMin);
+    IsTimeout := Abs(GetTickCount - TickCount) > (1000 * FParams.DocSentTimeoutInSec);
     if IsTimeout then Break;
 
     Sleep(500);
@@ -1600,25 +1589,59 @@ begin
   Driver.Check(Driver.WaitForPrinting);
 end;
 
-procedure TFirmwareUpdater.GetServerKMParams(const INNOFD: string;
-  var ServerKM: string; var PortKM: Integer);
-var
-  OFDRec: TOFDParams;
-begin
-  Globallogger.Debug('Обновление параметров сервера КМ для ИНН ОФД ' + INNOFD);
-  ServerKM := FParams.ServerKM;
-  PortKM := FParams.PortKM;
+//Logger.Debug('Обновление параметров сервера КМ для ИНН ОФД ' + OfdInn);
+//Logger.Debug('ServerKM: ' + ServerKM);
+//Logger.Debug('PortKM: ' + PortKM.ToString);
 
-  for OFDRec in OFDParamsArray do
+function TFirmwareUpdater.FindOfdParams(const OfdInn: string;
+  var OfdParams: TOfdParams): Boolean;
+var
+  Ofd: TOfdParams;
+begin
+  Result := False;
+  for Ofd in OfdParamsArray do
   begin
-    if OFDRec.INN = Trim(INNOFD) then
+    Result := Ofd.Inn = Trim(OfdInn);
+    if Result then
     begin
-      ServerKM := OFDRec.ServerKM;
-      PortKM := OFDRec.PortKM;
+      OfdParams := Ofd;
+      Break;
     end;
   end;
-  Logger.Debug('ServerKM: ' + ServerKM);
-  Logger.Debug('PortKM: ' + PortKM.ToString);
+end;
+
+///////////////////////////////////////////////////////////////////////////////
+//19,1,5,64,1,0,3000,'Сервер км','192.168.144.138'
+//19,1,6,2,0,1,65535,'Порт км','8789'
+
+function TFirmwareUpdater.GetOfdParams(const UpdateItem: TUpdateItem;
+  const OfdInn: string; var OfdParams: TOfdParams): Boolean;
+var
+  Ofd: TOfdParams;
+  Item: TTableItem;
+begin
+  Ofd.Inn := OfdInn;
+  Ofd.ServerKM := '';
+  Ofd.PortKM := 0;
+  for Item in UpdateItem.Tables do
+  begin
+    if (Item.Table = 19)and(Item.Row = 1)and (Item.Field = 5) then
+    begin
+      Ofd.ServerKM := Item.StrValue;
+    end;
+    if (Item.Table = 19)and(Item.Row = 1)and (Item.Field = 6) then
+    begin
+      Ofd.PortKM := Item.IntValue;
+    end;
+  end;
+  Result := (Ofd.ServerKM <> '')and(Ofd.PortKM <> 0);
+  if Result then
+  begin
+    OfdParams := Ofd;
+  end else
+  begin
+    Result := FindOfdParams(OfdInn, OfdParams);
+  end;
 end;
 
 function TFirmwareUpdater.FindItemIndex(const Ecr: TEcrInfo;
@@ -1674,6 +1697,8 @@ end;
 
 
 (*
+
+
 
       EcrInfo.Action := IMAGE_FIRMWARE;
       EcrInfo.RebootDelay := FirmwareRebootDelay;

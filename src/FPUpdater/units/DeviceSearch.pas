@@ -70,6 +70,7 @@ begin
       // ????
       if PortRec.ComNumber >= 0 then
       begin
+
         PortData.PortName := PortRec.Name;
         PortData.PortNumber := PortRec.ComNumber;
         PortData.FriendlyName := PortRec.FriendlyName;
@@ -78,6 +79,7 @@ begin
         Port.ShortSearch := ShortSearch;
         Port.Data := PortData;
         Port.Text := PortRec.FriendlyName;
+        Port.ConnectionType := CT_LOCAL;
         Port.Selected := True;
       end;
     end;
