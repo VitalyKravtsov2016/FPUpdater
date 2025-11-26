@@ -54,8 +54,8 @@ type
 
     procedure TestCreateShtrihEcr;
     procedure TestFirmwareUpdateRNDIS3;
-    procedure TestUpdateFFD;
     procedure TestWaitForDFUDevice;
+    procedure TestUpdateFFD;
   end;
 
 implementation
@@ -234,6 +234,8 @@ procedure TFirmwareUpdaterTest.SetRndisConnection;
 var
   Ecr: TEcrInfo;
 begin
+  Logger.Debug('SetRndisConnection');
+
   CheckConnection;
   Ecr := Updater.ReadEcrInfo;
   if Driver.ConnectionType = CT_LOCAL then
@@ -403,15 +405,12 @@ begin
   if (Ecr.FirmwareVersion <> 'C.1')or(Ecr.FirmwareBuild <> 62928) then
   begin
     Path := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'test\';
-    Updater.DfuUploadFile(Path, 'sm_app_62928_c1.bin');
+    Updater.DfuUploadFile(Path, 'sm_app_100125_c1.bin');
     Updater.DelayInMs(LoaderRebootDelay);
-
     SearchParams.Serial := Ecr.Serial;
     SearchParams.Timeout := 300000;
     SearchParams.Port := PORT_VCOM;
     Updater.DiscoverDevice(SearchParams);
-
-    TestFNFiscalization;
   end;
   Logger.Debug('TestUpdateFirmwareShtrih.1');
 end;
@@ -449,8 +448,6 @@ begin
     Driver.Check(Driver.FNBuildRegistrationReport);
     Driver.WaitForPrinting;
     Driver.Timeout := 1000;
-    // Дождаться передачи данных
-    //Check(Updater.WaitDocSent(3), 'Документы не переданы'); // 3 секунды ждем
   end;
 end;
 
@@ -468,16 +465,33 @@ end;
 
 procedure TFirmwareUpdaterTest.TestCreateShtrihEcr;
 begin
-  TestUpdateFirmwareShtrih;
-  SetRndisConnection;
+  try
+    TestUpdateFirmwareShtrih;
+    TestFNFiscalization;
+    SetRndisConnection;
+  except
+    on E: Exception do
+    begin
+      Logger.Error(E.Message);
+      raise;
+    end;
+  end;
 end;
 
 procedure TFirmwareUpdaterTest.TestFirmwareUpdateRNDIS3;
 begin
-  CheckRndisConnection;
-  Updater.UpdateFirmware;
-  CheckFirmwareUpdated;
-  CheckRndisConnection;
+  try
+    CheckRndisConnection;
+    Updater.UpdateFirmware;
+    CheckFirmwareUpdated;
+    CheckRndisConnection;
+  except
+    on E: Exception do
+    begin
+      Logger.Error(E.Message);
+      raise;
+    end;
+  end;
 end;
 
 procedure TFirmwareUpdaterTest.CheckFirmwareUpdated;
@@ -547,12 +561,16 @@ procedure TFirmwareUpdaterTest.TestWaitForDFUDevice;
 var
   TickCount: Integer;
 begin
-  CheckEquals(False, IsDFUDevicePresent, 'IsDFUDevicePresent = True');
+  SetVComConnection;
+  Driver.Check(Driver.Connect);
+  CheckEquals(False, Updater.WaitForDFUDevice(0), 'WaitForDFUDevice');
   TickCount := GetTickCount;
   Driver.Check(Driver.SetDFUMode);
-  CheckEquals(True, WaitForDFUDevice(DFUDelayTime), 'WaitForDFUDevice');
+  CheckEquals(True, Updater.WaitForDFUDevice(DFUDelayTime), 'WaitForDFUDevice');
   TickCount := GetTickCount - TickCount;
   Logger.Debug(Format('DFU device up time: %d ms', [TickCount]));
+  Check(TickCount < 3000, 'DFU device up time > 3000 ms');
+  // Wait
 end;
 
 

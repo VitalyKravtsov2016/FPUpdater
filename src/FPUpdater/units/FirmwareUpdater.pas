@@ -26,10 +26,12 @@ uses
   LogFile, BinUtils, FptrTypes, XModem, DeviceSearch, SearchPort;
 
 const
+  ProgressMax = 135;
   DFUDelayTime = 5000;
-
-  LoaderRebootDelay = 8000;
-  FirmwareRebootDelay = 15000;
+  //LoaderRebootDelay = 15000;
+  //FirmwareRebootDelay = 30000;
+  LoaderRebootDelay = 3000;
+  FirmwareRebootDelay = 3000;
 
   RebootTimeout = 6000;
   LoaderRebootTimeout = 60000;
@@ -233,6 +235,11 @@ type
     procedure DecryptFiles(const InPath, OutPath: string);
     procedure UnzipArhive(const OutPath, FileName: string);
     procedure LoadFiles(const InPath: string);
+
+    function RunDfuUtil(const Path, Params: string): string;
+    function IsDFUDevicePresent: Boolean;
+    function WaitForDFUDevice(Timeout: Cardinal): Boolean;
+    procedure SetVComConnection;
   public
     constructor Create;
     destructor Destroy; override;
@@ -250,9 +257,6 @@ type
     property Path: string read FPath write FPath;
     property Status: TUpdateStatus read GetStatus;
   end;
-
-function IsDFUDevicePresent: Boolean;
-function WaitForDFUDevice(Timeout: Cardinal): Boolean;
 
 implementation
 
@@ -443,65 +447,6 @@ begin
   end;
 end;
 
-function IsDFUDevicePresent: Boolean;
-var
-  DevInfo: HDEVINFO;
-  DevInterfaceData: SP_DEVICE_INTERFACE_DATA;
-  DeviceInfoSet: Cardinal;
-  i: Integer;
-  Guid: TGUID;
-begin
-  Result := False;
-
-  // GUID для DFU устройств
-  // {3fe809ab-fb91-4cb5-a643-69670d52366e} - стандартный GUID для DFU
-  Guid := StringToGUID('{3fe809ab-fb91-4cb5-a643-69670d52366e}');
-
-  // Получаем информацию об устройствах
-  DevInfo := SetupDiGetClassDevs(@Guid, nil, 0, DIGCF_PRESENT or DIGCF_DEVICEINTERFACE);
-
-  if DWORD(DevInfo) <> INVALID_HANDLE_VALUE then
-  try
-    i := 0;
-    DevInterfaceData.cbSize := SizeOf(SP_DEVICE_INTERFACE_DATA);
-
-    // Перебираем все устройства
-    while SetupDiEnumDeviceInterfaces(DevInfo, nil, Guid, i, DevInterfaceData) do
-    begin
-      Result := True;  // Нашли хотя бы одно DFU устройство
-      Break;
-    end;
-  finally
-    SetupDiDestroyDeviceInfoList(DevInfo);
-  end;
-end;
-
-function WaitForDFUDevice(Timeout: Cardinal): Boolean;
-var
-  StartTime: Cardinal;
-  Elapsed: Cardinal;
-begin
-  Result := False;
-  StartTime := GetTickCount;
-
-  while True do
-  begin
-    // Проверяем наличие DFU устройства
-    Result := IsDFUDevicePresent;
-    if Result then Exit;
-
-    // Проверяем таймаут
-    Elapsed := GetTickCount - StartTime;
-    if Elapsed >= Timeout then
-    begin
-      // Таймаут истек
-      //raise Exception.Create('DFU device not found within specified timeout');
-      Exit;
-    end;
-    // Ждем перед следующей проверкой
-    Sleep(100); // Проверяем каждые 100 мс
-  end;
-end;
 
 { TFirmwareUpdater }
 
@@ -542,7 +487,7 @@ end;
 
 procedure TFirmwareUpdater.Start;
 begin
-  if FThread <> nil then
+  if Status.IsStarted then
     raise Exception.Create('Обновление уже идет.');
 
   FStopped := False;
@@ -579,16 +524,11 @@ const
 procedure TFirmwareUpdater.Execute(Sender: TObject);
 begin
   try
-    FStatus.IsStarted := True;
-    FStatus.StartTime := Now;
-
     CoInitialize(nil);
     try
       UpdateFirmware;
     finally
       CoUninitialize;
-      UpdateStatus;
-      FStatus.IsStarted := False;
     end;
   except
     on E: Exception do
@@ -600,15 +540,22 @@ end;
 
 procedure TFirmwareUpdater.UpdateFirmware;
 begin
+  FStatus.IsStarted := True;
+  FStatus.StartTime := Now;
   Logger.Debug(Separator);
   try
-    DoUpdateFirmware;
-  except
-    on E: Exception do
-    begin
-      Logger.Error('Ошибка: ' + E.Message);
-      raise;
+    try
+      DoUpdateFirmware;
+    except
+      on E: Exception do
+      begin
+        Logger.Error('Ошибка: ' + E.Message);
+        raise;
+      end;
     end;
+  finally
+    UpdateStatus;
+    FStatus.IsStarted := False;
   end;
   Logger.Debug(Separator);
 end;
@@ -650,6 +597,7 @@ begin
   FormatSDCard;
   if EcrInfo.UpdateMode = umDFU then
   begin
+    //SetVComConnection;
     // Update loader
     while FindUpdateItem(EcrInfo, ACTION_UPDATE_LOADER, Item) do
     begin
@@ -693,9 +641,10 @@ begin
   end;
   WriteTables(Item.Tables);
   // Перезагрузка
-  SetStatusText('Перезагрузка...');
+  SetStatusText('Перезагрузка ККМ...');
   Driver.RebootKKT;
   Driver.Disconnect;
+  SetStatusText('Перезагрузка ККМ: OK');
   // Читаем параметры подключения
   Driver.Check(Driver.LoadParams);
   DelayInMs(FirmwareRebootDelay);
@@ -705,6 +654,26 @@ begin
 
   SetStatusText(Format('Обновление выполнено успешно. Время выполнения: %d', [
     SecondsBetween(Now, FStatus.StartTime)]));
+end;
+
+procedure TFirmwareUpdater.SetVComConnection;
+var
+  Ecr: TEcrInfo;
+  SearchParams: TSearchParams;
+begin
+  if Driver.ConnectionType <> CT_LOCAL then
+  begin
+    Driver.WriteTableInt(21, 1, 1, 0); // Режим ppp
+    Driver.WriteTableInt(21, 1, 9, 0); // Rndis active = 0
+    Driver.RebootKKT;
+    Driver.Disconnect;
+
+    Driver.ConnectionType := CT_LOCAL;
+    SearchParams.Port := PORT_VCOM;
+    SearchParams.Serial := Ecr.Serial;
+    SearchParams.Timeout := FirmwareRebootTimeout;
+    DiscoverDevice(SearchParams);
+  end;
 end;
 
 procedure TFirmwareUpdater.UpdateFFD(const Item: TUpdateItem);
@@ -912,12 +881,13 @@ end;
 procedure TFirmwareUpdater.ReadTables(const Serial: string);
 begin
   CheckStopped;
-  SetStatusText('Чтение таблиц');
+  SetStatusText('Чтение таблиц...');
   ForceDirectories(GetBackupTablesPath);
   Driver.FileName := IncludeTrailingBackslash(GetBackupTablesPath) + Serial + '.csv';
   if FileExists(Driver.FileName) then
     SysUtils.DeleteFile(Driver.FileName);
   Driver.Check(Driver.ExportTables);
+  SetStatusText('Чтение таблиц: OK');
 end;
 
 const
@@ -1112,6 +1082,7 @@ var
   StdOut: string;
   StartTime: TDateTime;
 begin
+  StartTime := Now;
   Logger.Debug(Format('DFU, запись файла "%s"', [FileName]));
   // Проверка файлов
   FirmwareFile := Path + FileName;
@@ -1135,10 +1106,8 @@ begin
   end;
   Driver.Disconnect;
   // Ждём переход в DFU
-  //DelayInMs(DFUDelayTime);
   WaitForDFUDevice(DFUDelayTime);
   // Грузим файл
-  StartTime := Now;
   SetStatusText('Запись файла ' + FileName);
   ResultCode := SystemUtils.ExecuteProcess(DfuUtilFile,' -D '+ FirmwareFile, StdOut);
   if ResultCode <> 0 then
@@ -1150,9 +1119,46 @@ begin
     raise Exception('Не удалось загрузить прошивку в ККТ.'#13#10 + StdOut);
   end;
   SetStatusText('DFU, запись успешно выполнена');
-  Logger.Debug(Format('DFU, время записи, секунд: %d', [
-    SecondsBetween(Now, StartTime)]));
+  Logger.Debug(Format('DFU, запись выполнена за %d мс.', [
+    MilliSecondsBetween(Now, StartTime)]));
 end;
+
+function TFirmwareUpdater.RunDfuUtil(const Path, Params: string): string;
+var
+  DfuUtilFile: string;
+  ResultCode: Integer;
+begin
+  DfuUtilFile := Path + 'dfu-util-static.exe';
+  if not FileExists(DfuUtilFile) then
+    raise Exception.CreateFmt('Файл "%s" не найден.', [DfuUtilFile]);
+
+  ResultCode := SystemUtils.ExecuteProcess(DfuUtilFile, Params, Result);
+  if ResultCode <> 0 then
+    raise Exception.CreateFmt('Ошибка выполнения. %s, %s', [
+    SysErrorMessage(GetLastError), Result]);
+end;
+
+function TFirmwareUpdater.WaitForDFUDevice(Timeout: Cardinal): Boolean;
+var
+  StartTime: Cardinal;
+begin
+  Result := False;
+  StartTime := GetTickCount;
+  while True do
+  begin
+    Result := IsDFUDevicePresent;
+    if Result then Exit;
+
+    if (GetTickCount - StartTime) >= Timeout then Break;
+    Sleep(100); // Проверяем каждые 100 мс
+  end;
+end;
+
+function TFirmwareUpdater.IsDFUDevicePresent: Boolean;
+begin
+  Result := Pos('DFU', RunDfuUtil(FPath, '-l')) <> 0;
+end;
+
 
 procedure TFirmwareUpdater.XModemUploadFile(ComNumber: Integer;
   const Path, FileName: string);
@@ -1177,20 +1183,23 @@ procedure TFirmwareUpdater.DelayInMs(DelayInMs: Integer);
 var
   TickCount: Integer;
 begin
+  SetStatusText(Format('Задерка %d мс...', [DelayInMs]));
   TickCount := GetTickCount;
   repeat
     CheckStopped;
-    //Sleep(100);
+    Sleep(100);
   until GetTickCount > (TickCount + DelayInMs);
+  SetStatusText(Format('Задерка %d мс: OK', [DelayInMs]));
 end;
 
 // По надобности, восстанавливаем таблицы
 procedure TFirmwareUpdater.WriteTablesFile(const Serial: string);
 begin
   CheckStopped;
-  SetStatusText('Запись таблиц из файла');
+  SetStatusText('Запись таблиц...');
   Driver.FileName := IncludeTrailingBackslash(GetBackupTablesPath) + Serial + '.csv';
   Driver.Check(Driver.ImportTables);
+  SetStatusText('Запись таблиц: OK');
 end;
 
 procedure TFirmwareUpdater.WriteTables(const Tables: TTableItems);
@@ -1199,8 +1208,7 @@ var
   Table: TTableItem;
 begin
   CheckStopped;
-  SetStatusText('Запись дополнительных таблиц');
-
+  SetStatusText('Запись дополнительных таблиц...');
   // Дозапись таблиц после обновления
   for i := 0 to Length(Tables)-1 do
   begin
@@ -1215,6 +1223,7 @@ begin
       Driver.ValueOfFieldString := Table.StrValue;
     Driver.WriteTable;
   end;
+  SetStatusText('Запись дополнительных таблиц: OK');
 end;
 
 procedure TFirmwareUpdater.WaitForDevice(const Serial: string;
@@ -1228,16 +1237,17 @@ begin
   TickCount := GetTickCount;
   repeat
     CheckStopped;
-    Sleep(1000);
     if FindDevice(Serial) then
     begin
-      Logger.Debug('Устройство найдено');
+      Logger.Debug(Format('Устройство найдено за %d мс', [GetTickCount - TickCount]));
       Logger.Debug('Проверка состояния ККМ');
       Driver.Check(Driver.ResetECR);
       Exit;
     end;
+    Sleep(1000);
   until GetTickCount > TickCount + TimeoutInMs;
   raise Exception.CreateFmt('Устройство %s не найдено', [Serial]);
+  SetStatusText('Ожидание устройства: OK');
 end;
 
 function TFirmwareUpdater.FindDevice(const Serial: string): Boolean;
@@ -1301,8 +1311,14 @@ begin
   TickCount := GetTickCount;
   repeat
     CheckStopped;
-    if FindDeviceLocal(Params) then Exit;
-    Sleep(1000);
+    if FindDeviceLocal(Params) then
+    begin
+      Logger.Debug(Format('Устройство найдено за %d мс', [GetTickCount - TickCount]));
+      Logger.Debug('Проверка состояния ККМ');
+      Exit;
+    end;
+
+    Sleep(100);
   until GetTickCount > TickCount + Params.Timeout;
 
   raise Exception.CreateFmt('Устройство %s не найдено', [Params.Serial]);
@@ -1382,7 +1398,7 @@ procedure TFirmwareUpdater.UpdateStatus;
 begin
   if FStatus.IsStarted then
   begin
-    FStatus.ProgressMax := 108;
+    FStatus.ProgressMax := ProgressMax;
     FStatus.ElapsedSeconds := SecondsBetween(Now, FStatus.StartTime);
     FStatus.ProgressPos := FStatus.ElapsedSeconds;
     FStatus.TimeText := Format('Время начала: %s, прошло секунд, %d', [
@@ -1479,6 +1495,7 @@ end;
 procedure TFirmwareUpdater.ChangeFFD(const Item: TUpdateItem;
   AFFD: TFFDNeedUpdate);
 var
+  Text: string;
   FFDVer: Integer;
   WorkModeEx: Byte;
   OfdParams: TOfdParams;
@@ -1504,11 +1521,13 @@ begin
     PrintText('О ЗАВЕРШЕНИИ ПЕРЕРЕГИСТРАЦИИ');
     Feed(14);
   end;
-  SetStatusText('Печать отчета о состоянии расчетов');
+  SetStatusText('Печать отчета о состоянии расчетов...');
   Driver.Check(Driver.FNBuildCalculationStateReport);
   Driver.WaitForPrinting;
+  SetStatusText('Печать отчета о состоянии расчетов: OK');
 
-  SetStatusText('Перерегистрация ККТ на ' + FFDToStr(FFDVer));
+  Text := Format('Перерегистрация ККТ на %s', [FFDToStr(FFDVer)]);
+  SetStatusText(Text + '...');
   Driver.WriteTableInt(17, 1, 17, FFDVer);
   OfdInn := Driver.ReadTableStr(18, 1, 12);
   if GetOfdParams(Item, OfdInn, OfdParams) then
@@ -1526,6 +1545,7 @@ begin
   Driver.WorkMode := Driver.ReadTableInt(18, 1, 6);
   Driver.Check(Driver.FNBuildReregistrationReport);
   Driver.WaitForPrinting;
+  SetStatusText(Text + ': OK');
 
   if FParams.PrintStatus then
   begin
@@ -1533,7 +1553,7 @@ begin
     PrintText('ПРОИЗВЕДЕНА АВТОМАТИЧЕСКАЯ ПЕРЕРЕГИСТРАЦИЯ');
     PrintText('НА ФФД 1.2');
     Feed(12);
-    Sleep(50);
+    Driver.WaitForPrinting;
     Driver.FinishDocument;
     Driver.WaitForPrinting;
   end;
@@ -1586,6 +1606,7 @@ procedure TFirmwareUpdater.CheckDocSent;
 var
   IsTimeout: Boolean;
 begin
+  SetStatusText('Проверка отправленныз документов...');
   IsTimeout := not WaitDocSent(FParams.DocSentTimeoutInSec);
   if IsTimeout and FParams.PrintStatus then
   begin
@@ -1598,13 +1619,14 @@ begin
     PrintText('СЛЕДУЮЩАЯ ПОПЫТКА ПЕРЕРЕГИСТРАЦИИ');
     PrintText('БУДЕТ ПРОИЗВЕДЕНА ПРИ ОТКРЫТИИ СМЕНЫ');
     Feed(15);
-    Sleep(50);
+    Driver.WaitForPrinting;
     Driver.FinishDocument;
     Driver.WaitForPrinting;
-
+  end;
+  if IsTimeout then
     raise Exception.Create(
       'Перерегистрация на ФФД 1.2 не может быть произведена. Есть неотправленные в ОФД документы');
-  end;
+  SetStatusText('Проверка отправленныз документов: OK');
 end;
 
 function TFirmwareUpdater.ReadCashRegister: Currency;
@@ -1771,6 +1793,18 @@ begin
     end;
   end;
 end;
+
+///////////////////////////////////////////////////////////////////////////////
+// 1. Если документы не уходят, то можно перезагрузить устройство
+// или пропинговать сервер? или еще как-то возобновить сетевое подключение
+// или нужно проверить что документы ушли перед обновлением ПО
+//
+// 2. Протестировать обновление ПО на возможные ошибки - прервать обновление
+// на разных этапах.
+//
+// 3. Проверить переключение в режим VCOM до обновления ПО
+//
+///////////////////////////////////////////////////////////////////////////////
 
 
 end.
