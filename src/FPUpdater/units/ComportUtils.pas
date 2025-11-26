@@ -113,7 +113,6 @@ var
   S1: string;
   PortRec: TSerialPortRec;
 begin
-  Globallogger.Debug('Получение всех COM портов системы');
   Ports.Clear;
   if not LoadsetupAPI then
     exit;

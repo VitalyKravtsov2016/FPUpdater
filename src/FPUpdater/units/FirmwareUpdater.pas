@@ -18,7 +18,7 @@ uses
   Windows, SysUtils, Classes, Registry, SyncObjs, ShlObj,
   System.Zip, System.IOUtils, System.Net.HttpClient,
   System.Net.HttpClientComponent, System.DateUtils,
-  ActiveX,
+  ActiveX, JvSetupApi,
   // TurboPower
   uTPLb_Codec, uTPLb_CryptographicLibrary,
   // This
@@ -32,8 +32,8 @@ const
   FirmwareRebootDelay = 15000;
 
   RebootTimeout = 6000;
-  LoaderRebootTimeout = 15000;
-  FirmwareRebootTimeout = 30000;
+  LoaderRebootTimeout = 60000;
+  FirmwareRebootTimeout = 60000;
 
   // TODO: Обновление параметров сервера КМ для ИНН ОФД ??
 
@@ -174,22 +174,19 @@ type
   public
     procedure UpdateStatus;
     procedure DeleteLog;
-    procedure LoadFiles;
     procedure CheckStopped;
-    procedure UnzipArhive;
-    procedure DecryptFiles;
     procedure DownloadFiles;
     procedure UnpackArhiveToDrive;
     procedure Execute(Sender: TObject);
     procedure SetStatusText(const Text: string);
     procedure DecryptFile(const DstFileName, SrcFileName: string);
-    procedure CheckFWFiles(const Path: string; Items: TUpdateItems);
+    procedure CheckFilesExists(const Path: string; Items: TUpdateItems);
     procedure CheckFirmwareUpdated(const Item: TUpdateItem);
     procedure DelayInMs(DelayInMs: Integer);
     procedure SetBaudRate(BaudRate: Integer);
     procedure Feed(ALineCount: Integer);
     procedure PrintText(const AStr: string);
-    procedure CheckAllDocumentsSent;
+    procedure CheckDocSent;
     procedure PrintUpdateStarted;
     procedure FormatSDCard;
     procedure WriteTablesFile(const Serial: string);
@@ -212,7 +209,7 @@ type
     function ReadSerialNumber: string;
     function CheckUpdateAvailable: Boolean;
     function EcrUpdateable(const Serial: AnsiString): Boolean;
-    function GetInfoText(const EcrInfo: TEcrInfo): string;
+    function GetInfoText(EcrInfo: TEcrInfo): string;
     function ReadFFDVersion: Integer;
     function ReadLicense(const FileName, Serial: string;
       var License: TEcrLicense): Boolean;
@@ -232,6 +229,10 @@ type
       var OfdParams: TOfdParams): Boolean;
     procedure UpdateFFD(const Item: TUpdateItem);
     procedure ChangeFFD(const Item: TUpdateItem; AFFD: TFFDNeedUpdate);
+    function WaitDocSent(TimeoutInSec: Integer): Boolean;
+    procedure DecryptFiles(const InPath, OutPath: string);
+    procedure UnzipArhive(const OutPath, FileName: string);
+    procedure LoadFiles(const InPath: string);
   public
     constructor Create;
     destructor Destroy; override;
@@ -242,8 +243,6 @@ type
     procedure ShowProperties;
     procedure UpdateFirmware;
     procedure LoadParameters;
-
-    function IsStarted: Boolean;
     function CheckEcrUpdateable: Boolean;
 
     property Items: TUpdateItems read FItems;
@@ -251,6 +250,9 @@ type
     property Path: string read FPath write FPath;
     property Status: TUpdateStatus read GetStatus;
   end;
+
+function IsDFUDevicePresent: Boolean;
+function WaitForDFUDevice(Timeout: Cardinal): Boolean;
 
 implementation
 
@@ -441,6 +443,66 @@ begin
   end;
 end;
 
+function IsDFUDevicePresent: Boolean;
+var
+  DevInfo: HDEVINFO;
+  DevInterfaceData: SP_DEVICE_INTERFACE_DATA;
+  DeviceInfoSet: Cardinal;
+  i: Integer;
+  Guid: TGUID;
+begin
+  Result := False;
+
+  // GUID для DFU устройств
+  // {3fe809ab-fb91-4cb5-a643-69670d52366e} - стандартный GUID для DFU
+  Guid := StringToGUID('{3fe809ab-fb91-4cb5-a643-69670d52366e}');
+
+  // Получаем информацию об устройствах
+  DevInfo := SetupDiGetClassDevs(@Guid, nil, 0, DIGCF_PRESENT or DIGCF_DEVICEINTERFACE);
+
+  if DWORD(DevInfo) <> INVALID_HANDLE_VALUE then
+  try
+    i := 0;
+    DevInterfaceData.cbSize := SizeOf(SP_DEVICE_INTERFACE_DATA);
+
+    // Перебираем все устройства
+    while SetupDiEnumDeviceInterfaces(DevInfo, nil, Guid, i, DevInterfaceData) do
+    begin
+      Result := True;  // Нашли хотя бы одно DFU устройство
+      Break;
+    end;
+  finally
+    SetupDiDestroyDeviceInfoList(DevInfo);
+  end;
+end;
+
+function WaitForDFUDevice(Timeout: Cardinal): Boolean;
+var
+  StartTime: Cardinal;
+  Elapsed: Cardinal;
+begin
+  Result := False;
+  StartTime := GetTickCount;
+
+  while True do
+  begin
+    // Проверяем наличие DFU устройства
+    Result := IsDFUDevicePresent;
+    if Result then Exit;
+
+    // Проверяем таймаут
+    Elapsed := GetTickCount - StartTime;
+    if Elapsed >= Timeout then
+    begin
+      // Таймаут истек
+      //raise Exception.Create('DFU device not found within specified timeout');
+      Exit;
+    end;
+    // Ждем перед следующей проверкой
+    Sleep(100); // Проверяем каждые 100 мс
+  end;
+end;
+
 { TFirmwareUpdater }
 
 constructor TFirmwareUpdater.Create;
@@ -556,7 +618,6 @@ var
   EcrInfo: TEcrInfo;
   Item: TUpdateItem;
   CashRegister: Currency;
-  IsComConnection: Boolean;
   SearchParams: TSearchParams;
 begin
   SetStatusText('Обновление устройства');
@@ -564,8 +625,6 @@ begin
   Driver.Check(Connect);
   EcrInfo.UpdateMode := umDFU;
   EcrInfo := ReadEcrInfo;
-  IsComConnection := EcrInfo.PortNumber = PORT_COM;
-  FStatus.InfoText := GetInfoText(EcrInfo);
   if EcrInfo.FirmwareValid then
   begin
     EcrInfo.UpdateMode := GetUpdateMode(EcrInfo.PortNumber);
@@ -573,6 +632,11 @@ begin
     if FParams.RestoreCashRegister then
     begin
       CashRegister := ReadCashRegister;
+    end;
+    // Чтение таблиц
+    if FParams.SaveTables then
+    begin
+      ReadTables(EcrInfo.Serial);
     end;
     // Проверка режима ККМ
     if Driver.ECRMode <> MODE_CLOSED then
@@ -598,10 +662,6 @@ begin
     // Up
     if FindUpdateItem(EcrInfo, ACTION_UPDATE_FIRMWARE, Item) then
     begin
-      if EcrInfo.FirmwareValid and FParams.SaveTables then
-      begin
-        ReadTables(EcrInfo.Serial);
-      end;
       DfuUploadFile(FPath, Item.FileName);
       DelayInMs(FirmwareRebootDelay);
       // Ищем устройство на порту VCOM
@@ -612,37 +672,39 @@ begin
       // Проверка, обновилось ли ПО
       CheckFirmwareUpdated(Item);
       PrintUpdateCompleted;
-      // Запись лицензий
-      WriteLicenses(EcrInfo);
-
-      if EcrInfo.FirmwareValid then
-      begin
-        if FParams.RestoreCashRegister then
-        begin
-          PrintCashIn(CashRegister);
-        end;
-        if FParams.SaveTables then
-        begin
-          WriteTablesFile(EcrInfo.Serial);
-        end;
-      end;
-      WriteTables(Item.Tables);
-      // Перезагрузка
-      SetStatusText('Перезагрузка...');
-      Driver.RebootKKT;
-      Driver.Disconnect;
-      // Читаем параметры подключения
-      Driver.Check(Driver.LoadParams);
-      DelayInMs(FirmwareRebootDelay);
-      WaitForDevice(EcrInfo.Serial, FirmwareRebootTimeout);
-      // Перерегистрация ФФД
-      UpdateFFD(Item);
     end;
   end else
   begin
     raise Exception.Create('Не реализовано');
   end;
-  SetStatusText('Обновление выполнено успешно');
+
+  // Запись лицензий
+  WriteLicenses(EcrInfo);
+  if EcrInfo.FirmwareValid then
+  begin
+    if FParams.RestoreCashRegister and (CashRegister <> 0) then
+    begin
+      PrintCashIn(CashRegister);
+    end;
+    if FParams.SaveTables then
+    begin
+      WriteTablesFile(EcrInfo.Serial);
+    end;
+  end;
+  WriteTables(Item.Tables);
+  // Перезагрузка
+  SetStatusText('Перезагрузка...');
+  Driver.RebootKKT;
+  Driver.Disconnect;
+  // Читаем параметры подключения
+  Driver.Check(Driver.LoadParams);
+  DelayInMs(FirmwareRebootDelay);
+  WaitForDevice(EcrInfo.Serial, FirmwareRebootTimeout);
+  // Перерегистрация ФФД
+  UpdateFFD(Item);
+
+  SetStatusText(Format('Обновление выполнено успешно. Время выполнения: %d', [
+    SecondsBetween(Now, FStatus.StartTime)]));
 end;
 
 procedure TFirmwareUpdater.UpdateFFD(const Item: TUpdateItem);
@@ -740,7 +802,7 @@ begin
   Result.FirmwareDate := Driver.ECRSoftDate;
 end;
 
-function TFirmwareUpdater.GetInfoText(const EcrInfo: TEcrInfo): string;
+function TFirmwareUpdater.GetInfoText(EcrInfo: TEcrInfo): string;
 var
   Lines: TStrings;
   LoaderLine: string;
@@ -760,11 +822,12 @@ begin
     LoaderLine := '';
     FirmwareLine := '';
     UpdateAvailable := False;
-    if FindUpdateItem(EcrInfo, ACTION_UPDATE_LOADER, Item) then
+    while FindUpdateItem(EcrInfo, ACTION_UPDATE_LOADER, Item) do
     begin
       UpdateAvailable := True;
-      LoaderLine := Format('Загрузчик до версии %d', [Item.NewBootVer]);
+      EcrInfo.BootVer := Item.NewBootVer;
     end;
+    LoaderLine := Format('Загрузчик до версии %d', [Item.NewBootVer]);
     if FindUpdateItem(EcrInfo, ACTION_UPDATE_FIRMWARE, Item) then
     begin
       UpdateAvailable := True;
@@ -788,41 +851,61 @@ begin
   end;
 end;
 
+procedure TFirmwareUpdater.LoadParameters;
+begin
+  try
+    DownloadFiles;
+    LoadFiles(FPath);
+    FStatus.InfoText := GetInfoText(ReadEcrInfo);
+    FStatus.Text := '';
+  except
+    on E: Exception do
+    begin
+      SetStatusText('Ошибка: ' + E.Message);
+    end;
+  end;
+end;
+
 procedure TFirmwareUpdater.DownloadFiles;
 var
   FileName: string;
   ArchiveDownloaded: Boolean;
 begin
-  SetStatusText('Скачивание файлов');
   FPath := GetEnvironmentVariable('TEMP')+'\'+copy(TPath.GetRandomFileName,1,8)+'\';
   ForceDirectories(FPath);
 
-  ArchiveDownloaded := False;
-  // Если обновления есть - скачиваем архив
-  if CheckUpdateAvailable then
+  FileName := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'archive.zip';
+  if FileExists(FileName) then
   begin
-    ArchiveDownloaded := DownloadArchive;
+    UnzipArhive(FPath, FileName);
+  end else
+  begin
+    ArchiveDownloaded := False;
+    // Если обновления есть - скачиваем архив
+    if CheckUpdateAvailable then
+    begin
+      ArchiveDownloaded := DownloadArchive;
+    end;
+    // Если не удалось скачать, то распаковываем архив из ресурсов
+    if not ArchiveDownloaded then
+      UnpackArhiveToDrive;
+
+    UnzipArhive(Path + 'encrypt\', Path + 'arhive.zip');
+    DecryptFiles(Path + 'encrypt\', Path);
   end;
-  // Если не удалось скачать, то распаковываем архив из ресурсов
-  if not ArchiveDownloaded then
-    UnpackArhiveToDrive;
-
-
-  UnzipArhive;
-  DecryptFiles;
 end;
 
-procedure TFirmwareUpdater.LoadFiles;
+procedure TFirmwareUpdater.LoadFiles(const InPath: string);
 var
   FileName: string;
 begin
-  FileName := FPath + 'rules.json';
+  FileName := InPath + 'rules.json';
   if not FileExists(FileName) then
     raise Exception.CreateFmt('File: "%s" not found.', [FileName]);
 
   UpdateItemsLoadFromFile(FileName, FItems);
   UpdateParamsLoadFromFile(FileName, FParams);
-  CheckFWFiles(FPath, FItems);
+  CheckFilesExists(InPath, FItems);
 end;
 
 // Cохраняем таблицы при обновлении приложения
@@ -884,22 +967,21 @@ begin
   end;
 end;
 
-procedure TFirmwareUpdater.UnzipArhive;
+procedure TFirmwareUpdater.UnzipArhive(const OutPath, FileName: string);
 var
   Zip: TZipFile;
 begin
-  SetStatusText('Разархивирование архива');
-  ForceDirectories(FPath + 'encrypt\');
+  ForceDirectories(OutPath);
   Zip := TZipFile.Create;
   try
-    Zip.Open(FPath+'arhive.zip',zmRead);
-    Zip.ExtractAll(FPath + 'encrypt\');
+    Zip.Open(FileName, zmRead);
+    Zip.ExtractAll(OutPath);
   finally
     Zip.Free;
   end;
 end;
 
-procedure TFirmwareUpdater.DecryptFiles;
+procedure TFirmwareUpdater.DecryptFiles(const InPath, OutPath: string);
 var
   i: Integer;
   FileExt: string;
@@ -907,10 +989,9 @@ var
   FileNames: TStrings;
   SearchRec: TSearchRec;
 begin
-  SetStatusText('Расшифровка файлов');
   FileNames := TStringList.Create;
   try
-    if FindFirst(FPath + 'encrypt\*.*', faAnyFile, SearchRec) = 0 then
+    if FindFirst(InPath + '*.*', faAnyFile, SearchRec) = 0 then
     begin
       repeat
         FileNames.Add(SearchRec.Name);
@@ -923,7 +1004,7 @@ begin
       FileExt := LowerCase(ExtractFileExt(FileName));
       if (FileExt = '.bin')or(FileExt = '.exe')or(FileExt = '.json') then
       begin
-        DecryptFile(FPath + FileName, FPath + 'encrypt\' + FileName);
+        DecryptFile(OutPath + FileName, InPath + FileName);
       end;
     end;
   finally
@@ -1054,7 +1135,8 @@ begin
   end;
   Driver.Disconnect;
   // Ждём переход в DFU
-  DelayInMs(DFUDelayTime);
+  //DelayInMs(DFUDelayTime);
+  WaitForDFUDevice(DFUDelayTime);
   // Грузим файл
   StartTime := Now;
   SetStatusText('Запись файла ' + FileName);
@@ -1147,7 +1229,6 @@ begin
   repeat
     CheckStopped;
     Sleep(1000);
-    Logger.Debug('Поиск устройства...');
     if FindDevice(Serial) then
     begin
       Logger.Debug('Устройство найдено');
@@ -1165,8 +1246,11 @@ begin
   if Result then
   begin
     Result := Driver.ReadSerialNumber = 0;
-    Logger.Debug(Format('ReadSerialNumber: %d, %s', [
-      Driver.ResultCode, Driver.ResultCodeDescription]));
+    if not Result then
+    begin
+      Logger.Debug(Format('ReadSerialNumber: %d, %s', [
+        Driver.ResultCode, Driver.ResultCodeDescription]));
+    end;
 
     if Result then
     begin
@@ -1212,8 +1296,7 @@ procedure TFirmwareUpdater.DiscoverDevice(const Params: TSearchParams);
 var
   TickCount: Cardinal;
 begin
-  SetStatusText('Ожидание устройства...');
-
+  SetStatusText('Поиск устройства...');
   Driver.Timeout := 1000;
   TickCount := GetTickCount;
   repeat
@@ -1239,7 +1322,6 @@ var
   Search: TDeviceSearch;
 begin
   Result := False;
-  Logger.Debug('Поиск на всех COM портах');
   Driver.ConnectionType := CT_LOCAL;
   Search := TDeviceSearch.Create;
   try
@@ -1300,7 +1382,7 @@ procedure TFirmwareUpdater.UpdateStatus;
 begin
   if FStatus.IsStarted then
   begin
-    FStatus.ProgressMax := 65;
+    FStatus.ProgressMax := 108;
     FStatus.ElapsedSeconds := SecondsBetween(Now, FStatus.StartTime);
     FStatus.ProgressPos := FStatus.ElapsedSeconds;
     FStatus.TimeText := Format('Время начала: %s, прошло секунд, %d', [
@@ -1313,17 +1395,7 @@ begin
   Result := FStatus;
 end;
 
-function TFirmwareUpdater.IsStarted: Boolean;
-begin
-  Result := FThread <> nil;
-end;
-
-procedure TFirmwareUpdater.LoadParameters;
-begin
-  LoadFiles;
-end;
-
-procedure TFirmwareUpdater.CheckFWFiles(const Path: string; Items: TUpdateItems);
+procedure TFirmwareUpdater.CheckFilesExists(const Path: string; Items: TUpdateItems);
 var
   I: Integer;
 begin
@@ -1412,7 +1484,7 @@ var
   OfdParams: TOfdParams;
   OfdInn: string;
 begin
-  CheckAllDocumentsSent;
+  CheckDocSent;
   case AFFD of
     NoUpdateNeeded:
     begin
@@ -1423,8 +1495,6 @@ begin
     FFD12: FFDVer := 4;
   end;
 
-  SetStatusText('Перерегистрация ККТ на ' + FFDToStr(FFDVer));
-  Logger.Debug('Перерегистрация ККТ на ФФД ' + FFDVer.ToString);
   if FParams.PrintStatus then
   begin
     Feed(2);
@@ -1434,10 +1504,11 @@ begin
     PrintText('О ЗАВЕРШЕНИИ ПЕРЕРЕГИСТРАЦИИ');
     Feed(14);
   end;
+  SetStatusText('Печать отчета о состоянии расчетов');
   Driver.Check(Driver.FNBuildCalculationStateReport);
   Driver.WaitForPrinting;
-  SetStatusText('Перерегистрация ККТ на ' + FFDToStr(FFDVer));
 
+  SetStatusText('Перерегистрация ККТ на ' + FFDToStr(FFDVer));
   Driver.WriteTableInt(17, 1, 17, FFDVer);
   OfdInn := Driver.ReadTableStr(18, 1, 12);
   if GetOfdParams(Item, OfdInn, OfdParams) then
@@ -1453,7 +1524,6 @@ begin
   Driver.KKTRegistrationNumber := Trim(Driver.ReadTableStr(18, 1, 3));
   Driver.TaxType := Driver.ReadTableInt(18, 1, 5);
   Driver.WorkMode := Driver.ReadTableInt(18, 1, 6);
-  Logger.Debug('FNBuildReregistrationReport');
   Driver.Check(Driver.FNBuildReregistrationReport);
   Driver.WaitForPrinting;
 
@@ -1487,29 +1557,36 @@ begin
   Driver.Check(Driver.PrintStringWithWrap);
 end;
 
-procedure TFirmwareUpdater.CheckAllDocumentsSent;
+// Ожидание отправки всех документов в ОФД
+function TFirmwareUpdater.WaitDocSent(TimeoutInSec: Integer): Boolean;
 var
   TickCount: Cardinal;
   IsTimeout: Boolean;
 begin
-  // Ожидание отправки всех документов в ОФД
   SetStatusText('Ожидание отправки сообщений в ОФД');
+  Result := False;
   IsTimeout := False;
   TickCount := GetTickCount;
   while True do
   begin
     CheckStopped;
 
-    SetStatusText('Ожидание отправки сообщений в ОФД');
     Driver.Check(Driver.FNGetInfoExchangeStatus);
-    if Driver.MessageCount = 0 then Break;
+    Result := Driver.MessageCount = 0;
+    if Result then Break;
 
-    IsTimeout := Abs(GetTickCount - TickCount) > (1000 * FParams.DocSentTimeoutInSec);
+    IsTimeout := Abs(GetTickCount - TickCount) > (1000 * TimeoutInSec);
     if IsTimeout then Break;
 
     Sleep(500);
   end;
+end;
 
+procedure TFirmwareUpdater.CheckDocSent;
+var
+  IsTimeout: Boolean;
+begin
+  IsTimeout := not WaitDocSent(FParams.DocSentTimeoutInSec);
   if IsTimeout and FParams.PrintStatus then
   begin
     Feed(2);
@@ -1696,46 +1773,4 @@ begin
 end;
 
 
-(*
-
-
-
-      EcrInfo.Action := IMAGE_FIRMWARE;
-      EcrInfo.RebootDelay := FirmwareRebootDelay;
-      EcrInfo.RebootTimeout := FirmwareRebootTimeout;
-      EcrInfo.Action := IMAGE_LOADER;
-      EcrInfo.RebootDelay := LoaderRebootDelay;
-      EcrInfo.RebootTimeout := LoaderRebootTimeout;
-
-  DownloadFiles;
-
-    Action: Integer;
-    RebootDelay: Integer;
-    RebootTimeout: Integer;
-
-    case Ecr.PortNumber of
-      PORT_VCOM:
-      begin
-        Logger.Debug('Поиск на прежней скорости');
-        if ReadSerial(Serial) = 0 then
-        begin
-          Result := (Ecr.Serial = Serial) or (Ecr.Serial = '');
-        end;
-      end;
-      PORT_COM:
-      begin
-        Logger.Debug('Поиск на скорости 4800');
-        Driver.BaudRate := BAUD_RATE_CODE_4800;
-        if ReadSerial(Serial) = 0 then
-        begin
-          Result := (Ecr.Serial = Serial) or (Ecr.Serial = '');
-        end;
-      end;
-
-Перезагрузка при техобнулении
-// Если касса фискализирована, то документы должны быть переданы
-CheckAllDocumentsSent;
-
-
-*)
 end.

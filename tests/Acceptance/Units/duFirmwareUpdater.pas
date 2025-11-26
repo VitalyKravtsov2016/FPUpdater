@@ -4,11 +4,11 @@ interface
 
 uses
   // VCL
-  ActiveX, ComObj, SysUtils,
+  Windows, ActiveX, ComObj, SysUtils,
   // DUnit
   TestFramework,
   // This
-  FirmwareUpdater, FileUtils, DrvFRLib_TLB, untDriver, UpdateItem;
+  FirmwareUpdater, FileUtils, DrvFRLib_TLB, untDriver, UpdateItem, LogFile;
 
 type
 
@@ -27,6 +27,8 @@ type
     procedure SetComConnection;
     procedure CheckRndisConnection;
     procedure UpdateLoader(const Serial, FileName: string; BootVer: Integer);
+    procedure CheckFirmwareUpdated;
+    procedure ClearFiscalStorage;
   public
     procedure SetUp; override;
     procedure TearDown; override;
@@ -44,13 +46,16 @@ type
     procedure TestRestoreTables;
     procedure TestUploadFirmware;
     procedure TestSetConnectionType;
-    procedure TestUpdateFFD;
 
-    procedure TestUpdateFirmwareShtrih;
-    procedure TestFirmwareUpdateRNDIS3;
     procedure TestFNFiscalization;
     procedure TestGetOfdParams;
     procedure TestLoadParams;
+    procedure TestUpdateFirmwareShtrih;
+
+    procedure TestCreateShtrihEcr;
+    procedure TestFirmwareUpdateRNDIS3;
+    procedure TestUpdateFFD;
+    procedure TestWaitForDFUDevice;
   end;
 
 implementation
@@ -73,7 +78,7 @@ begin
   //Updater.Path := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'data\';
   Updater.Path := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'test\';
   Updater.DeleteLog;
-  Updater.LoadParameters;
+  Updater.LoadFiles(Updater.Path);
 end;
 
 procedure TFirmwareUpdaterTest.TearDown;
@@ -121,7 +126,7 @@ var
 begin
   Updater.Path := GetFilesPath;
   Ecr := Updater.ReadEcrInfo;
-  Updater.LoadFiles;
+  Updater.LoadFiles(Updater.Path);
   Updater.WriteLicenses(Ecr);
 end;
 
@@ -169,6 +174,7 @@ end;
 
 procedure TFirmwareUpdaterTest.CheckConnection;
 begin
+  Logger.Debug('CheckConnection');
   Driver.Check(Driver.Connect);
 end;
 
@@ -178,6 +184,7 @@ var
   SearchParams: TSearchParams;
 begin
   CheckConnection;
+  Logger.Debug('SetComConnection');
   Ecr := Updater.ReadEcrInfo;
   if Ecr.PortNumber = PORT_COM then Exit;
 
@@ -239,7 +246,7 @@ begin
     Driver.ConnectionType := CT_TCPSOCKET;
     Driver.IPAddress := '192.168.137.111';
     Driver.TCPPort := 7778;
-    //Updater.DelayInMs(FirmwareRebootDelay);
+    Updater.DelayInMs(FirmwareRebootDelay);
     Updater.WaitForDevice(Ecr.Serial, FirmwareRebootTimeout);
     Driver.SaveParams;
   end;
@@ -360,22 +367,32 @@ procedure TFirmwareUpdaterTest.TestUpdateFirmwareShtrih;
 var
   Path: string;
   Ecr: TEcrInfo;
+  SearchParams: TSearchParams;
 begin
+  Logger.Debug('TestUpdateFirmwareShtrih.0');
   Ecr := Updater.ReadEcrInfo;
-  if Ecr.BootVer = 155 then
+  if Ecr.BootVer <> 153 then
   begin
-    UpdateLoader(Ecr.Serial, 'tb_ldr_1939_test.bin', 1939);
-    Ecr.BootVer := 1939;
-  end;
-  if Ecr.BootVer = 1939 then
-  begin
-    UpdateLoader(Ecr.Serial, 'tb_ldr_3000_test.bin', 3000);
-    Ecr.BootVer := 3000;
-  end;
-  if Ecr.BootVer = 3000 then
-  begin
-    UpdateLoader(Ecr.Serial, 'sm_ldr_153.bin', 153);
-    Ecr.BootVer := 153;
+    // VCOM для скорости
+    SetVComConnection;
+    // Обнуление ФН для скорости перезапуска ФР
+    ClearFiscalStorage;
+
+    if Ecr.BootVer = 155 then
+    begin
+      UpdateLoader(Ecr.Serial, 'tb_ldr_1939_test.bin', 1939);
+      Ecr.BootVer := 1939;
+    end;
+    if Ecr.BootVer = 1939 then
+    begin
+      UpdateLoader(Ecr.Serial, 'tb_ldr_3000_test.bin', 3000);
+      Ecr.BootVer := 3000;
+    end;
+    if Ecr.BootVer = 3000 then
+    begin
+      UpdateLoader(Ecr.Serial, 'sm_ldr_153.bin', 153);
+      Ecr.BootVer := 153;
+    end;
   end;
   if Ecr.BootVer <> 153 then
     raise Exception.CreateFmt('Неверная версия загрузчика, %d', [Ecr.BootVer]);
@@ -383,49 +400,91 @@ begin
   // Версия ПО: C.3
   // Сборка ПО: 62776
   // Дата ПО: 19.08.2025
-  if (Ecr.FirmwareVersion <> 'C.3')or(Ecr.FirmwareBuild <> 62776) then
+  if (Ecr.FirmwareVersion <> 'C.1')or(Ecr.FirmwareBuild <> 62928) then
   begin
     Path := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'test\';
     Updater.DfuUploadFile(Path, 'sm_app_62928_c1.bin');
     Updater.DelayInMs(LoaderRebootDelay);
-    Updater.WaitForDevice(Ecr.Serial, FirmwareRebootTimeout);
+
+    SearchParams.Serial := Ecr.Serial;
+    SearchParams.Timeout := 300000;
+    SearchParams.Port := PORT_VCOM;
+    Updater.DiscoverDevice(SearchParams);
+
+    TestFNFiscalization;
   end;
+  Logger.Debug('TestUpdateFirmwareShtrih.1');
 end;
 
 procedure TFirmwareUpdaterTest.TestFNFiscalization;
 begin
+  // Отключить печать и звук
+  //1,1,28,1,0,0,1,'Отключение звука при ошибках','0'
+  Driver.WriteTableInt(1,1,28, 0);
+  //17,1,7,1,0,0,3,'Rus не печатать документ','0'
+  Driver.WriteTableInt(17,1,7, 0);
+  //17,1,17,1,0,2,2,'Rus формат фд','2'
+  Driver.WriteTableInt(17,1,17, 2);
+  // Сервер ОФД
+  Driver.WriteTableStr(19,1,1, 'k-server.1-ofd-test.ru');
+  Driver.WriteTableInt(19,1,2, 7777);
+  Driver.WriteTableStr(18,1,10, 'Первый ОФД (АО "ЭСК")');
+  Driver.WriteTableStr(18,1,11, '1-ofd.ru');
+  Driver.WriteTableStr(18,1,12, '7709364346');
+
   // Проверка что ФН отладочный
   Driver.Check(Driver.FNGetVersion);
   if Driver.FNSoftType <> 0 then
     raise Exception.Create('ФН должен быть отладочным');
 
+  // Фискализация ФН
   Driver.Check(Driver.FNGetStatus);
-  if Driver.FNLifeState > 3 then
+  if Driver.FNLifeState = 1 then
+  begin
+    Driver.INN := '9706048530';
+    Driver.KKTRegistrationNumber := '0000000000003505';
+    Driver.TaxType := 1;
+    Driver.WorkMode := 0;
+    Driver.Timeout := 10000;
+    Driver.Check(Driver.FNBuildRegistrationReport);
+    Driver.WaitForPrinting;
+    Driver.Timeout := 1000;
+    // Дождаться передачи данных
+    //Check(Updater.WaitDocSent(3), 'Документы не переданы'); // 3 секунды ждем
+  end;
+end;
+
+procedure TFirmwareUpdaterTest.ClearFiscalStorage;
+begin
+  // Сбросить, если ФН фискализирован по ФФД 1.2 или был закрыт
+  Driver.Check(Driver.FNGetStatus);
+  if Driver.FNLifeState > 1 then
   begin
     // Сброс ФН
     Driver.RequestType := 22;
     Driver.Check(Driver.FNResetState);
   end;
-  // Фискализация ФН
-  Driver.INN := '9706048530';
-  Driver.KKTRegistrationNumber := '0000000000003505';
-  Driver.TaxType := 1;
-  Driver.WorkMode := 0;
-  Driver.Timeout := 10000;
-  Driver.Check(Driver.FNBuildRegistrationReport);
-  Driver.Timeout := 1000;
+end;
+
+procedure TFirmwareUpdaterTest.TestCreateShtrihEcr;
+begin
+  TestUpdateFirmwareShtrih;
+  SetRndisConnection;
 end;
 
 procedure TFirmwareUpdaterTest.TestFirmwareUpdateRNDIS3;
+begin
+  CheckRndisConnection;
+  Updater.UpdateFirmware;
+  CheckFirmwareUpdated;
+  CheckRndisConnection;
+end;
+
+procedure TFirmwareUpdaterTest.CheckFirmwareUpdated;
 var
   Ecr: TEcrInfo;
   FirmwareDate: string;
 begin
-  TestUpdateFirmwareShtrih;
-  SetRndisConnection;
-  Updater.UpdateFirmware;
-  CheckRndisConnection;
-
   Ecr := Updater.ReadEcrInfo;
   CheckEquals(1939, Ecr.BootVer, 'Ecr.BootVer <> 1939');
   CheckEquals('T.3', Ecr.FirmwareVersion, 'Ecr.FirmwareVersion <> T.3');
@@ -483,6 +542,19 @@ begin
   Check(IsFound, 'Не найден элемент обновления');
   Updater.UpdateFFD(Item);
 end;
+
+procedure TFirmwareUpdaterTest.TestWaitForDFUDevice;
+var
+  TickCount: Integer;
+begin
+  CheckEquals(False, IsDFUDevicePresent, 'IsDFUDevicePresent = True');
+  TickCount := GetTickCount;
+  Driver.Check(Driver.SetDFUMode);
+  CheckEquals(True, WaitForDFUDevice(DFUDelayTime), 'WaitForDFUDevice');
+  TickCount := GetTickCount - TickCount;
+  Logger.Debug(Format('DFU device up time: %d ms', [TickCount]));
+end;
+
 
 
 initialization

@@ -32,6 +32,7 @@ type
   private
     FUpdater: TFirmwareUpdater;
     function GetUpdater: TFirmwareUpdater;
+    procedure CheckStarted;
     property Updater: TFirmwareUpdater read GetUpdater;
   public
     destructor Destroy; override;
@@ -44,11 +45,6 @@ var
 implementation
 
 {$R *.dfm}
-
-function GetFilesPath: string;
-begin
-  Result := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'data\';
-end;
 
 { TfmMain }
 
@@ -81,13 +77,18 @@ begin
   btnProperties.Enabled := not Status.IsStarted;
 end;
 
-procedure TfmMain.btnCloseClick(Sender: TObject);
+procedure TfmMain.CheckStarted;
 begin
-  if Updater.IsStarted then
+  if Updater.Status.IsStarted then
   begin
     if MessageBox(Handle, 'Идет обновление прошивки. Прервать?', 'Внимание',
-      MB_YESNO or MB_ICONEXCLAMATION) = ID_NO then Exit;
+      MB_YESNO or MB_ICONEXCLAMATION) = ID_NO then Abort;
   end;
+end;
+
+procedure TfmMain.btnCloseClick(Sender: TObject);
+begin
+  CheckStarted;
   Close;
 end;
 
@@ -99,7 +100,6 @@ end;
 procedure TfmMain.FormCreate(Sender: TObject);
 begin
   Caption := Application.Title + ' ver. ' + GetFileVersionInfoStr;
-  Updater.Path := GetFilesPath;
   Updater.LoadParameters;
   UpdatePage;
 end;
@@ -130,6 +130,8 @@ end;
 
 procedure TfmMain.btnStopClick(Sender: TObject);
 begin
+  CheckStarted;
+
   btnStop.Enabled := False;
   Updater.Stop;
   btnStart.Enabled := True;

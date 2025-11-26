@@ -28,7 +28,7 @@ object fmMain: TfmMain
     Width = 130
     Height = 41
     Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1072
-    TabOrder = 0
+    TabOrder = 2
     OnClick = btnPropertiesClick
   end
   object btnStart: TButton
@@ -37,7 +37,7 @@ object fmMain: TfmMain
     Width = 130
     Height = 42
     Caption = #1054#1073#1085#1086#1074#1080#1090#1100
-    TabOrder = 1
+    TabOrder = 0
     OnClick = btnStartClick
   end
   object MemoInfo: TMemo
@@ -52,14 +52,14 @@ object fmMain: TfmMain
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
-    TabOrder = 2
+    TabOrder = 4
   end
   object ProgressBar: TProgressBar
     Left = 8
     Top = 167
     Width = 417
     Height = 17
-    TabOrder = 3
+    TabOrder = 5
   end
   object btnStop: TButton
     Left = 431
@@ -68,7 +68,7 @@ object fmMain: TfmMain
     Height = 42
     Caption = #1055#1088#1077#1088#1074#1072#1090#1100
     Enabled = False
-    TabOrder = 4
+    TabOrder = 1
     OnClick = btnStopClick
   end
   object MemoStatus: TMemo
@@ -80,7 +80,7 @@ object fmMain: TfmMain
     BorderStyle = bsNone
     Color = clBtnFace
     ReadOnly = True
-    TabOrder = 5
+    TabOrder = 6
   end
   object btnClose: TButton
     Left = 432
@@ -88,7 +88,7 @@ object fmMain: TfmMain
     Width = 130
     Height = 41
     Caption = #1047#1072#1082#1088#1099#1090#1100
-    TabOrder = 6
+    TabOrder = 3
     OnClick = btnCloseClick
   end
   object Timer: TTimer
