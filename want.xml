@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!--
   WANT - A build management tool.                                 
   Copyright (c) 2001-2003 Juancarlo Anez, Caracas, Venezuela.          
@@ -24,575 +23,79 @@
 This is the Want script for building Want.
 See http://www.suigeneris.org/want/ for details.
 -->
-<project name="drvfr" basedir="../.." default="build">
-    <property name="basepath" value="" />
-    <regexp property="basepath" text="${basedir}" pattern="^\/" subst="" />
-    <property name="src" value="${basepath}/source" />
-    <property name="test" value="${basepath}/tests/DUnit" />
-    <property name="drvfr" value="${src}/drvfr" />
-    <property name="srvfr" value="${src}/srvfr" />
-    <property name="shared" value="${src}/shared" />
-    <property name="drvfrtst" value="${src}/drvfrtst" />
-    <property name="smdrvfr1c" value="${src}/smdrvfr1c" />
-    <property name="smdrvfr1c20" value="${src}/smdrvfr1c20" />
-    <property name="smdrvfr1cnative" value="${src}/smdrvfr1cnative" />
-    <property name="drvfrtst1c" value="${src}/drvfrtst1c" />
-    <property name="printsrv" value="${src}/printsrv" />
-    <property name="taxprog" value="${src}/taxprog" />
-    <property name="taxprog2" value="${src}/taxprog2" />
-    <property name="fiscalmaster" value="${src}/FiscalMaster" />
-    <property name="serviceprog" value="${src}/serviceprog" />
-    <property name="paymentdrv" value="${src}/paymentdrv/paymentdrv" />
-    <property name="setup" value="${basepath}/setup/DrvFR" />
-    <property name="bin" value="${setup}/bin" />
-    <property name="dcu" value="${setup}/dcu" />
-    <property name="res" value="${setup}/res" />
-    <property name="brcc" value="${setup}/res/util/brcc32.exe" />
-    <property name="kktproxy" value="${src}/kktproxy" />
-    <property name= "isccpathxp" value="%isspath%"/>
-    <property name="pppnetservice" value="${src}/pppnetservice" />
-    <property name="old.version" value="?{${setup}/release.ini:releases:current}" />
-    <regexp property="old.build" text="${old.version}" pattern="^.*\.([0-9]+)$" subst="\1" />
-    <regexp property="build_1c" text="${old.version}" pattern="^([0-9]*)\.([0-9]*)\.([0-9]*)\.([0-9]*)" subst="\1_\2_\3_\4" />
-    <property name="component_1c_32_win32_dll" value="smdrvfr_32_${build_1c}_win_32.dll" />
-    <property name="component_1c_32_win64_dll" value="smdrvfr_32_${build_1c}_win_x64.dll" />
-    <property name="component_1c_40_win32_dll" value="smdrvfr_40_${build_1c}_win_32.dll" />
-    <property name="component_1c_40_win64_dll" value="smdrvfr_40_${build_1c}_win_x64.dll" />
-    <property name="build" value="={${old.build}}" />
-    <property name="CompanyName" value="?{${setup}/release.ini:Company:CompanyName}" />
-    <property name="CompanySite" value="?{${setup}/release.ini:Company:CompanySite}" />
-    <property name="DeviceName" value="?{${setup}/release.ini:Company:DeviceName}" />
-    <property name="ProductName" value="?{${setup}/release.ini:Company:ProductName}" />
-    <property name="DriverFileDescription" value="?{${setup}/release.ini:Company:DriverFileDescription}" />
-    <property name="DriverFilename" value="?{${setup}/release.ini:Company:DriverFilename}" />
-    <property name="kktproxyFileDescription" value="?{${setup}/release.ini:Company:kktproxyFileDescription}" />
-    <property name="kktproxyFilename" value="?{${setup}/release.ini:Company:kktproxyFilename}" />
-    <property name="pppnetserviceFileDescription" value="?{${setup}/release.ini:Company:pppnetserviceFileDescription}" />
-    <property name="pppnetserviceFilename" value="?{${setup}/release.ini:Company:pppnetserviceFilename}" />
-    <property name="FiscalMasterFileDescription" value="?{${setup}/release.ini:Company:FiscalMasterFileDescription}" />
-    <property name="FiscalMasterFilename" value="?{${setup}/release.ini:Company:FiscalMasterFilename}" />
-    <property name="TestFileDescription" value="?{${setup}/release.ini:Company:TestFileDescription}" />
-    <property name="TestFilename" value="?{${setup}/release.ini:Company:TestFilename}" />
-    <property name="SrvFilename" value="?{${setup}/release.ini:Company:SrvFilename}" />
-    <property name="SrvFileDescription" value="?{${setup}/release.ini:Company:SrvFileDescription}" />
-    <property name="Native1ClibFileName" value="?{${setup}/release.ini:Company:Native1ClibFileName}" />
-    <property name="Native1ClibDescription" value="?{${setup}/release.ini:Company:Native1ClibDescription}" />
-    <regexp property="version" text="${old.version}" pattern="\.[0-9]*$" subst=".${build}" />
-    <regexp property="comma.version" pattern="\." subst="," text="${version}" />
-    <regexp property="version2" pattern="^[0-9]*\.[0-9]*" text="${version}" />
-    <tstamp>
-        <format property="when" pattern="yyyy,mm,dd,HH,nn,ss" />
-        <format property="date.tag" pattern="yyyy-mm-dd" />
-    </tstamp>
-    <target name="prepare">
-        <mkdir dir="${dcu}" />
-        <mkdir dir="${bin}" />
-        <echo message="version=${version}" />
-        <echo message="build=${build}" />
-        <echo message="build_1c=${build_1c}" />
-        <delete dir="${src}">
-            <include name="**/*.dcu" />
-            <include name="**/*.exe" />
-            <include name="**/*.dll" />
-            <include name="**/*.rsm" />
-            <include name="**/*.log" />
-            <include name="**/*.~*" />
-            <include name="**/*.bak" />
-        </delete>
-        <!--     <echo input="${setup}/src/GlobalConst_ru.pas" file="${src}/shared/GlobalConst.pas" /> -->
-    </target>
-    <target name="clean">
-        <delete dir="${dcu}">
-            <include name="**/*.dcu" />
-        </delete>
-        <delete dir="${bin}">
-            <include name="**/*.exe" />
-            <include name="**/*.dll" />
-            <include name="**/*.rsm" />
-        </delete>
-    </target>
-    <target name="test" depends="internal-DrvFR-tests, internal-DrvFRTst-tests" />
-    <target name="internal-DrvFR-tests" depends="prepare">
-        <delete dir="${dcu}">
-            <include name="*.dcu" />
-        </delete>
-        <property name="DrvFRTest.app" value="DrvFRTestLib" />
-        <dcc basedir="${test}/DrvFRTest" source="${DrvFRTest.app}.dpr">
-            <exeoutput path="${test}/DrvFRTest/Bin" />
-            <dcuoutput path="${dcu}" />
-            <build value="true" />
-            <debug value="false" />
-            <console value="true" />
-            <writeableconst value="true" />
-            <warnings value="true" />
-            <warning name="SYMBOL_PLATFORM" value="off" />
-            <warning name="SYMBOL_DEPRECATED" value="off" />
-            <warning name="UNIT_PLATFORM" value="off" />
-            <warning name="UNSAFE_CODE" value="off" />
-            <warning name="UNSAFE_TYPE" value="off" />
-            <warning name="UNSAFE_CAST" value="off" />
-            <hints value="true" />
-            <define name="DUNIT_DLL" />
-            <define name="SUPPORTS_WIDESTRING" />
-        </dcc>
-        <dunit testlib="${test}/DrvFRTest/bin/${DrvFRTest.app}" />
-    </target>
-    <target name="internal-DrvFRTst-tests" depends="prepare">
-        <delete dir="${dcu}">
-            <include name="*.dcu" />
-        </delete>
-        <property name="DrvFRTstTest.app" value="DrvFRTstTestLib" />
-        <dcc basedir="${test}/DrvFRTstTest" source="${DrvFRTstTest.app}.dpr">
-            <exeoutput path="${test}/DrvFRTstTest/Bin" />
-            <dcuoutput path="${dcu}" />
-            <build value="true" />
-            <debug value="false" />
-            <console value="true" />
-            <writeableconst value="true" />
-            <warnings value="true" />
-            <warning name="SYMBOL_PLATFORM" value="off" />
-            <warning name="SYMBOL_DEPRECATED" value="off" />
-            <warning name="UNIT_PLATFORM" value="off" />
-            <warning name="UNSAFE_CODE" value="off" />
-            <warning name="UNSAFE_TYPE" value="off" />
-            <warning name="UNSAFE_CAST" value="off" />
-            <hints value="true" />
-            <define name="DUNIT_DLL" />
-            <define name="SUPPORTS_WIDESTRING" />
-        </dcc>
-        <dunit testlib="${test}/DrvFRTstTest/bin/${DrvFRTstTest.app}" />
-    </target>
-    <target name="makesetup64">
-        <property name="Architecture" value="ArchitecturesInstallIn64BitMode=x64" />
-        <property name="Arch" value="Win64" />
-        <property name="Archbit" value="64bit" />
-        <property name="Arch2" value="(64-bit)" />
-        <echo input="${setup}/res/setup_template.iss" file="${setup}/setup.iss" />
-        <exec basedir="${setup}" executable="iscc">
-            <arg value="Setup.iss" />
-            <arg value="/Q" />
-        </exec>
-        <move tofile="DrvFR_${version2}_${build}_x64.exe">
-            <include name="${setup}/setup.exe" />
-        </move>
-        <!-- <delete file="${setup}/setup.iss" /> -->
-    </target>
-
-    <target name="makesetup64xp">
-        <property name="Architecture" value="ArchitecturesInstallIn64BitMode=x64" />
-        <property name="Arch" value="Win64" />
-        <property name="Archbit" value="64bit" />
-        <property name="Arch2" value="(64-bit)" />
-        <echo input="${setup}/res/setup_template.iss" file="${setup}/setup.iss" />
-        <exec basedir="${setup}" executable="%{isspath}">
-            <arg value="Setup.iss" />
-            <arg value="/Q" />
-        </exec>
-        <move tofile="DrvFR_${version2}_${build}_x64_winxp.exe">
-            <include name="${setup}/setup.exe" />
-        </move>
-        <!-- <delete file="${setup}/setup.iss" /> -->
-    </target>
-
-    <target name="makesetup32">
-        <property name="Architecture" value="" />
-        <property name="Arch" value="Win32" />
-        <property name="Archbit" value="32bit" />
-        <property name="Arch2" value="(32-bit)" />
-        <echo input="${setup}/res/setup_template.iss" file="${setup}/setup.iss" />
-        <exec basedir="${setup}" executable="iscc">
-            <arg value="Setup.iss" />
-            <arg value="/Q" />
-        </exec>
-        <move tofile="DrvFR_${version2}_${build}_x32.exe">
-            <include name="${setup}/setup.exe" />
-        </move>
-    </target>
-	
-	<target name="makesetup32_nav">
-        <property name="Architecture" value="" />
-        <property name="Arch" value="Win32" />
-        <property name="Archbit" value="32bit" />
-        <property name="Arch2" value="(32-bit)" />
-        <echo input="${setup}/res/setup_template.iss" file="${setup}/setup.iss" />
-        <exec basedir="${setup}" executable="iscc">
-            <arg value="Setup.iss" />
-            <arg value="/Q" />
-        </exec>
-        <move tofile="DrvFR_${version2}_${build}_x32_nav.exe">
-            <include name="${setup}/setup.exe" />
-        </move>
-    </target>
-	
-    <target name="makesetup32xp">
-        <property name="Architecture" value="" />
-        <property name="Arch" value="Win32" />
-        <property name="Archbit" value="32bit" />
-        <property name="Arch2" value="(32-bit)" />
-        <echo input="${setup}/res/setup_template.iss" file="${setup}/setup.iss" />
-        <exec basedir="${setup}" executable="%{isspath}">
-            <arg value="Setup.iss" />
-            <arg value="/Q" />
-        </exec>
-        <move tofile="DrvFR_${version2}_${build}_x32_xp.exe">
-            <include name="${setup}/setup.exe" />
-        </move>
-    </target>
-	
-    <target name="makesetupkktproxy32">
-        <property name="Architecture" value="" />
-        <property name="Arch" value="Win32" />
-        <property name="Archbit" value="32bit" />
-        <property name="Arch2" value="(32-bit)" />
-        <echo input="${setup}/res/setup_kktproxy_template.iss" file="${setup}/kktproxy_setup.iss" />
-        <exec basedir="${setup}" executable="iscc">
-            <arg value="kktproxy_setup.iss" />
-            <arg value="/Q" />
-        </exec>
-        <move tofile="kktproxy_setup.exe">
-            <include name="${setup}/setup.exe" />
-        </move>
-    </target>
-    <target name="makesetup-nokey">
-        <echo input="${setup}/res/setup_template.iss" file="${setup}/setup.iss" />
-        <exec basedir="${setup}" executable="iscc">
-            <arg value="Setup.iss" />
-            <arg value="/Q" />
-        </exec>
-        <move tofile="DrvFR_${version2}_${build}_nokey.exe">
-            <include name="${setup}/setup.exe" />
-        </move>
-        <delete file="${setup}/setup.iss" />
-    </target>
-    <target name="makesetup-nokey-gnivc">
-        <echo input="${setup}/res/setup_template.iss" file="${setup}/setup.iss" />
-        <exec basedir="${setup}" executable="iscc">
-            <arg value="Setup.iss" />
-            <arg value="/Q" />
-        </exec>
-        <move tofile="DrvFR_${version2}_${build}.exe">
-            <include name="${setup}/setup.exe" />
-        </move>
-        <delete file="${setup}/setup.iss" />
-    </target>
-    <target name="makesetup-nosign">
-        <echo input="${setup}/res/setup_template.iss" file="${setup}/setup.iss" />
-        <exec basedir="${setup}" executable="iscc">
-            <arg value="Setup.iss" />
-            <arg value="/Q" />
-        </exec>
-        <move tofile="DrvFR_${version2}_${build}.exe">
-            <include name="${setup}/setup.exe" />
-        </move>
-        <delete file="${setup}/setup.iss" />
-    </target>
-    <target name="sign">
-        <exec executable="SignShtrih.bat">
-            <arg value="${bin}/Win32/drvfr.dll" />
-        </exec>
-        <exec executable="SignShtrih.bat">
-            <arg value="${bin}/Win64/drvfr.dll" />
-        </exec>
-        <exec executable="SignShtrih.bat">
-            <arg value="${bin}/Win32/srvfr.exe" />
-        </exec>
-        <exec executable="SignShtrih.bat">
-            <arg value="${bin}/Win64/srvfr.exe" />
-        </exec>
-        <exec executable="SignShtrih.bat">
-            <arg value="${bin}/Win32/drvfrtst.exe" />
-        </exec>
-        <exec executable="SignShtrih.bat">
-            <arg value="${bin}/Win64/drvfrtst.exe" />
-        </exec>
-        <exec executable="SignShtrih.bat">
-            <arg value="${bin}/Win32/FiscalMaster.exe" />
-        </exec>
-        <exec executable="SignShtrih.bat">
-            <arg value="${bin}/Win64/FiscalMaster.exe" />
-        </exec>
-        <exec executable="SignShtrih.bat">
-            <arg value="${bin}/Win32/1c/32/SMDrvFR1CNative.dll" />
-        </exec>
-        <exec executable="SignShtrih.bat">
-            <arg value="${bin}/Win32/1c/40/SMDrvFR1CNative.dll" />
-        </exec>
-        <exec executable="SignShtrih.bat">
-            <arg value="${bin}/Win64/1c/32/SMDrvFR1CNative.dll" />
-        </exec>
-        <exec executable="SignShtrih.bat">
-            <arg value="${bin}/Win64/1c/40/SMDrvFR1CNative.dll" />
-        </exec>
-        <exec executable="SignShtrih.bat">
-            <arg value="${bin}/Win32/kktproxy.exe" />
-        </exec>
-        <exec executable="SignShtrih.bat">
-            <arg value="${bin}/Win32/pppnetsvc.exe" />
-        </exec>
-    </target>
-
-    <target name="signinstaller">
-        <exec executable="SignShtrih.bat">
-            <arg value="${bin}\..\DrvFR_${version2}_${build}_x32.exe" />
-        </exec>
-        <exec executable="SignShtrih.bat">
-            <arg value="${bin}\..\DrvFR_${version2}_${build}_x64.exe" />
-        </exec>
-        <exec executable="SignShtrih.bat">
-            <arg value="${bin}\..\kktproxy_setup.exe" />
-        </exec>
-    </target>
-	
-	<target name="signinstaller_nav">
-        <exec executable="SignShtrih.bat">
-            <arg value="${bin}\..\DrvFR_${version2}_${build}_x32_nav.exe" />
-        </exec>
-    </target>
-
-        <target name="signinstallerxp">
-        <exec executable="SignShtrih.bat">
-            <arg value="${bin}\..\DrvFR_${version2}_${build}_x32_winxp.exe" />
-        </exec>
-        <exec executable="SignShtrih.bat">
-            <arg value="${bin}\..\DrvFR_${version2}_${build}_x64_winxp.exe" />
-        </exec>
-        <exec executable="SignShtrih.bat">
-            <arg value="${bin}\..\kktproxy_setup.exe" />
-        </exec>
-    </target>
-
-    <target name="zipinstaller">
-        <exec executable="7z.exe">
-            <arg value="a" />
-            <arg value="-tzip" />
-            <arg value="${bin}\..\DrvFR_${version2}_${build}_x32_x64.zip" />
-            <arg value="${bin}\..\DrvFR_${version2}_${build}_x32.exe" />
-            <arg value="${bin}\..\DrvFR_${version2}_${build}_x64.exe" />
-        </exec>
-        <echo message="dir = ${bin}\..\Builds\DrvFR_${version2}_${build}" />
-        <mkdir dir="${bin}\..\Builds\DrvFR_${version2}_${build}" />
-        <move todir="${bin}\..\Builds\DrvFR_${version2}_${build}">
-            <include name="${bin}\..\DrvFR_${version2}_${build}_x32_x64.zip" />
-        </move>
-        <move todir="${bin}\..\Builds\DrvFR_${version2}_${build}">
-            <include name="${bin}\..\DrvFR_${version2}_${build}_x32.exe" />
-        </move>
-        <move todir="${bin}\..\Builds\DrvFR_${version2}_${build}">
-            <include name="${bin}\..\DrvFR_${version2}_${build}_x64.exe" />
-        </move>
-        <move todir="${bin}\..\Builds\DrvFR_${version2}_${build}">
-            <include name="${bin}\..\kktproxy_setup.exe" />
-        </move>
-    </target>
-	
-	<target name="zipinstaller_nav">
-        <exec executable="7z.exe">
-            <arg value="a" />
-            <arg value="-tzip" />
-            <arg value="${bin}\..\DrvFR_${version2}_${build}_x32_nav.zip" />
-            <arg value="${bin}\..\DrvFR_${version2}_${build}_x32_nav.exe" />
-            
-        </exec>
-        <echo message="dir = ${bin}\..\Builds\DrvFR_${version2}_${build}" />
-        <mkdir dir="${bin}\..\Builds\DrvFR_${version2}_${build}" />
-        <move todir="${bin}\..\Builds\DrvFR_${version2}_${build}">
-            <include name="${bin}\..\DrvFR_${version2}_${build}_x32_nav.zip" />
-        </move>
-        <move todir="${bin}\..\Builds\DrvFR_${version2}_${build}">
-            <include name="${bin}\..\DrvFR_${version2}_${build}_x32.exe" />
-        </move>
-        
-       
-    </target>
-	
-    <target name="zipinstallerxp">
-        <exec executable="7z.exe">
-            <arg value="a" />
-            <arg value="-tzip" />
-            <arg value="${bin}\..\DrvFR_${version2}_${build}_x32_x64_wipxp.zip" />
-            <arg value="${bin}\..\DrvFR_${version2}_${build}_x32_winxp.exe" />
-            <arg value="${bin}\..\DrvFR_${version2}_${build}_x64_winxp.exe" />
-        </exec>
-        <echo message="dir = ${bin}\..\Builds\DrvFR_${version2}_${build}" />
-        <mkdir dir="${bin}\..\Builds\DrvFR_${version2}_${build}" />
-        <move todir="${bin}\..\Builds\DrvFR_${version2}_${build}">
-            <include name="${bin}\..\DrvFR_${version2}_${build}_x32_x64_winxp.zip" />
-        </move>
-        <move todir="${bin}\..\Builds\DrvFR_${version2}_${build}">
-            <include name="${bin}\..\DrvFR_${version2}_${build}_x32_winxp.exe" />
-        </move>
-        <move todir="${bin}\..\Builds\DrvFR_${version2}_${build}">
-            <include name="${bin}\..\DrvFR_${version2}_${build}_x64_winxp.exe" />
-        </move>
-        <move todir="${bin}\..\Builds\DrvFR_${version2}_${build}">
-            <include name="${bin}\..\kktproxy_setup.exe" />
-        </move>
-    </target>
-
-    <target name="Make1CComponent">
-        <delete dir="${res}/1C/32">
-            <include name="*.xml" />
-            <include name="*.zip" />
-        </delete>
-        <move tofile="${bin}/Win32/1c/32/${component_1c_32_win32_dll}">
-            <include name="${bin}/Win32/1c/32/SMDrvFR1CNative.dll" />
-        </move>
-        <move tofile="${bin}/Win64/1c/32/${component_1c_32_win64_dll}">
-            <include name="${bin}/Win64/1c/32/SMDrvFR1CNative.dll" />
-        </move>
-        <exec executable="${res}/1C/32/manifest1cgen.exe">
-            <arg value="${component_1c_32_win32_dll} ${component_1c_32_win64_dll} 3" />
-        </exec>
-        <exec executable="7z.exe">
-            <arg value="a" />
-            <arg value="-tzip" />
-            <arg value="${res}/1C/32/shtrih-m_32_x32_64.zip" />
-            <arg value="${bin}/Win32/1c/32/${component_1c_32_win32_dll}" />
-            <arg value="${bin}/Win64/1c/32/${component_1c_32_win64_dll}" />
-            <arg value="${res}/1C/32/INFO.xml" />
-            <arg value="${res}/1C/32/MANIFEST.xml" />
-        </exec>
-    </target>
-    <target name="Make1CComponent34">
-        <delete dir="${res}/1C/40">
-            <include name="*.xml" />
-            <include name="*.zip" />
-        </delete>
-        <move tofile="${bin}/Win32/1c/40/${component_1c_40_win32_dll}">
-            <include name="${bin}/Win32/1c/40/SMDrvFR1CNative.dll" />
-        </move>
-        <move tofile="${bin}/Win64/1c/40/${component_1c_40_win64_dll}">
-            <include name="${bin}/Win64/1c/40/SMDrvFR1CNative.dll" />
-        </move>
-        <exec executable="${res}/1C/40/manifest1cgen.exe">
-            <arg value="${component_1c_40_win32_dll} ${component_1c_40_win64_dll} 4 ${version}" />
-        </exec>
-        <exec executable="7z.exe">
-            <arg value="a" />
-            <arg value="-tzip" />
-            <arg value="${res}/1C/40/shtrih-m_41_x32_64.zip" />
-            <arg value="${bin}/Win32/1c/40/${component_1c_40_win32_dll}" />
-            <arg value="${bin}/Win64/1c/40/${component_1c_40_win64_dll}" />
-            <arg value="${res}/1C/40/INFO.xml" />
-            <arg value="${res}/1C/40/MANIFEST.xml" />
-        </exec>
-    </target>
-    <target name="res">
-        <echo input="${drvfr}/drvfr.rt" file="${drvfr}/drvfr_ver.rc" />
-        <exec executable="${brcc}">
-            <arg value="${drvfr}/drvfr_ver.rc ${drvfr}/drvfr_ver.res" />
-        </exec>
-    </target>
-    <target name="build_drvfr">
-        <echo input="${drvfr}/drvfr_ver.rt" file="${drvfr}/drvfr_ver.rc" />
-        <exec executable="${brcc}">
-            <arg value="${drvfr}/drvfr_ver.rc" />
-        </exec>
+<project name="FPUpdater" basedir="." default="release">
+	<property name="old.version" value="?{release.ini:releases:current}"/>
+	<regexp property="old.build" text="${old.version}" pattern="^.*\.([0-9]+)$" subst="\1"/>
+	<property name="build" value="={${old.build}}"/>
+	<regexp property="version" text="${old.version}" pattern="\.[0-9]*$" subst=".${build}"/>
+	<regexp property="comma.version" pattern="\." subst="," text="${version}"/>
+	<regexp property="version2" pattern="^[0-9]*\.[0-9]*" text="${version}"/>
+	<tstamp>
+		<format property="when" pattern="yyyy,mm,dd,HH,nn,ss"/>
+		<format property="date.tag" pattern="yyyy-mm-dd"/>
+	</tstamp>
+	<property name="basepath" value=""/>
+	<regexp property="basepath" text="${basedir}" pattern="^\/" subst=""/>
+	<property name="bin" value="${basepath}/bin"/>
+	<property name="dcu" value="${basepath}/dcu"/>
+	<property name="src" value="${basepath}/src"/>
+	<property name="test" value="${basepath}/test"/>
+	<property name="setup" value="${basepath}/setup"/>
+	<property name="FPUpdater" value="${src}/FPUpdater"/>
+	<target name="prepare">
+		<mkdir dir="${dcu}"/>
+		<mkdir dir="${bin}"/>
+		<echo message="version=${version}"/>
+		<echo message="build=${build}"/>
+		<delete dir="${src}">
+			<include name="**/*.dcu"/>
+			<include name="**/*.exe"/>
+			<include name="**/*.rsm"/>
+			<include name="**/*.dsm"/>
+			<include name="**/*.log"/>
+			<include name="**/*.~*"/>
+			<include name="**/*.bak"/>
+		</delete>
+	</target>
+	<target name="clean">
+		<delete dir="${dcu}">
+			<include name="*.dcu"/>
+		</delete>
+		<delete dir="${bin}">
+			<include name="*.exe"/>
+		</delete>
+		<delete dir="${basedir}">
+			<include name="*.exe"/>
+		</delete>
+	</target>
+	<target name="finalclean">
+  </target>
+	<!-- ***** Compile FPUpdater ***** -->
+	<target name="Compile-FPUpdater" depends="prepare">
+		<delete dir="${dcu}">
+			<include name="*.dcu"/>
+		</delete>
         <exec executable="msbuild.exe">
-            <arg value="/clp:ErrorsOnly /t:Build  ${drvfr}/DrvFR.dproj /p:Platform=Win32 /p:Config=Release /p:DCC_ExeOutput=../../Setup/DrvFR/Bin/Win32" />
+            <arg value="/clp:ErrorsOnly /t:Build  ${FPUpdater}/FPUpdater.dproj /p:Platform=Win32 /p:Config=Release /p:DCC_ExeOutput=Setup" />
         </exec>
-        <exec executable="msbuild.exe">
-            <arg value="/clp:ErrorsOnly /t:Build  ${drvfr}/DrvFR.dproj /p:Platform=Win64 /p:Config=Release /p:DCC_ExeOutput=../../Setup/DrvFR/Bin/Win64" />
-        </exec>
-    </target>
-	<target name="build_drvfr_nav">
-        <echo input="${drvfr}/drvfr_ver.rt" file="${drvfr}/drvfr_ver.rc" />
-        <exec executable="${brcc}">
-            <arg value="${drvfr}/drvfr_ver.rc" />
-        </exec>
-        <exec executable="msbuild.exe">
-            <arg value="/clp:ErrorsOnly /t:Build  ${drvfr}/DrvFR.dproj /p:Platform=Win32 /p:Config=Release /p:DCC_Define=VER_NAV /p:DCC_ExeOutput=../../Setup/DrvFR/Bin/Win32" />
-        </exec>
-        <exec executable="msbuild.exe">
-            <arg value="/clp:ErrorsOnly /t:Build  ${drvfr}/DrvFR.dproj /p:Platform=Win64 /p:Config=Release /p:DCC_Define=VER_NAV /p:DCC_ExeOutput=../../Setup/DrvFR/Bin/Win64" />
-        </exec>
-    </target>
-	
-    <target name="build_drvfrtst">
-        <echo input="${drvfrtst}/drvfrtst_ver.rt" file="${drvfrtst}/drvfrtst_ver.rc" />
-        <exec executable="${brcc}">
-            <arg value="${drvfrtst}/drvfrtst_ver.rc" />
-        </exec>
-        <exec executable="msbuild.exe">
-            <arg value="/clp:ErrorsOnly /t:Build  ${drvfrtst}/DrvFRTst.dproj /p:Platform=Win32 /p:Config=Release /p:DCC_ExeOutput=../../Setup/DrvFR/Bin/Win32" />
-        </exec>
-        <exec executable="msbuild.exe">
-            <arg value="/clp:ErrorsOnly /t:Build  ${drvfrtst}/DrvFRTst.dproj /p:Platform=Win64 /p:Config=Release /p:DCC_ExeOutput=../../Setup/DrvFR/Bin/Win64" />
-        </exec>
-    </target>
-    <target name="build_srvfr">
-        <echo input="${srvfr}/srvfr_ver.rt" file="${srvfr}/srvfrt_ver.rc" />
-        <exec executable="${brcc}">
-            <arg value="${srvfr}/srvfrt_ver.rc" />
-        </exec>
-        <exec executable="msbuild.exe">
-            <arg value="/clp:ErrorsOnly /t:Build  ${srvfr}/srvfr.dproj /p:Platform=Win32 /p:Config=Release /p:DCC_ExeOutput=../../Setup/DrvFR/Bin/Win32" />
-        </exec>
-        <exec executable="msbuild.exe">
-            <arg value="/clp:ErrorsOnly /t:Build  ${srvfr}/srvfr.dproj /p:Platform=Win64 /p:Config=Release /p:DCC_ExeOutput=../../Setup/DrvFR/Bin/Win64" />
-        </exec>
-    </target>
-    <target name="build_1cnative">
-        <echo input="${smdrvfr1cnative}/smdrvfr1cnative_ver.rt" file="${smdrvfr1cnative}/smdrvfr1cnative_ver.rc" />
-        <exec executable="${brcc}">
-            <arg value="${smdrvfr1cnative}/smdrvfr1cnative_ver.rc" />
-        </exec>
-        <exec executable="msbuild.exe">
-            <arg value="/clp:ErrorsOnly /t:Build  ${smdrvfr1cnative}/smdrvfr1cnative.dproj /p:Platform=Win32 /p:Config=Release /p:DCC_Define=V1C_34 /p:DCC_ExeOutput=../../Setup/DrvFR/Bin/Win32/1C/40 /p:DCC_DcuOutput=../../Setup/DrvFR/Dcu/Win32/1c/40" />
-        </exec>
-        <exec executable="msbuild.exe">
-            <arg value="/clp:ErrorsOnly /t:Build  ${smdrvfr1cnative}/smdrvfr1cnative.dproj /p:Platform=Win64 /p:Config=Release /p:DCC_Define=V1C_34 /p:DCC_ExeOutput=../../Setup/DrvFR/Bin/Win64/1C/40 /p:DCC_DcuOutput=../../Setup/DrvFR/Dcu/Win64/1c/40" />
-        </exec>
-        <exec executable="msbuild.exe">
-            <arg value="/clp:ErrorsOnly /t:Build  ${smdrvfr1cnative}/smdrvfr1cnative.dproj /p:Platform=Win32 /p:Config=Release /p:DCC_Define=V1C_32 /p:DCC_ExeOutput=../../Setup/DrvFR/Bin/Win32/1C/32 /p:DCC_DcuOutput=../../Setup/DrvFR/Dcu/Win32/1c/32" />
-        </exec>
-        <exec executable="msbuild.exe">
-            <arg value="/clp:ErrorsOnly /t:Build  ${smdrvfr1cnative}/smdrvfr1cnative.dproj /p:Platform=Win64 /p:Config=Release /p:DCC_Define=V1C_32 /p:DCC_ExeOutput=../../Setup/DrvFR/Bin/Win64/1C/32 /p:DCC_DcuOutput=../../Setup/DrvFR/Dcu/Win64/1c/32" />
-        </exec>
-    </target>
-    <target name="build_fiscalmaster">
-        <echo input="${fiscalmaster}/fiscalmaster_ver.rt" file="${fiscalmaster}/fiscalmaster_ver.rc" />
-        <exec executable="${brcc}">
-            <arg value="${fiscalmaster}/fiscalmaster_ver.rc" />
-        </exec>
-        <exec executable="msbuild.exe">
-            <arg value="/clp:ErrorsOnly /t:Build  ${fiscalmaster}/fiscalmaster.dproj /p:Platform=Win32 /p:Config=Release /p:DCC_ExeOutput=../../Setup/DrvFR/Bin/Win32 /p:DCC_DcuOutput=../../Setup/DrvFR/Dcu/Win32" />
-        </exec>
-        <exec executable="msbuild.exe">
-            <arg value="/clp:ErrorsOnly /t:Build  ${fiscalmaster}/fiscalmaster.dproj /p:Platform=Win64 /p:Config=Release /p:DCC_ExeOutput=../../Setup/DrvFR/Bin/Win64 /p:DCC_DcuOutput=../../Setup/DrvFR/Dcu/Win64" />
-        </exec>
-    </target>
-    <target name="build_kktproxy">
-        <echo input="${kktproxy}/kktproxy_ver.rt" file="${kktproxy}/kktproxy_ver.rc" />
-        <exec executable="${brcc}">
-            <arg value="${kktproxy}/kktproxy_ver.rc" />
-        </exec>
-        <exec executable="msbuild.exe">
-            <arg value="/clp:ErrorsOnly /t:Build  ${kktproxy}/kktproxy.dproj /p:Platform=Win32 /p:Config=Release /p:DCC_ExeOutput=../../Setup/DrvFR/Bin/Win32" />
-        </exec>
-        <!--    <exec executable="msbuild.exe">
-      <arg value="/t:Build  ${kktproxy}/kktproxy.dproj /p:Platform=Win64 /p:Config=Release /p:DCC_ExeOutput=../../Setup/DrvFR/Bin/Win64" />
-    </exec> -->
-    </target>
-    <target name="build_pppnetservice">
-        <echo input="${pppnetservice}/pppnetsvc_ver.rt" file="${pppnetservice}/pppnetsvc_ver.rc" />
-        <exec executable="${brcc}">
-            <arg value="${pppnetservice}/pppnetsvc_ver.rc" />
-        </exec>
-        <exec executable="msbuild.exe">
-            <arg value="/clp:ErrorsOnly /t:Build  ${pppnetservice}/pppnetsvc.dproj /p:Platform=Win32 /p:Config=Release /p:DCC_ExeOutput=../../Setup/DrvFR/Bin/Win32" />
-        </exec>
-        <!--    <exec executable="msbuild.exe">
-      <arg value="/t:Build  ${kktproxy}/kktproxy.dproj /p:Platform=Win64 /p:Config=Release /p:DCC_ExeOutput=../../Setup/DrvFR/Bin/Win64" />
-    </exec> -->
-    </target>
-    <target name="compile" depends="clean, build_drvfr, build_drvfrtst, build_srvfr, build_1cnative, build_fiscalmaster, build_kktproxy, build_pppnetservice" />
-	
-	 <target name="compile_nav" depends="clean, build_drvfr_nav, build_drvfrtst, build_srvfr, build_1cnative, build_fiscalmaster, build_kktproxy, build_pppnetservice" />
-    <target name="build" depends="compile, sign, Make1CComponent, Make1CComponent34, makesetup32, makesetup64, makesetupkktproxy32, signinstaller, zipinstaller" />
-    <target name="buildxp" depends="compile, sign, Make1CComponent, Make1CComponent34, makesetup32xp, makesetupkktproxy32, signinstallerxp, zipinstallerxp" />
-    <target name="buildnav" depends="compile_nav, sign, Make1CComponent, Make1CComponent34, makesetup32_nav, signinstaller_nav, zipinstaller_nav" />
-
-    <target name="build2" depends="compile, Make1CComponent, makesetup32, makesetup64, zipinstaller" />
-    <target name="build-nosign" depends="compile, Make1CComponent, makesetup32, makesetup64, zipinstaller" />
+	</target>
+	<target name="setup">
+		<echo input="${setup}/setup_template.iss" file="${basedir}/setup.iss"/>
+		<exec executable="iscc">
+			<arg value="Setup.iss"/>
+			<arg value="/Q"/>
+		</exec>
+		<move tofile="${basepath}/FPUpdater_${version2}_${build}.exe">
+			<include name="${basepath}/setup.exe"/>
+		</move>
+		<delete file="${basepath}/setup.iss"/>
+	</target>
+	<target name="build">
+		<ini file="release.ini">
+			<write section="releases" key="current" value="${version}"/>
+			<write section="releases" key="last_date" value="${date.tag}"/>
+		</ini>
+	</target>
+	<target name="compile" depends="Compile-FPUpdater"/>
+	<target name="release" depends="clean,prepare,compile,setup,finalclean"/>
 </project>

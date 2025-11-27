@@ -6,7 +6,7 @@
         <Projects Include="FPUpdater\FPUpdater.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\tests\Acceptance\Acceptance.dproj">
+        <Projects Include="..\test\Acceptance\Acceptance.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -27,13 +27,13 @@
         <MSBuild Projects="FPUpdater\FPUpdater.dproj" Targets="Make"/>
     </Target>
     <Target Name="Acceptance">
-        <MSBuild Projects="..\tests\Acceptance\Acceptance.dproj"/>
+        <MSBuild Projects="..\test\Acceptance\Acceptance.dproj"/>
     </Target>
     <Target Name="Acceptance:Clean">
-        <MSBuild Projects="..\tests\Acceptance\Acceptance.dproj" Targets="Clean"/>
+        <MSBuild Projects="..\test\Acceptance\Acceptance.dproj" Targets="Clean"/>
     </Target>
     <Target Name="Acceptance:Make">
-        <MSBuild Projects="..\tests\Acceptance\Acceptance.dproj" Targets="Make"/>
+        <MSBuild Projects="..\test\Acceptance\Acceptance.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
         <CallTarget Targets="FPUpdater;Acceptance"/>
