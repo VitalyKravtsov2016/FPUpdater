@@ -8,7 +8,8 @@ uses
   // DUnit
   TestFramework,
   // This
-  FirmwareUpdater, FileUtils, DrvFRLib_TLB, untDriver, UpdateItem, LogFile;
+  FirmwareUpdater, DrvFRLib_TLB, untDriver, UpdateItem, LogFile,
+  StringUtils, XModem;
 
 type
 
@@ -22,13 +23,11 @@ type
     procedure CheckPortNumber(PortNumber: Integer);
 
     procedure CheckConnection;
-    procedure SetRndisConnection;
-    procedure SetVComConnection;
-    procedure SetComConnection;
     procedure CheckRndisConnection;
     procedure UpdateLoader(const Serial, FileName: string; BootVer: Integer);
     procedure CheckFirmwareUpdated;
     procedure ClearFiscalStorage;
+    procedure LoadFiles;
   public
     procedure SetUp; override;
     procedure TearDown; override;
@@ -56,9 +55,22 @@ type
     procedure TestFirmwareUpdateRNDIS3;
     procedure TestWaitForDFUDevice;
     procedure TestUpdateFFD;
+    procedure SetComConnection;
+    procedure SetVComConnection;
+    procedure SetRndisConnection;
   end;
 
 implementation
+
+function GenerateRNM(ANumber, AINN, ASerial: AnsiString): AnsiString;
+var
+  S: AnsiString;
+begin
+   S := AddLeadingZeros(ANumber, 10) +
+     AddLeadingZeros(AINN, 12) + AddLeadingZeros(ASerial, 20);
+   Result := AddLeadingZeros(ANumber, 10) +
+     AddLeadingZeros(IntToStr(CRCCITT16(S, $1021, $FFFF)), 6);
+end;
 
 function GetFilesPath: string;
 begin
@@ -367,18 +379,22 @@ end;
 // 153 -> 155 -> 1939 -> 3000 -> 153
 procedure TFirmwareUpdaterTest.TestUpdateFirmwareShtrih;
 var
-  Path: string;
   Ecr: TEcrInfo;
   SearchParams: TSearchParams;
+  IsTehnoTestKeys: Boolean;
 begin
   Logger.Debug('TestUpdateFirmwareShtrih.0');
   Ecr := Updater.ReadEcrInfo;
+  IsTehnoTestKeys := Pos('T', Driver.FMSoftVersion) > 0;
+  if not IsTehnoTestKeys then
+    raise Exception.Create('Боевой софт откатить нельзя');
+
   if Ecr.BootVer <> 153 then
   begin
     // VCOM для скорости
-    SetVComConnection;
+    //SetVComConnection;
     // Обнуление ФН для скорости перезапуска ФР
-    ClearFiscalStorage;
+    //ClearFiscalStorage;
 
     if Ecr.BootVer = 155 then
     begin
@@ -402,10 +418,10 @@ begin
   // Версия ПО: C.3
   // Сборка ПО: 62776
   // Дата ПО: 19.08.2025
-  if (Ecr.FirmwareVersion <> 'C.1')or(Ecr.FirmwareBuild <> 62928) then
+
+  if (Ecr.FirmwareVersion <> 'C.1')or(Ecr.FirmwareBuild <> 62922) then
   begin
-    Path := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'test\';
-    Updater.DfuUploadFile(Path, 'sm_app_100125_c1.bin');
+    Updater.DfuUploadFile(Updater.Path, 'sm_app_62922_c1.bin');
     Updater.DelayInMs(LoaderRebootDelay);
     SearchParams.Serial := Ecr.Serial;
     SearchParams.Timeout := 300000;
@@ -416,14 +432,14 @@ begin
 end;
 
 procedure TFirmwareUpdaterTest.TestFNFiscalization;
+var
+  IsTehnoTestKeys: Boolean;
 begin
   // Отключить печать и звук
   //1,1,28,1,0,0,1,'Отключение звука при ошибках','0'
   Driver.WriteTableInt(1,1,28, 0);
   //17,1,7,1,0,0,3,'Rus не печатать документ','0'
   Driver.WriteTableInt(17,1,7, 0);
-  //17,1,17,1,0,2,2,'Rus формат фд','2'
-  Driver.WriteTableInt(17,1,17, 2);
   // Сервер ОФД
   Driver.WriteTableStr(19,1,1, 'k-server.1-ofd-test.ru');
   Driver.WriteTableInt(19,1,2, 7777);
@@ -440,10 +456,31 @@ begin
   Driver.Check(Driver.FNGetStatus);
   if Driver.FNLifeState = 1 then
   begin
-    Driver.INN := '9706048530';
-    Driver.KKTRegistrationNumber := '0000000000003505';
+    // Для тестовых устройств - фискализируем по 1.05
+    // Если поле "Версия ФД" поддерживает значение 2 (ФФД 1.05)
+    Driver.TableNumber := 17;
+    Driver.RowNumber := 1;
+    Driver.FieldNumber := 17;
+    Driver.Check(Driver.GetFieldStruct);
+    if Driver.MINValueOfField <= 2 then
+    begin
+      //17,1,17,1,0,2,2,'Rus формат фд','2'
+      Driver.WriteTableInt(17,1,17, 2);
+    end else
+    begin
+      if Driver.MAXValueOfField >= 4 then
+      begin
+        Driver.WriteTableInt(17,1,17, 4);
+      end;
+    end;
+
+    Driver.Check(Driver.ReadSerialNumber);
+
+    Driver.Inn := '9706048530';
+    Driver.KKTRegistrationNumber := GenerateRNM('', Driver.Inn, Driver.SerialNumber);
     Driver.TaxType := 1;
     Driver.WorkMode := 0;
+    Driver.WorkModeEx := 16;
     Driver.Timeout := 10000;
     Driver.Check(Driver.FNBuildRegistrationReport);
     Driver.WaitForPrinting;
@@ -478,9 +515,25 @@ begin
   end;
 end;
 
+procedure TFirmwareUpdaterTest.LoadFiles;
+var
+  Path: string;
+  IsTehnoTestKeys: Boolean;
+begin
+  Driver.Check(Driver.GetECRStatus);
+  IsTehnoTestKeys := Pos('T', Driver.FMSoftVersion) > 0;
+  Path := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)));
+  if IsTehnoTestKeys then
+    Updater.Path := Path + 'test\'
+  else
+    Updater.Path := Path + 'data\';
+  Updater.LoadFiles(Updater.Path);
+end;
+
 procedure TFirmwareUpdaterTest.TestFirmwareUpdateRNDIS3;
 begin
   try
+    LoadFiles;
     CheckRndisConnection;
     Updater.UpdateFirmware;
     CheckFirmwareUpdated;

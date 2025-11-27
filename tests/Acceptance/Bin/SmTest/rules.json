@@ -25,21 +25,29 @@
 		},
 		{
 			"level": 1,
-			"file": "tb_ldr_1939_test.bin",
+			"file": "tb_ldr_3000_test.bin",
 			"savesetting": false,
-			"bootloader": 0,
-			"blver": 1939,
+			"bootloader": 1939,
+			"blver": 3000,
+			"info": "Будет произведен переход на ПО ККТ \"Торговый баланс М\". \nНажмите кнопку Обновить для продолжения!"
+		},
+		{
+			"level": 1,
+			"file": "sm_ldr_153.bin",
+			"savesetting": false,
+			"bootloader": 3000,
+			"blver": 153,
 			"info": "Будет произведен переход на ПО ККТ \"Торговый баланс М\". \nНажмите кнопку Обновить для продолжения!"
 		},
 		{
 			"level": 2,
-			"file": "tb_app_7099_test.bin",
+			"file": "sm_app_62922_c1.bin",
 			"savesetting": true,
-			"bootloader": 1939,
+			"bootloader": 153,
 			"info": "Будет произведено обновление на ПО ККТ с поддержкой НДС 22% . \nНажмите кнопку Обновить для продолжения!",
-			"fwver": "T.3",
-			"fwbuild": 7099,
-			"fwdate": "2025-11-20",
+			"fwver": "C.1",
+			"fwbuild": 62922,
+			"fwdate": "2025-01-10",
 			"updatetables": [
 				{
 					"table": 8,

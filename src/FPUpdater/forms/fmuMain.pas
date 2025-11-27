@@ -17,12 +17,11 @@ type
     btnProperties: TButton;
     btnStart: TButton;
     MemoInfo: TMemo;
-    ProgressBar: TProgressBar;
     btnStop: TButton;
     Timer: TTimer;
-    MemoStatus: TMemo;
     btnClose: TButton;
     lblTime: TLabel;
+    edtStatus: TEdit;
     procedure FormCreate(Sender: TObject);
     procedure btnPropertiesClick(Sender: TObject);
     procedure btnStartClick(Sender: TObject);
@@ -68,12 +67,10 @@ begin
   Updater.UpdateStatus;
   Status := Updater.Status;
   MemoInfo.Text := Status.InfoText;
-  MemoStatus.Text := Status.Text;
-  ProgressBar.Max := Status.ProgressMax;
-  ProgressBar.Position := Status.ProgressPos;
+  edtStatus.Text := Status.Text;
   lblTime.Caption := Status.TimeText;
   btnStop.Enabled := Status.IsStarted;
-  btnStart.Enabled := not Status.IsStarted;
+  btnStart.Enabled := (not Status.IsStarted)and(Status.UpdateAvailable);
   btnProperties.Enabled := not Status.IsStarted;
 end;
 
@@ -105,8 +102,6 @@ begin
 end;
 
 procedure TfmMain.btnStartClick(Sender: TObject);
-var
-  LDCount: Integer;
 begin
   btnStart.Enabled := False;
   btnStop.Enabled := True;

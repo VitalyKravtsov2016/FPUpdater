@@ -79,7 +79,7 @@ type
     procedure WriteTableStr(ATable, ARow, AField: Integer; const AValue: string);
     function ReadTableDef(ATableNumber, ARowNumber, AFieldNumber, ADefValue: Integer): Integer;
     function ReadTableInt(ATableNumber, ARowNumber, AFieldNumber: Integer): Integer;
-    function ReadTableStr(ATableNumber, ARowNumber, AFieldNumber: Integer): AnsiString;
+    function ReadTableStr(ATableNumber, ARowNumber, AFieldNumber: Integer): string;
     function CorrectTableNumber(ANumber: Integer): Integer;
     procedure SendTagStr(ATag: Integer; const AValue: string);
     procedure SendTagUnixTime(ATag: Integer; const AValue: TDateTime);
@@ -670,7 +670,7 @@ begin
   Result := ReadIntParam(mpFSTableNumber);
 end;
 
-function TDriver.ReadTableStr(ATableNumber, ARowNumber, AFieldNumber: Integer): AnsiString;
+function TDriver.ReadTableStr(ATableNumber, ARowNumber, AFieldNumber: Integer): string;
 begin
   RowNumber := ARowNumber;
   TableNumber := CorrectTableNumber(ATableNumber);

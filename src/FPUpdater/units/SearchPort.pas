@@ -6,7 +6,7 @@ interface
 
 uses
   // VCL
-  Windows, SysUtils, Classes, ComObj, ActiveX, SyncObjs,
+  Windows, SysUtils, Classes, ComObj, ActiveX, SyncObjs, Types,
   // This
   NotifyThread, DrvFRLib_TLB, LogFile, LangUtils, DriverTypes, PrinterTypes,
   untUtil;
@@ -466,7 +466,6 @@ begin
   ClearState;
   FThread.Free;
   FThread := TNotifyThread.CreateThread(ThreadProc);
-  FThread.Resume;
 end;
 
 procedure TSearchPort.ThreadProc(Sender: TObject);

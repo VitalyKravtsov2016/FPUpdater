@@ -1,7 +1,8 @@
 object fmMain: TfmMain
   Left = 0
   Top = 0
-  BorderStyle = bsDialog
+  BorderIcons = [biSystemMenu, biMinimize]
+  BorderStyle = bsSingle
   Caption = 'fmMain'
   ClientHeight = 263
   ClientWidth = 568
@@ -13,38 +14,48 @@ object fmMain: TfmMain
   Font.Style = []
   OldCreateOrder = False
   OnCreate = FormCreate
+  DesignSize = (
+    568
+    263)
   PixelsPerInch = 96
   TextHeight = 13
   object lblTime: TLabel
     Left = 8
     Top = 190
-    Width = 417
+    Width = 418
     Height = 13
+    Anchors = [akLeft, akTop, akRight]
     AutoSize = False
+    ExplicitWidth = 417
   end
   object btnProperties: TButton
-    Left = 431
+    Left = 432
     Top = 120
     Width = 130
     Height = 41
+    Anchors = [akTop, akRight]
     Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1072
     TabOrder = 2
     OnClick = btnPropertiesClick
+    ExplicitLeft = 431
   end
   object btnStart: TButton
-    Left = 431
+    Left = 432
     Top = 8
     Width = 130
     Height = 42
+    Anchors = [akTop, akRight]
     Caption = #1054#1073#1085#1086#1074#1080#1090#1100
     TabOrder = 0
     OnClick = btnStartClick
+    ExplicitLeft = 431
   end
   object MemoInfo: TMemo
     Left = 8
     Top = 8
-    Width = 417
+    Width = 418
     Height = 153
+    Anchors = [akLeft, akTop, akRight]
     Color = clInfoBk
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -53,43 +64,41 @@ object fmMain: TfmMain
     Font.Style = []
     ParentFont = False
     TabOrder = 4
-  end
-  object ProgressBar: TProgressBar
-    Left = 8
-    Top = 167
-    Width = 417
-    Height = 17
-    TabOrder = 5
+    ExplicitWidth = 417
   end
   object btnStop: TButton
-    Left = 431
+    Left = 432
     Top = 56
     Width = 130
     Height = 42
+    Anchors = [akTop, akRight]
     Caption = #1055#1088#1077#1088#1074#1072#1090#1100
     Enabled = False
     TabOrder = 1
     OnClick = btnStopClick
-  end
-  object MemoStatus: TMemo
-    Left = 8
-    Top = 209
-    Width = 417
-    Height = 46
-    BevelInner = bvNone
-    BorderStyle = bsNone
-    Color = clBtnFace
-    ReadOnly = True
-    TabOrder = 6
+    ExplicitLeft = 431
   end
   object btnClose: TButton
-    Left = 432
+    Left = 433
     Top = 216
     Width = 130
     Height = 41
+    Anchors = [akRight, akBottom]
     Caption = #1047#1072#1082#1088#1099#1090#1100
     TabOrder = 3
     OnClick = btnCloseClick
+    ExplicitLeft = 432
+  end
+  object edtStatus: TEdit
+    Left = 8
+    Top = 167
+    Width = 418
+    Height = 21
+    Anchors = [akLeft, akTop, akRight]
+    Color = clBtnFace
+    ReadOnly = True
+    TabOrder = 5
+    ExplicitWidth = 417
   end
   object Timer: TTimer
     OnTimer = TimerTimer

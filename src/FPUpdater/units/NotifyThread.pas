@@ -32,8 +32,8 @@ implementation
 
 constructor TNotifyThread.CreateThread(AOnExecute: TNotifyEvent);
 begin
-  inherited Create(True);
   FOnExecute := AOnExecute;
+  inherited Create(False);
 end;
 
 procedure TNotifyThread.Execute;

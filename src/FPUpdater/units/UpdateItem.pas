@@ -30,6 +30,7 @@ type
     RestoreCashRegister: Boolean;       // Восстанавливать регистр наличных
     PrintStatus: Boolean;               // Печатать на чековой ленте
     FFDNeedUpdate: TFFDNeedUpdate;      // Нужно ли перерегистрировать ФН
+    ForceUpload: Boolean;                  // Режим тестирования - софт будет перезаписываться
   end;
 
   { TTableItem }
@@ -64,6 +65,7 @@ type
     fwdate: TDate;          // Дата ПО ФР, например '2025-10-31'
     Tables: TTableItems;    // Значения таблиц
     DownAllowed: Boolean;   // ???
+    Force: Boolean;         // Загружать если равны версии
   end;
   TUpdateItems = array of TUpdateItem;
 
@@ -128,6 +130,10 @@ begin
     Item.info := 'нет данных';
     if Json.FindValue('info')<>nil then
       Item.info := JsonGetString(Json, 'info');
+
+    Item.Force := false;
+    if Json.FindValue('force')<>nil then
+      Item.Force := JsonGetBoolean(Json, 'force');
   end;
 
   if Item.Action = ACTION_WRITE_LICENSES then
@@ -198,6 +204,10 @@ begin
     Item.downallowed := false;
     if Json.FindValue('downallowed')<>nil then
       Item.downallowed := JsonGetBoolean(Json, 'downallowed');
+
+    Item.Force := false;
+    if Json.FindValue('force')<>nil then
+      Item.Force := JsonGetBoolean(Json, 'force');
   end;
 end;
 

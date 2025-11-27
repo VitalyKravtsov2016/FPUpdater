@@ -26,7 +26,6 @@ uses
   LogFile, BinUtils, FptrTypes, XModem, DeviceSearch, SearchPort;
 
 const
-  ProgressMax = 135;
   DFUDelayTime = 5000;
   //LoaderRebootDelay = 15000;
   //FirmwareRebootDelay = 30000;
@@ -154,8 +153,6 @@ type
     IsStarted: Boolean;
     Text: string;
     InfoText: string;
-    ProgressPos: Integer;
-    ProgressMax: Integer;
     StartTime: TDateTime;
     ResultText: string;
     ElapsedSeconds: Integer;
@@ -211,7 +208,7 @@ type
     function GetStatus: TUpdateStatus;
     function ReadSerialNumber: string;
     function CheckUpdateAvailable: Boolean;
-    function EcrUpdateable(const Serial: AnsiString): Boolean;
+    function EcrUpdateable(const Serial: string): Boolean;
     function ReadFFDVersion: Integer;
     function ReadLicense(const FileName, Serial: string;
       var License: TEcrLicense): Boolean;
@@ -241,6 +238,7 @@ type
     function WaitForDFUDevice(Timeout: Cardinal): Boolean;
     procedure SetVComConnection;
     procedure UpdateInfoText(EcrInfo: TEcrInfo);
+    function ValidUpdateItem(const Ecr: TEcrInfo; const Item: TUpdateItem): Boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -370,14 +368,14 @@ begin
   ShlObj.SHGetSpecialFolderPath(0, @Result[1], CSIDL_APPDATA, false);
   SetLength(Result, Pos(#0, Result) - 1);
 
-  Result := IncludeTrailingBackSlash(Result) + CompanyName;
+  Result := IncludeTrailingPathDelimiter(Result) + CompanyName;
   if not DirectoryExists(Result) then
     CreateDir(Result);
 end;
 
 function GetBackupTablesPath: string;
 begin
-  Result := IncludeTrailingBackslash(GetUserCompanyPath) + 'Tables';
+  Result := IncludeTrailingPathDelimiter(GetUserCompanyPath) + 'Tables';
 end;
 
 function CheckDFU: Boolean;
@@ -492,9 +490,7 @@ begin
     raise Exception.Create('Обновление уже идет.');
 
   FStopped := False;
-  FThread := TNotifyThread.Create;
-  FThread.OnExecute := Execute;
-  FThread.Resume;
+  FThread := TNotifyThread.CreateThread(Execute);
 end;
 
 procedure TFirmwareUpdater.Stop;
@@ -568,6 +564,7 @@ var
   CashRegister: Currency;
   SearchParams: TSearchParams;
 begin
+  CashRegister := 0;
   SetStatusText('Обновление устройства');
   CheckStopped;
   Driver.Check(Connect);
@@ -607,6 +604,7 @@ begin
       WaitForDevice(EcrInfo.Serial, LoaderRebootTimeout);
       CheckLoaderUpdated(Item.NewBootVer);
       EcrInfo.BootVer := Item.NewBootVer;
+      if Item.Force then Break;
     end;
     // Up
     if FindUpdateItem(EcrInfo, ACTION_UPDATE_FIRMWARE, Item) then
@@ -702,12 +700,13 @@ begin
   end;
 end;
 
+// Проверка типа подключения
 function TFirmwareUpdater.GetUpdateMode(PortNumber: Integer): TUpdateMode;
 var
   PppMode: Integer;
   RndisActive: Boolean;
 begin
-  // Проверка типа подключения
+  Result := umDFU;
   case PortNumber of
     PORT_COM: Result := umXModem;
     PORT_VCOM: Result := umDFU;
@@ -795,14 +794,16 @@ begin
     begin
       FStatus.UpdateAvailable := True;
       EcrInfo.BootVer := Item.NewBootVer;
+      LoaderLine := Format('Загрузчик до версии %d', [Item.NewBootVer]);
+      if Item.Force then Break;
     end;
-    LoaderLine := Format('Загрузчик до версии %d', [Item.NewBootVer]);
     if FindUpdateItem(EcrInfo, ACTION_UPDATE_FIRMWARE, Item) then
     begin
       FStatus.UpdateAvailable := True;
       FirmwareLine := Format('ПО ККМ до версии %s, сборка: %d от %s',
           [Item.fwver, Item.fwbuild, DateToStr(Item.fwdate)]);
     end;
+
     if FStatus.UpdateAvailable then
     begin
       Lines.Add('Программа обновит:');
@@ -883,7 +884,7 @@ begin
   CheckStopped;
   SetStatusText('Чтение таблиц...');
   ForceDirectories(GetBackupTablesPath);
-  Driver.FileName := IncludeTrailingBackslash(GetBackupTablesPath) + Serial + '.csv';
+  Driver.FileName := IncludeTrailingPathDelimiter(GetBackupTablesPath) + Serial + '.csv';
   if FileExists(Driver.FileName) then
     SysUtils.DeleteFile(Driver.FileName);
   Driver.Check(Driver.ExportTables);
@@ -1008,16 +1009,16 @@ begin
 end;
 
 
-function TFirmwareUpdater.EcrUpdateable(const Serial: AnsiString): Boolean;
+function TFirmwareUpdater.EcrUpdateable(const Serial: string): Boolean;
 const
-  models: array [0..11] of AnsiString =
+  models: array [0..11] of string =
     (
     '0006','0004','0007','0008','0022','0002','0009','0001',
     '0041','0051','0044','0048'
     );
 var
   i: Integer;
-  Model: AnsiString;
+  Model: string;
 begin
   Model := Copy(Serial, 7, 4);
   for i := Low(Models) to High(Models) do
@@ -1029,25 +1030,9 @@ end;
 
 function TFirmwareUpdater.ReadSerialNumber: string;
 begin
-  Driver.TableNumber := 18;
-  Driver.RowNumber := 1;
-  Driver.FieldNumber := 1;
-  Driver.Check(Driver.ReadTable);
-  Result := Driver.ValueOfFieldString;
+  Driver.Check(Driver.ReadSerialNumber);
+  Result := Driver.SerialNumber;
 end;
-
-(*
-function TFirmwareUpdater.FindUpdateItem(const Data: TEcrInfo; Action: Integer;
-  var Item: TUpdateItem): Boolean;
-begin
-  Result := True;
-  case Action of
-    ACTION_UPDATE_LOADER: Item := FItems[1];
-    ACTION_UPDATE_FIRMWARE: Item := FItems[2];
-    ACTION_WRITE_LICENSES: Item := FItems[3];
-  end;
-end;
-*)
 
 function TFirmwareUpdater.FindUpdateItem(const Data: TEcrInfo;
   Action: Integer; var Item: TUpdateItem): Boolean;
@@ -1066,10 +1051,10 @@ begin
   begin
     if Driver.ECRSoftVersion <> Item.fwver then
       raise Exception.CreateFmt('Версия ПО ФР отличается, %s <> %s',
-      [Driver.ECRSoftVersion <> Item.fwver]);
+      [Driver.ECRSoftVersion, Item.fwver]);
 
     if Driver.ECRBuild <> Item.fwbuild then
-      raise Exception.CreateFmt('Сборка ПО ФР отличается, %s <> %s',
+      raise Exception.CreateFmt('Сборка ПО ФР отличается, %d <> %d',
       [Driver.ECRBuild, Item.fwbuild]);
   end;
 end;
@@ -1142,7 +1127,6 @@ function TFirmwareUpdater.WaitForDFUDevice(Timeout: Cardinal): Boolean;
 var
   StartTime: Cardinal;
 begin
-  Result := False;
   StartTime := GetTickCount;
   while True do
   begin
@@ -1183,13 +1167,13 @@ procedure TFirmwareUpdater.DelayInMs(DelayInMs: Integer);
 var
   TickCount: Integer;
 begin
-  SetStatusText(Format('Задерка %d мс...', [DelayInMs]));
+  SetStatusText(Format('Задержка %d мс...', [DelayInMs]));
   TickCount := GetTickCount;
   repeat
     CheckStopped;
     Sleep(100);
-  until GetTickCount > (TickCount + DelayInMs);
-  SetStatusText(Format('Задерка %d мс: OK', [DelayInMs]));
+  until Integer(GetTickCount) > TickCount + DelayInMs;
+  SetStatusText(Format('Задержка %d мс: OK', [DelayInMs]));
 end;
 
 // По надобности, восстанавливаем таблицы
@@ -1197,7 +1181,7 @@ procedure TFirmwareUpdater.WriteTablesFile(const Serial: string);
 begin
   CheckStopped;
   SetStatusText('Запись таблиц...');
-  Driver.FileName := IncludeTrailingBackslash(GetBackupTablesPath) + Serial + '.csv';
+  Driver.FileName := IncludeTrailingPathDelimiter(GetBackupTablesPath) + Serial + '.csv';
   Driver.Check(Driver.ImportTables);
   SetStatusText('Запись таблиц: OK');
 end;
@@ -1229,7 +1213,7 @@ end;
 procedure TFirmwareUpdater.WaitForDevice(const Serial: string;
   TimeoutInMs: Integer);
 var
-  TickCount: Cardinal;
+  TickCount: Integer;
 begin
   SetStatusText('Ожидание устройства...');
 
@@ -1239,13 +1223,14 @@ begin
     CheckStopped;
     if FindDevice(Serial) then
     begin
-      Logger.Debug(Format('Устройство найдено за %d мс', [GetTickCount - TickCount]));
+      Logger.Debug(Format('Устройство найдено за %d мс', [
+        Integer(GetTickCount) - TickCount]));
       Logger.Debug('Проверка состояния ККМ');
       Driver.Check(Driver.ResetECR);
       Exit;
     end;
     Sleep(1000);
-  until GetTickCount > TickCount + TimeoutInMs;
+  until Integer(GetTickCount) > TickCount + TimeoutInMs;
   raise Exception.CreateFmt('Устройство %s не найдено', [Serial]);
   SetStatusText('Ожидание устройства: OK');
 end;
@@ -1304,7 +1289,7 @@ end;
 
 procedure TFirmwareUpdater.DiscoverDevice(const Params: TSearchParams);
 var
-  TickCount: Cardinal;
+  TickCount: Integer;
 begin
   SetStatusText('Поиск устройства...');
   Driver.Timeout := 1000;
@@ -1313,13 +1298,14 @@ begin
     CheckStopped;
     if FindDeviceLocal(Params) then
     begin
-      Logger.Debug(Format('Устройство найдено за %d мс', [GetTickCount - TickCount]));
+      Logger.Debug(Format('Устройство найдено за %d мс', [
+        Integer(GetTickCount) - TickCount]));
       Logger.Debug('Проверка состояния ККМ');
       Exit;
     end;
 
     Sleep(100);
-  until GetTickCount > TickCount + Params.Timeout;
+  until Integer(GetTickCount) > TickCount + Params.Timeout;
 
   raise Exception.CreateFmt('Устройство %s не найдено', [Params.Serial]);
 end;
@@ -1332,8 +1318,6 @@ end;
 function TFirmwareUpdater.FindDeviceLocal(const Params: TSearchParams): Boolean;
 var
   i: Integer;
-  Found: Boolean;
-  Serial: string;
   Port: TSearchPort;
   Search: TDeviceSearch;
 begin
@@ -1398,9 +1382,7 @@ procedure TFirmwareUpdater.UpdateStatus;
 begin
   if FStatus.IsStarted then
   begin
-    FStatus.ProgressMax := ProgressMax;
     FStatus.ElapsedSeconds := SecondsBetween(Now, FStatus.StartTime);
-    FStatus.ProgressPos := FStatus.ElapsedSeconds;
     FStatus.TimeText := Format('Время начала: %s, прошло секунд, %d', [
       TimeToStr(Status.StartTime), Status.ElapsedSeconds]);
   end;
@@ -1496,12 +1478,14 @@ procedure TFirmwareUpdater.ChangeFFD(const Item: TUpdateItem;
   AFFD: TFFDNeedUpdate);
 var
   Text: string;
-  FFDVer: Integer;
-  WorkModeEx: Byte;
-  OfdParams: TOfdParams;
   OfdInn: string;
+  Reason: Integer;
+  FFDVer: Integer;
+  OfdParams: TOfdParams;
+  IsFFDChanged: Boolean;
 begin
   CheckDocSent;
+
   case AFFD of
     NoUpdateNeeded:
     begin
@@ -1510,6 +1494,8 @@ begin
     end;
     FFD105: FFDVer := 2;
     FFD12: FFDVer := 4;
+  else
+    FFDVer := 4;
   end;
 
   if FParams.PrintStatus then
@@ -1528,6 +1514,7 @@ begin
 
   Text := Format('Перерегистрация ККТ на %s', [FFDToStr(FFDVer)]);
   SetStatusText(Text + '...');
+  IsFFDChanged := Driver.ReadTableInt(17, 1, 17) <> FFDVer;
   Driver.WriteTableInt(17, 1, 17, FFDVer);
   OfdInn := Driver.ReadTableStr(18, 1, 12);
   if GetOfdParams(Item, OfdInn, OfdParams) then
@@ -1536,6 +1523,12 @@ begin
       Driver.WriteTableStr(19, 1, 5, OfdParams.ServerKM);
     if OfdParams.PortKM <> 0 then
       Driver.WriteTableInt(19, 1, 6, OfdParams.PortKM);
+  end;
+
+  if IsFFDChanged then
+  begin
+    Reason := Driver.ReadTableInt(18, 1, 22) or $200000;
+    Driver.WriteTableInt(18, 1, 22, Reason);
   end;
 
   Driver.RegistrationReasonCode := 4; // Изменение настроек ККТ
@@ -1560,9 +1553,6 @@ begin
 end;
 
 procedure TFirmwareUpdater.Feed(ALineCount: Integer);
-var
-  Res: Integer;
-  RepCount: Integer;
 begin
   Driver.Check(Driver.WaitForPrinting);
   Driver.UseReceiptRibbon := True;
@@ -1581,11 +1571,8 @@ end;
 function TFirmwareUpdater.WaitDocSent(TimeoutInSec: Integer): Boolean;
 var
   TickCount: Cardinal;
-  IsTimeout: Boolean;
 begin
   SetStatusText('Ожидание отправки сообщений в ОФД');
-  Result := False;
-  IsTimeout := False;
   TickCount := GetTickCount;
   while True do
   begin
@@ -1595,9 +1582,7 @@ begin
     Result := Driver.MessageCount = 0;
     if Result then Break;
 
-    IsTimeout := Abs(GetTickCount - TickCount) > (1000 * TimeoutInSec);
-    if IsTimeout then Break;
-
+    if Abs(GetTickCount - TickCount) > (1000 * TimeoutInSec) then Break;
     Sleep(500);
   end;
 end;
@@ -1697,7 +1682,6 @@ function TFirmwareUpdater.FindOfdParams(const OfdInn: string;
 var
   Ofd: TOfdParams;
 begin
-  Result := False;
   for Ofd in OfdParamsArray do
   begin
     Result := Ofd.Inn = Trim(OfdInn);
@@ -1743,51 +1727,56 @@ begin
   end;
 end;
 
+
+function TFirmwareUpdater.ValidUpdateItem(const Ecr: TEcrInfo;
+  const Item: TUpdateItem): Boolean;
+begin
+  case Action of
+    ACTION_UPDATE_LOADER:
+    begin
+      // Если нужно переписывать для тестирования
+      Result := Item.Force and (Item.NewBootVer = Ecr.BootVer);
+      if Result then Exit;
+
+      Result := Item.CurrBootVer = Ecr.BootVer;
+      if Result then Exit;
+
+      if Item.CurrBootVer = 0 then
+      begin
+        Result := (Ecr.BootVer <> -1)and(Item.NewBootVer > Ecr.BootVer) and (Ecr.BootVer > 129);
+      end;
+    end;
+
+    ACTION_UPDATE_FIRMWARE:
+    begin
+      if  Ecr.BootVer >= Item.CurrBootVer then
+      begin
+        Result := True;
+        if (Item.fwbuild = Ecr.FirmwareBuild) and
+          (Item.fwver = Ecr.FirmwareVersion) then
+        begin
+          if not Item.Force then
+            Result := False;
+        end;
+      end;
+    end;
+  else
+    Result := True;
+  end;
+end;
+
 function TFirmwareUpdater.FindItemIndex(const Ecr: TEcrInfo;
   Action: Integer): Integer;
 var
   i: Integer;
-  flag: Boolean;
   Item: TUpdateItem;
 begin
   Result := -1;
   for i := Low(FItems) to High(FItems) do
   begin
     Item := FItems[i];
-    if Item.Action <> Action then Continue;
-
-    case Action of
-      ACTION_UPDATE_LOADER:
-      begin
-        if Item.CurrBootVer = Ecr.BootVer then
-        begin
-          Result := i;
-          Exit;
-        end;
-        if Item.CurrBootVer = 0 then
-        begin
-          if (Item.NewBootVer > Ecr.BootVer) and (Ecr.BootVer > 129) then
-          begin
-            Result := i;
-            if Ecr.BootVer = -1 then
-              Result := -1;
-            Exit;
-          end;
-        end;
-      end;
-
-      ACTION_UPDATE_FIRMWARE:
-      begin
-        if  Ecr.BootVer >= Item.CurrBootVer then
-        begin
-          Result := i;
-          if (Item.fwbuild = Ecr.FirmwareBuild) and
-            (Item.fwver = Ecr.FirmwareVersion) then
-            Result := -1;
-          Exit;
-        end;
-      end;
-    else
+    if (Item.Action = Action)and ValidUpdateItem(Ecr, Item) then
+    begin
       Result := i;
       Exit;
     end;

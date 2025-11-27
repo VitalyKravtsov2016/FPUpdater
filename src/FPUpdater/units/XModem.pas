@@ -5,16 +5,15 @@ uses
   // VCL
   SysUtils, Windows, Classes,
   // This
-  AsyncSerialPort, FileUtils, LogFile;
+  AsyncSerialPort,
+  //FileUtils,
+  LogFile;
 
 type
   TOnCancel = function: Boolean of object;
 
   TXModem = class
   private
-    FTransferFinished: Boolean;
-    FExitCode: Integer;
-    FState: string;
     FDeviceReady: Boolean;
     FPort: TAsyncSerialPort;
     FBaudrate: Integer;
@@ -27,7 +26,7 @@ type
     FOnPercent: TNotifyEvent;
     procedure OnRxChar(Sender: TObject; Count: Integer);
     procedure WaitForDeviceReady;
-    procedure Transmit(const AFileName: AnsiString);
+    procedure Transmit(const AFileName: string);
     function CRC16(const AData: AnsiString): AnsiString;
     procedure SendPacket(const AData: AnsiString);
     procedure Reboot;
@@ -37,7 +36,7 @@ type
     procedure Write(const Data: AnsiString);
     procedure CheckCancelled;
   public
-    procedure SendFile(const AFileName: AnsiString);
+    procedure SendFile(const AFileName: string);
     constructor Create;
     destructor Destroy; override;
     property Port: TAsyncSerialPort read FPort write FPort;
@@ -56,7 +55,26 @@ const
   EOT = #04;
   CAN = #$18;
 
+function CRCCITT16(const Buffer: AnsiString; Polynom, Initial: Word): Word;
+
 implementation
+
+function ReadFileData(const FileName: string): AnsiString;
+var
+  Stream: TFileStream;
+begin
+  Result := '';
+  Stream := TFileStream.Create(FileName, fmOpenRead);
+  try
+    if Stream.Size > 0 then
+    begin
+      SetLength(Result, Stream.Size);
+      Stream.Read(Result[1], Stream.Size);
+    end;
+  finally
+    Stream.Free;
+  end;
+end;
 
 function CRCCITT16(const Buffer: AnsiString; Polynom, Initial: Word): Word;
 var
@@ -113,7 +131,7 @@ begin
   Result := '';
   for i := 1 to Length(S) do
   begin
-    Result := Result + IntToHex(Ord(S[i]), 2);
+    Result := Result + AnsiString(IntToHex(Ord(S[i]), 2));
     if ASpace then Result := Result + ' ';
   end;
 end;
@@ -122,7 +140,6 @@ procedure TXModem.OnRxChar(Sender: TObject; Count: Integer);
 var
   i: Integer;
   s: AnsiString;
-
 begin
   s := FPort.Read(Count);
   for i := 1 to Length(S) do
@@ -216,7 +233,7 @@ begin
 end;
 
 
-procedure TXModem.SendFile(const AFileName: AnsiString);
+procedure TXModem.SendFile(const AFileName: string);
 begin
   FDeviceReady := False;
   Port.Close;
@@ -264,7 +281,7 @@ begin
   end;
 end;
 
-procedure TXModem.Transmit(const AFileName: AnsiString);
+procedure TXModem.Transmit(const AFileName: string);
 var
   Data: AnsiString;
   k: Integer;

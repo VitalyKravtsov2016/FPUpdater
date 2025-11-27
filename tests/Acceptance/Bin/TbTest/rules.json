@@ -9,7 +9,7 @@
 	"RULES": [
 		{
 			"level": 1,
-			"file": "upd_ldr_155.bin",
+			"file": "sm_ldr_155.bin",
 			"savesetting": false,
 			"bootloader": 0,
 			"blver": 155,
@@ -17,20 +17,28 @@
 		},
 		{
 			"level": 1,
-			"file": "tb_ldr_1939.bin",
+			"file": "tb_ldr_1939_test.bin",
 			"savesetting": false,
 			"bootloader": 155,
 			"blver": 1939,
 			"info": "Будет произведен переход на ПО ККТ \"Торговый баланс М\". \nНажмите кнопку Обновить для продолжения!"
 		},
 		{
+			"level": 1,
+			"file": "tb_ldr_1939_test.bin",
+			"savesetting": false,
+			"bootloader": 0,
+			"blver": 1939,
+			"info": "Будет произведен переход на ПО ККТ \"Торговый баланс М\". \nНажмите кнопку Обновить для продолжения!"
+		},
+		{
 			"level": 2,
-			"file": "tb_app_7098.bin",
+			"file": "tb_app_7099_test.bin",
 			"savesetting": true,
 			"bootloader": 1939,
 			"info": "Будет произведено обновление на ПО ККТ с поддержкой НДС 22% . \nНажмите кнопку Обновить для продолжения!",
 			"fwver": "T.3",
-			"fwbuild": 7098,
+			"fwbuild": 7099,
 			"fwdate": "2025-11-20",
 			"updatetables": [
 				{

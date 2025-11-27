@@ -19,7 +19,6 @@ type
     FShortSearch: Boolean;
     procedure UpdatePorts;
     function GetCompleted: Boolean;
-    function GetPortNames: string;
   public
     constructor Create;
     destructor Destroy; override;
@@ -27,6 +26,7 @@ type
     procedure Start;
     procedure Stop;
     procedure Wait;
+    function GetPortNames: string;
 
     property Ports: TSearchPorts read FPorts;
     property Completed: Boolean read GetCompleted;

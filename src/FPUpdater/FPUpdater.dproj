@@ -168,20 +168,17 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <DCCReference Include="units\LogFile.pas"/>
         <DCCReference Include="units\SystemUtils.pas"/>
         <DCCReference Include="units\FirmwareUpdater.pas"/>
-        <DCCReference Include="units\RNDISAdapter.pas"/>
         <DCCReference Include="units\untVInfo.pas"/>
         <DCCReference Include="units\NotifyThread.pas"/>
         <DCCReference Include="units\UpdateItem.pas"/>
         <DCCReference Include="units\StringUtils.pas"/>
         <DCCReference Include="units\BinUtils.pas"/>
         <DCCReference Include="units\FptrTypes.pas"/>
-        <DCCReference Include="units\TextEncoding.pas"/>
         <DCCReference Include="units\LangUtils.pas"/>
         <DCCReference Include="units\DriverTypes.pas"/>
         <DCCReference Include="units\GlobalConst.pas"/>
         <DCCReference Include="units\XModem.pas"/>
         <DCCReference Include="units\AsyncSerialPort.pas"/>
-        <DCCReference Include="units\FileUtils.pas"/>
         <DCCReference Include="units\gnugettext.pas"/>
         <DCCReference Include="units\DeviceSearch.pas"/>
         <DCCReference Include="units\SearchPort.pas"/>
@@ -227,6 +224,12 @@ $(PreBuildEvent)]]></PreBuildEvent>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="Win32\Release\FPUpdater.exe" Configuration="Release" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>FPUpdater.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_44.png" Configuration="Release" Class="UWP_DelphiLogo44">
                     <Platform Name="Win32">
                         <RemoteDir>Assets\</RemoteDir>
@@ -234,13 +237,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="Win32\Debug\FPUpdater.exe" Configuration="Debug" Class="ProjectOutput">
-                    <Platform Name="Win32">
-                        <RemoteName>FPUpdater.exe</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="Win32\Release\FPUpdater.exe" Configuration="Release" Class="ProjectOutput">
+                <DeployFile LocalName="..\Bin\FPUpdater.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>FPUpdater.exe</RemoteName>
                         <Overwrite>true</Overwrite>

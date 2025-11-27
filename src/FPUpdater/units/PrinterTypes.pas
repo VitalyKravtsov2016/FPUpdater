@@ -6,7 +6,7 @@ uses
   // VCL
   Windows, SysUtils,
   // This
-  BinUtils, DriverTypes, TextEncoding, LangUtils;
+  BinUtils, DriverTypes, LangUtils;
 
 const
   CRLF = #13#10;
