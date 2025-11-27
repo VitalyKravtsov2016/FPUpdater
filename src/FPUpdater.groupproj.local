@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>1899.12.30 00:00:00.000.851,D:\projects\TorgBalance\fwupdater2\src\FPUpdater.groupproj=D:\projects\TorgBalance\fwupdater2\src\FWUpdater.groupproj</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.285,C:\Projects\src\fwupdater2\src\FWUpdater.groupproj=C:\Users\User\Documents\Embarcadero\Studio\Projects\ProjectGroup1.groupproj</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.851,D:\projects\TorgBalance\fwupdater2\src\FWUpdater.groupproj=D:\projects\TorgBalance\fwupdater2\src\FPUpdater.groupproj</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.285,C:\Users\User\Documents\Embarcadero\Studio\Projects\ProjectGroup1.groupproj=C:\Projects\src\fwupdater2\src\FWUpdater.groupproj</Transaction>
   </Transactions>
 	<Default.Personality>
-		<Projects ActiveProject="C:\Projects\src\FPUpdater\tests\Acceptance\Acceptance.dproj"/>
+		<Projects ActiveProject="C:\Projects\src\FPUpdater\src\FPUpdater\FPUpdater.dproj"/>
 	</Default.Personality>
 </BorlandProject>

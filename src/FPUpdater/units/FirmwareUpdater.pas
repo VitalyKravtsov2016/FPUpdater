@@ -171,6 +171,8 @@ type
     FStatus: TUpdateStatus;
     FItems: TUpdateItems;
     FParams: TUpdateParams;
+    function ValidUpdateItem(Action: Integer; const Ecr: TEcrInfo;
+      const Item: TUpdateItem): Boolean;
   public
     procedure UpdateStatus;
     procedure DeleteLog;
@@ -1726,6 +1728,43 @@ begin
   end;
 end;
 
+function TFirmwareUpdater.ValidUpdateItem(Action: Integer;
+  const Ecr: TEcrInfo; const Item: TUpdateItem): Boolean;
+begin
+  case Action of
+    ACTION_UPDATE_LOADER:
+    begin
+      // ≈сли нужно переписывать дл€ тестировани€
+      Result := Item.Force and (Item.NewBootVer = Ecr.BootVer);
+      if Result then Exit;
+
+      Result := Item.CurrBootVer = Ecr.BootVer;
+      if Result then Exit;
+
+      if Item.CurrBootVer = 0 then
+      begin
+        Result := (Ecr.BootVer <> -1)and(Item.NewBootVer > Ecr.BootVer) and (Ecr.BootVer > 129);
+      end;
+    end;
+
+    ACTION_UPDATE_FIRMWARE:
+    begin
+      if  Ecr.BootVer >= Item.CurrBootVer then
+      begin
+        Result := True;
+        if (Item.fwbuild = Ecr.FirmwareBuild) and
+          (Item.fwver = Ecr.FirmwareVersion) then
+        begin
+          if not Item.Force then
+            Result := False;
+        end;
+      end;
+    end;
+  else
+    Result := True;
+  end;
+end;
+
 function TFirmwareUpdater.FindItemIndex(const Ecr: TEcrInfo;
   Action: Integer): Integer;
 var
@@ -1736,50 +1775,8 @@ begin
   for i := Low(FItems) to High(FItems) do
   begin
     Item := FItems[i];
-    if Item.Action <> Action then Continue;
-
-    case Action of
-      ACTION_UPDATE_LOADER:
-      begin
-        // ≈сли нужно переписывать дл€ тестировани€
-        if Item.Force and (Item.NewBootVer = Ecr.BootVer) then
-        begin
-          Result := i;
-          Exit;
-        end;
-
-        if Item.CurrBootVer = Ecr.BootVer then
-        begin
-          Result := i;
-          Exit;
-        end;
-        if Item.CurrBootVer = 0 then
-        begin
-          if (Item.NewBootVer > Ecr.BootVer) and (Ecr.BootVer > 129) then
-          begin
-            Result := i;
-            if Ecr.BootVer = -1 then
-              Result := -1;
-            Exit;
-          end;
-        end;
-      end;
-
-      ACTION_UPDATE_FIRMWARE:
-      begin
-        if  Ecr.BootVer >= Item.CurrBootVer then
-        begin
-          Result := i;
-          if (Item.fwbuild = Ecr.FirmwareBuild) and
-            (Item.fwver = Ecr.FirmwareVersion) then
-          begin
-            if not Item.Force then
-              Result := -1;
-          end;
-          Exit;
-        end;
-      end;
-    else
+    if (Item.Action = Action)and ValidUpdateItem(Action, Ecr, Item) then
+    begin
       Result := i;
       Exit;
     end;
