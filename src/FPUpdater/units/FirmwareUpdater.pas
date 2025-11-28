@@ -173,6 +173,7 @@ type
     FParams: TUpdateParams;
     function ValidUpdateItem(Action: Integer; const Ecr: TEcrInfo;
       const Item: TUpdateItem): Boolean;
+    procedure SetStatus(const Value: TUpdateStatus);
   public
     procedure UpdateStatus;
     procedure DeleteLog;
@@ -255,7 +256,7 @@ type
     property Items: TUpdateItems read FItems;
     property Params: TUpdateParams read FParams;
     property Path: string read FPath write FPath;
-    property Status: TUpdateStatus read GetStatus;
+    property Status: TUpdateStatus read GetStatus write SetStatus;
   end;
 
 implementation
@@ -538,8 +539,9 @@ end;
 
 procedure TFirmwareUpdater.UpdateFirmware;
 begin
-  FStatus.IsStarted := True;
+  Status.IsStarted := True;
   FStatus.StartTime := Now;
+
   Logger.Debug(Separator);
   try
     try
@@ -1371,6 +1373,7 @@ end;
 procedure TFirmwareUpdater.SetStatusText(const Text: string);
 begin
   Logger.Debug(Text);
+
   FLock.Enter;
   try
     FStatus.Text := Text;
@@ -1391,7 +1394,22 @@ end;
 
 function TFirmwareUpdater.GetStatus: TUpdateStatus;
 begin
-  Result := FStatus;
+  FLock.Enter;
+  try
+    Result := FStatus;
+  finally
+    FLock.Leave;
+  end;
+end;
+
+procedure TFirmwareUpdater.SetStatus(const Value: TUpdateStatus);
+begin
+  FLock.Enter;
+  try
+    FStatus := Value;
+  finally
+    FLock.Leave;
+  end;
 end;
 
 procedure TFirmwareUpdater.CheckFilesExists(const Path: string; Items: TUpdateItems);

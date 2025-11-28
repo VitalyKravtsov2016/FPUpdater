@@ -30,7 +30,6 @@ type
     RestoreCashRegister: Boolean;       // Восстанавливать регистр наличных
     PrintStatus: Boolean;               // Печатать на чековой ленте
     FFDNeedUpdate: TFFDNeedUpdate;      // Нужно ли перерегистрировать ФН
-    ForceUpload: Boolean;                  // Режим тестирования - софт будет перезаписываться
   end;
 
   { TTableItem }

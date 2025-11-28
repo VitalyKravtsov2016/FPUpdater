@@ -136,7 +136,7 @@ end;
 version2=1.0
 ; English
 en.CompanyName=TorgBalance
-en.AppName=TorgBalance: Fiscal printer updater
+en.AppName=Fiscal printer updater
 en.AppComments=Retail equipment
 en.DefaultDirName=\TorgBalance\FPUpdater
 en.DefaultGroupName=TorgBalance FPUpdater
@@ -152,11 +152,11 @@ en.VersionHistory=Versions history
 en.HistoryFileName=History_en.txt
 
 ; Russian
-ru.CompanyName=TorgBalance
-ru.AppName=ТОРГОВЫЙ БАЛАНС М: Прошивальщик
+ru.CompanyName=ТОРГОВЫЙ БАЛАНС М
+ru.AppName=Прошивальщик
 ru.AppComments=Торговое оборудование от производителя, автоматизация торговли
 ru.DefaultDirName=\TorgBalance\FPUpdater
-ru.DefaultGroupName=ТОРГОВЫЙ БАЛАНС М Прошивальщик
+ru.DefaultGroupName=ТОРГОВЫЙ БАЛАНС М: Прошивальщик
 ru.HistoryIcon=История версий
 ru.StartApplication=Запустить приложение
 ru.DesktopIconDescription=Создать ярлык на &рабочем столе
@@ -174,7 +174,7 @@ ru.HistoryFileName=History_ru.txt
 [Setup]
 AppName= {cm:AppName}
 AppVerName= {cm:AppName} ${version2}"
-DefaultDirName= {pf}\{cm:DefaultDirName}5
+DefaultDirName= {pf}\{cm:DefaultDirName}
 DefaultGroupName= {cm:DefaultGroupName} ${version2} 
 UninstallDisplayIcon= {app}\Uninstall.exe
 AllowNoIcons=Yes

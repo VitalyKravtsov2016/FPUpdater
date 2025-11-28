@@ -46,7 +46,6 @@ type
     procedure TestUploadFirmware;
     procedure TestSetConnectionType;
 
-    procedure TestFNFiscalization;
     procedure TestGetOfdParams;
     procedure TestLoadParams;
     procedure TestUpdateFirmwareShtrih;
@@ -58,6 +57,7 @@ type
     procedure SetComConnection;
     procedure SetVComConnection;
     procedure SetRndisConnection;
+    procedure TestFNFiscalization;
   end;
 
 implementation
@@ -451,6 +451,8 @@ begin
   Driver.Check(Driver.FNGetVersion);
   if Driver.FNSoftType <> 0 then
     raise Exception.Create('ФН должен быть отладочным');
+
+  ClearFiscalStorage;
 
   // Фискализация ФН
   Driver.Check(Driver.FNGetStatus);
