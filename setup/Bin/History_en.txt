@@ -1,0 +1,16 @@
+﻿*******************************************************************
+
+   Application : FPUpdater 1.0
+   Company     : JSC "Torgovy balance М"
+                 https://torgbalance.com/
+			     115184, Moscow, Bolshaya Tatarskaya, 35, building 3.
+				 Techical support: support@torgbalance.com, +7(495)323-64-22
+
+*******************************************************************
+
+  FPUpdater_1.0.exe
+  28 november 2025 13:00
+  
+  [+] First application version
+	  
+*******************************************************************

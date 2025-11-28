@@ -36,15 +36,11 @@ See http://www.suigeneris.org/want/ for details.
 	</tstamp>
 	<property name="basepath" value=""/>
 	<regexp property="basepath" text="${basedir}" pattern="^\/" subst=""/>
-	<property name="bin" value="${basepath}/bin"/>
-	<property name="dcu" value="${basepath}/dcu"/>
 	<property name="src" value="${basepath}/src"/>
 	<property name="test" value="${basepath}/test"/>
 	<property name="setup" value="${basepath}/setup"/>
 	<property name="FPUpdater" value="${src}/FPUpdater"/>
 	<target name="prepare">
-		<mkdir dir="${dcu}"/>
-		<mkdir dir="${bin}"/>
 		<echo message="version=${version}"/>
 		<echo message="build=${build}"/>
 		<delete dir="${src}">
@@ -76,19 +72,19 @@ See http://www.suigeneris.org/want/ for details.
 			<include name="*.dcu"/>
 		</delete>
         <exec executable="msbuild.exe">
-            <arg value="/clp:ErrorsOnly /t:Build  ${FPUpdater}/FPUpdater.dproj /p:Platform=Win32 /p:Config=Release /p:DCC_ExeOutput=Setup" />
+            <arg value="/clp:ErrorsOnly /t:Build  ${FPUpdater}/FPUpdater.dproj /p:Platform=Win32 /p:Config=Release /p:DCC_ExeOutput=${setup}/Bin" />
         </exec>
 	</target>
 	<target name="setup">
-		<echo input="${setup}/setup_template.iss" file="${basedir}/setup.iss"/>
+		<echo input="${setup}/setup_template.iss" file="${setup}/setup.iss"/>
 		<exec executable="iscc">
-			<arg value="Setup.iss"/>
+			<arg value="${setup}/Setup.iss"/>
 			<arg value="/Q"/>
 		</exec>
+		<delete file="${setup}/setup.iss"/>
 		<move tofile="${basepath}/FPUpdater_${version2}_${build}.exe">
-			<include name="${basepath}/setup.exe"/>
+			<include name="${setup}/setup.exe"/>
 		</move>
-		<delete file="${basepath}/setup.iss"/>
 	</target>
 	<target name="build">
 		<ini file="release.ini">

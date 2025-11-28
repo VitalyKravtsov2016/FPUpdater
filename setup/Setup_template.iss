@@ -1,40 +1,6 @@
 [Code]
 #include "services_unicode.iss"
 
-const
-  KKTPROXY_SERVICE_NAME = 'kktproxy';
-  KKTPROXY_SERVICE_DISPLAY_NAME = 'SHTRIH-M: kktproxy';
-  KKTPROXY_SERVICE_EXE = 'kktproxy.exe';
-
-  PPP_SERVICE_NAME = 'pppnetservice';
-  PPP_SERVICE_DISPLAY_NAME = 'SHTRIH-M: PPP net service';
-  PPP_SERVICE_EXE = 'pppnetsvc.exe';
-
-var
-  ServiceStarted: Boolean;
-
-
-const
-  NET_FW_SCOPE_ALL = 0;
-  NET_FW_IP_VERSION_ANY = 2;
-
-function SwitchHasValue(Name: string; Value: string): Boolean;
-begin
-  Result := CompareText(ExpandConstant('{param:' + Name + '}'), Value) = 0;
-end;
-
-function CmdLineParamExists(const Value: string): Boolean;
-var
-  I: Integer;  
-begin
-  Result := False;
-  for I := 1 to ParamCount do
-    if CompareText(ParamStr(I), Value) = 0 then
-    begin
-      Result := True;
-      Exit;
-    end;
-end;
 
 #ifdef UNICODE
   #define AW "W"
@@ -167,110 +133,65 @@ begin
 end;
 
 [CustomMessages]
+version2=1.0
 ; English
-en.CompanyName=SHTRIH-M
-en.AppName=SHTRIH-M: Fiscal printer driver
+en.CompanyName=TorgBalance
+en.AppName=TorgBalance: Fiscal printer updater
 en.AppComments=Retail equipment
-en.AppCopyright=Copyright © 2022 SHTRIH-M
-en.DefaultDirName=\SHTRIH-M\DrvFR
-en.DefaultGroupName=SHTRIH-M DrvFR
+en.DefaultDirName=\TorgBalance\FPUpdater
+en.DefaultGroupName=TorgBalance FPUpdater
 en.HistoryIcon=Version history
 en.UninstallShortcutText=Uninstall
-en.StartApplication=Run driver test
-en.HistoryFileName=Doc\en\History.txt
-en.DesktopIconDescription=Create shortcut on the desktop
-en.QuickLaunchIconDescription=Create shortcut on the quick launch panel
-en.DesktopGroupDescription=Create shortcuts
-en.AppPublisher=SHTRIH-M
-en.AppPublisherURL=http://www.shtrih-m.ru
-en.AppSupportURL=http://www.shtrih-m.ru
-en.AppUpdatesURL=http://www.shtrih-m.ru
-en.AppCopyright=Copyright © 2022 SHTRIH-M
-en.ComponentsMain=Driver and tests
-en.ComponentsSamples=Samples
-en.ComponentsOKassa=OKassa service
-en.OKassaFolder=OKassa
-en.Componentskktproxy=kktproxy service
-en.Componentspppnetservice=PPP net service
-en.ComponentsDrivers = USB Drivers
+en.StartApplication=Start application
+en.AppPublisher=TorgBalance
+en.AppPublisherURL=http://www.torgbalance.com
+en.AppSupportURL=http://www.torgbalance.com
+en.AppUpdatesURL=http://www.torgbalance.com
+en.AppCopyright=Copyright © 2025 TorgBalance
 en.VersionHistory=Versions history
-en.PrintServer=Print server
-en.DriverTest=Driver test
-en.OKassa=OKassa
-en.OKassaMaster=OKassa service setup wizard
-en.DriverTest1C=Driver test (1C interface)
-en.ServiceProg=Service application
-en.TaxProg=Tax inspector utility
-en.TaxProg2=Tax inspector utility 2
-en.ServerFR=Server FR
-en.HistoryFileName=res\History_en.txt
-en.StartOKassa=Start "OKassa" setup application
-en.FiscalMaster=FiscalMaster
-;en.OKassaDoc=OKassa service documentation
-; russian
-ru.CompanyName=SHTRIH-M
-ru.AppName=ШТРИХ-М: Драйвер ККТ
+en.HistoryFileName=History_en.txt
+
+; Russian
+ru.CompanyName=TorgBalance
+ru.AppName=ТОРГОВЫЙ БАЛАНС М: Прошивальщик
 ru.AppComments=Торговое оборудование от производителя, автоматизация торговли
-ru.AppCopyright=Copyright © 2022 ШТРИХ-М
-ru.DefaultDirName=\SHTRIH-M\DrvFR
-ru.DefaultGroupName=ШТРИХ-М Драйвер ККТ
+ru.DefaultDirName=\TorgBalance\FPUpdater
+ru.DefaultGroupName=ТОРГОВЫЙ БАЛАНС М Прошивальщик
 ru.HistoryIcon=История версий
-ru.UninstallShortcutText=Удалить
-ru.StartApplication=Запустить тест драйвера
-ru.HistoryFileName=Doc\ru\History.txt
+ru.StartApplication=Запустить приложение
 ru.DesktopIconDescription=Создать ярлык на &рабочем столе
 ru.QuickLaunchIconDescription=Создать &ярлык в панели быстрого запуска
 ru.DesktopGroupDescription=Создание ярлыков
-ru.AppPublisher=ШТРИХ-М
-ru.AppPublisherURL=http://www.shtrih-m.ru
-ru.AppSupportURL=http://www.shtrih-m.ru
-ru.AppUpdatesURL=http://www.shtrih-m.ru
-ru.AppCopyright=Copyright © 2022 ШТРИХ-М
-ru.ComponentsMain=Драйвер и тесты
-ru.ComponentsSamples=Примеры
-ru.ComponentsOKassa=Облачная касса
-ru.Componentskktproxy=Служба kktproxy
-ru.Componentspppnetservice=Служба pppnetservice
-ru.ComponentsDrivers = Драйверы USB
+ru.AppPublisher=ТОРГОВЫЙ БАЛАНС М
+ru.AppPublisherURL=http://www.torgbalance.com
+ru.AppSupportURL=http://www.torgbalance.com
+ru.AppUpdatesURL=http://www.torgbalance.com
+ru.AppCopyright=Copyright © 2025 ТОРГОВЫЙ БАЛАНС М
 ru.VersionHistory=История версий
-ru.PrintServer=Сервер печати ККТ
-ru.DriverTest=Тест драйвера ККТ
-ru.OKassa=Облачная касса
-ru.DriverTest1C=Тест драйвера ККТ (интерфейс 1С)
-ru.ServiceProg=Сервисная программа
-ru.TaxProg=Программа налогового инспектора
-ru.TaxProg2=Программа налогового инспектора 2
-ru.ServerFR=Сервер ККТ
 ru.UninstallShortcutText=Удалить
-ru.HistoryFileName=res\History_ru.txt
-ru.StartOKassa=Запустить мастер установки сервиса "Облачная касса"
-ru.OKassaMaster=Мастер установки сервиса Облачная касса
-;ru.OKassaDoc=Документация по настройке сервиса Облачная касса
-ru.OKassaFolder=Облачная касса
-ru.FiscalMaster=Мастер фискализации
+ru.HistoryFileName=History_ru.txt
+
 [Setup]
 AppName= {cm:AppName}
 AppVerName= {cm:AppName} ${version2}"
 DefaultDirName= {pf}\{cm:DefaultDirName}5
-DefaultGroupName= {cm:DefaultGroupName} ${version2} ${Arch2}
+DefaultGroupName= {cm:DefaultGroupName} ${version2} 
 UninstallDisplayIcon= {app}\Uninstall.exe
 AllowNoIcons=Yes
 OutputDir="."
 UsePreviousAppDir=No
 UsePreviousGroup=No
-${Architecture}
 AppVersion=${version}
 AppPublisher= {cm:AppPublisher}
 AppPublisherURL= {cm:AppPublisherURL}
 AppSupportURL= {cm:AppSupportURL}
 AppUpdatesURL= {cm:AppUpdatesURL}
 AppComments= {cm:AppComments}
-AppContact=(495)787-6090
 AppReadmeFile=History.txt
 AppCopyright= {cm:AppCopyright}
 ;Version
-VersionInfoCompany=SHTRIH-M
-VersionInfoDescription=Fiscal printer driver
+VersionInfoCompany=TorgBalance
+VersionInfoDescription=Fiscal printer updater
 VersionInfoTextVersion="${version}"
 VersionInfoVersion=${version}
 UsePreviousLanguage=no
@@ -281,170 +202,21 @@ Name: ru; MessagesFile: "compiler:Languages\Russian.isl"
 [Tasks]
 Name: "desktopicon"; Description: {cm:DesktopIconDescription}; GroupDescription: {cm:DesktopGroupDescription}; Flags: unchecked
 Name: "quicklaunchicon"; Description: {cm:QuickLaunchIconDescription}; GroupDescription: {cm:DesktopGroupDescription}; Flags: unchecked
-[Components]
-Name: "main"; Description: {cm:ComponentsMain}; Types: full compact custom
-name: "usbdrivers"; Description: {cm:ComponentsDrivers}; Types: full compact custom
-Name: "kktproxy"; Description: {cm:Componentskktproxy}; Types: full compact custom
-Name: "pppnetservice"; Description: {cm:Componentspppnetservice}; Types: full compact custom
-Name: "okassa"; Description: {cm:ComponentsOkassa}; Types: full compact custom; 
-Name: "samples"; Description: {cm:ComponentsSamples}; 
-Name: "images"; Description: "Images"; Types: full
-                                                                                  
 [Files]
-; storagetype
-Source: "Res\StorageSettings\hklm\DrvFR.xml"; DestDir: "{userappdata}\SHTRIH-M\DrvFR"; Check: SwitchHasValue('storagetype', 'hklm')
-Source: "Res\StorageSettings\hklm\DrvFR.xml"; DestDir: "{commonappdata}\SHTRIH-M\DrvFR"; Check: SwitchHasValue('storagetype', 'hklm_common')
-Source: "Res\StorageSettings\hkcu\DrvFR.xml"; DestDir: "{userappdata}\SHTRIH-M\DrvFR"; Check: SwitchHasValue('storagetype', 'hkcu')
-Source: "Res\StorageSettings\hkcu\DrvFR.xml"; DestDir: "{commonappdata}\SHTRIH-M\DrvFR"; Check: SwitchHasValue('storagetype', 'hkcu_common')
-
 ; Version history
-Source: "Res\History_ru.txt"; DestDir: "{app}"; DestName: "History.txt"; Flags: ${Archbit}; Components: main; Languages: ru
-Source: "Res\History_en.txt"; DestDir: "{app}"; DestName: "History.txt"; Flags: ${Archbit}; Components: main; Languages: en
-; Lcalization params
-Source: "Res\Locales\ru\locale.ini"; DestDir: "{userappdata}\SHTRIH-M\DrvFR"; DestName: "locale.ini"; Flags: ${Archbit}; Components: main; Languages: ru
-Source: "Res\Locales\en\locale.ini"; DestDir: "{userappdata}\SHTRIH-M\DrvFR"; DestName: "locale.ini"; Flags: ${Archbit}; Components: main; Languages: en
-; VCL70
-;Source: "res\vcl70.bpl"; DestDir: "{sys}"; Flags: onlyifdoesntexist sharedfile ${Archbit};
-;Source: "res\rtl70.bpl"; DestDir: "{sys}"; Flags: onlyifdoesntexist sharedfile ${Archbit};
-;Source: "res\BORLNDMM.DLL"; DestDir: "{sys}"; Flags: onlyifdoesntexist sharedfile ${Archbit};
-;SQLite
-Source: "res\${Arch}\sqlite3.dll"; DestDir: "{app}\Bin"; Flags: ${Archbit}; Components: main
-;kktproxy
-Source: "Bin\Win32\kktproxy.exe"; DestDir: "{app}\Bin\kktproxy"; Flags: sharedfile ${Archbit}; Components: kktproxy
-Source: "res\kktproxy.ini"; DestDir: "{app}\Bin\kktproxy"; Flags: onlyifdoesntexist ${Archbit}; Components: kktproxy
-
-;pppnetservice
-Source: "Bin\Win32\pppnetsvc.exe"; DestDir: "{app}\Bin\pppnetservice"; Flags: sharedfile ${Archbit}; Components: pppnetservice
-Source: "res\pppnetsvc.ini"; DestDir: "{app}\Bin\pppnetservice"; Flags: onlyifdoesntexist ${Archbit}; Components: pppnetservice
-Source: "res\${Arch}\kktnetd.dll"; DestDir: "{app}\Bin\pppnetservice"; Flags: ${Archbit}; Components: pppnetservice
-
-; Driver and test
-Source: "Bin\${Arch}\DrvFR.dll"; DestDir: "{app}\Bin"; Flags: ignoreversion regserver ${Archbit}; Components: main
-Source: "Bin\${Arch}\DrvFRTst.exe"; DestDir: "{app}\Bin"; Flags: ignoreversion ${Archbit}; Components: main
-Source: "Bin\${Arch}\SrvFR.exe"; DestDir: "{app}\Bin"; Flags: ignoreversion ${Archbit}; Components: main
-Source: "res\1C\32\shtrih-m_32_x32_64.zip"; DestDir: "{app}\Bin\1C"; Flags: ignoreversion ${Archbit}; Components: main
-Source: "res\1C\40\shtrih-m_41_x32_64.zip"; DestDir: "{app}\Bin\1C"; Flags: ignoreversion ${Archbit}; Components: main
-
-;Source: "Bin\SMDrvFR1CLib.dll"; DestDir: "{app}\Bin"; Flags: ignoreversion regserver ${Archbit}; Components: main
-;Source: "Bin\SMDrvFR1CLib24.dll"; DestDir: "{app}\Bin"; Flags: ignoreversion regserver ${Archbit}; Components: main
-;Source: "Bin\SMDrvFR1CNative.dll"; DestDir: "{app}\Bin"; Flags: ignoreversion ${Archbit}; Components: main
-;Source: "..\..\Source\DrvFR\DrvFR.lic"; DestDir: "{app}\Bin"; Flags: ${Archbit}; Components: main
-
-
-;Source: "Bin\TaxProg.exe"; DestDir: "{app}\Bin"; Flags: ignoreversion ${Archbit}; Components: main
-;Source: "Bin\TaxProg2.exe"; DestDir: "{app}\Bin"; Flags: ignoreversion ${Archbit}; Components: main
-;Source: "Bin\ServiceProg.exe"; DestDir: "{app}\Bin"; Flags: ignoreversion ${Archbit}; Components: main
-
-;Source: "Bin\DrvFRTst1C.exe"; DestDir: "{app}\Bin"; Flags: ignoreversion ${Archbit}; Components: main
-;Source: "res\1C\shtrih-m_15.zip"; DestDir: "{app}\Bin\1C"; Flags: ignoreversion ${Archbit}; Components: main
-;Source: "res\1C\20\shtrih-m_20.zip"; DestDir: "{app}\Bin\1C"; Flags: ignoreversion ${Archbit}; Components: main
-;Source: "res\1C\22\shtrih-m_22.zip"; DestDir: "{app}\Bin\1C"; Flags: ignoreversion ${Archbit}; Components: main
-;Source: "res\1C\24\shtrih-m_25.zip"; DestDir: "{app}\Bin\1C"; Flags: ignoreversion ${Archbit}; Components: main
-
-; OpenSSL
-Source: "res\${Arch}\libeay32.dll"; DestDir: "{app}\Bin"; Flags: ${Archbit}; Components: main
-Source: "res\${Arch}\ssleay32.dll"; DestDir: "{app}\Bin"; Flags: ${Archbit}; Components: main
-
-; Fonts
-Source: "res\Fonts\*"; DestDir: "{app}\Fonts"; Components: main
-
-; PPP
-;Source: "res\${Arch}\kktnetd.dll"; DestDir: "{app}\Bin"; Flags: ${Archbit}; Components: main
-;Source: "res\${Arch}\kktnetd.dll"; DestDir: "{app}\Bin"; Flags: ${Archbit}; Components: main
-
-
-;Source: "res\${Arch}\libeay32.dll"; DestDir: "{win}\System32"; Flags: onlyifdoesntexist sharedfile ${Archbit}; Components: main
-;Source: "res\${Arch}\ssleay32.dll"; DestDir: "{win}\System32"; Flags: onlyifdoesntexist sharedfile ${Archbit}; Components: main
-
-;Source: "res\${Arch}\libeay32.dll"; DestDir: "{win}\SysWOW64"; Flags: onlyifdoesntexist sharedfile ${Archbit}; Components: main
-;Source: "res\${Arch}\ssleay32.dll"; DestDir: "{win}\SysWOW64"; Flags: onlyifdoesntexist sharedfile ${Archbit}; Components: main
-
-
-;FiscalMaster
-Source: "Bin\${Arch}\FiscalMaster.exe"; DestDir: "{app}\Bin"; Flags: ignoreversion ${Archbit}; Components: main
-Source: "res\FiscalMaster\Templates\*.xml"; DestDir: "{commonappdata}\SHTRIH-M\FiscalMaster\Templates\"; Flags: ignoreversion createallsubdirs recursesubdirs; Components: main
-
-; OKassa
-Source: "Res\MROK\x32\MROK.exe"; DestDir: "{app}\Bin\OKassa"; Flags: ignoreversion ${Archbit}; Components: okassa; Check: not Is64BitInstallMode
-Source: "res\${Arch}\libeay32.dll"; DestDir: "{app}\Bin\OKassa"; Flags: ${Archbit}; Components: okassa; Check: not Is64BitInstallMode
-Source: "res\${Arch}\ssleay32.dll"; DestDir: "{app}\Bin\OKassa"; Flags: ${Archbit}; Components: okassa; Check: not Is64BitInstallMode
-
-Source: "Res\MROK\x64\MROKx64.exe"; DestDir: "{app}\Bin\OKassa"; Flags: ignoreversion ${Archbit}; Components: okassa; Check: Is64BitInstallMode
-Source: "res\${Arch}\libeay32.dll"; DestDir: "{app}\Bin\OKassa"; Flags: ${Archbit}; Components: okassa; Check: Is64BitInstallMode
-Source: "res\${Arch}\ssleay32.dll"; DestDir: "{app}\Bin\OKassa"; Flags: ${Archbit}; Components: okassa; Check: Is64BitInstallMode
-
-Source: "Res\DrvFR.lic"; DestDir: "{app}\Bin"; Flags: ${Archbit}; Components: main
-;Source: "Res\OKassa\OKassaMaster.exe"; DestDir: "{app}\Bin\OKassa"; Flags: ignoreversion ${Archbit}; Components: okassa
-;Source: "Res\OKassa\Doc\*"; DestDir: "{app}\Bin\OKassa\Doc"; Flags: recursesubdirs createallsubdirs; Components: okassa
-; Payment system
-;Source: "Bin\PaymentDrv.dll"; DestDir: "{app}\Bin"; Flags: ignoreversion regserver ${Archbit}; Components: main
-;Source: "Res\PaymentDrv.xml"; DestDir: "{app}\Bin"; Flags: ${Archbit}; Components: main
-; Models
-Source: "Res\Models.xml"; DestDir: "{app}\Bin"; Flags: ${Archbit}; Components: main
-Source: "Res\TextMap.xml"; DestDir: "{app}\Bin"; Flags: ${Archbit}; Components: main
-Source: "Res\Languages\*"; DestDir: "{app}\Bin\Languages\"; Flags: ${Archbit}; Components: main
-; Escape library
-;Source: "Res\Escape.dll"; DestDir: "{sys}"; Flags: ${Archbit}
-; Samples
-Source: "..\..\Samples\*"; DestDir: "{app}\Samples"; Flags: recursesubdirs createallsubdirs ${Archbit}; Components: Samples;
-; Samples - 1C version 7.5
-;Source: "Bin\DrvFR.dll"; DestDir: "{app}\Samples\1C\1C 7.5"; Flags: ignoreversion ${Archbit}; Components: Samples
-;Source: "..\..\Source\DrvFR\DrvFR.lic"; DestDir: "{app}\Samples\1C\1C 7.5"; Flags: ${Archbit}; Components: Samples
-;Source: "Res\Models.xml"; DestDir: "{app}\Samples\1C\1C 7.5"; Flags: ${Archbit}; Components: Samples
-; Samples - 1C version 7.7
-;Source: "Bin\DrvFR.dll"; DestDir: "{app}\Samples\1C\1C 7.7"; Flags: ignoreversion ${Archbit}; Components: Samples
-;Source: "..\..\Source\DrvFR\DrvFR.lic"; DestDir: "{app}\Samples\1C\1C 7.7"; Flags: ${Archbit}; Components: Samples
-;Source: "Res\Models.xml"; DestDir: "{app}\Samples\1C\1C 7.7"; Flags: ${Archbit}; Components: Samples
-; Images
-Source: "Res\Images\Logo.bmp"; DestDir: "{app}\Images\"; Flags: ${Archbit}; Components: images
-Source: "Res\Images\Testpic_50x50.bmp"; DestDir: "{app}\Images\"; Flags: ${Archbit}; Components: images
-Source: "Res\Images\Testpic_100x100.bmp"; DestDir: "{app}\Images\"; Flags: ${Archbit}; Components: images
-Source: "Res\Images\Black_320x1200.bmp"; DestDir: "{app}\Images\"; Flags: ${Archbit}; Components: images
-; Locales
-Source: "..\..\Bin\Win32\Release\locale\en\LC_MESSAGES\DrvFR.mo"; DestDir: "{app}\Bin\locale\en\LC_MESSAGES\"; Flags: ${Archbit}; Components: main
-Source: "..\..\Bin\Win32\Release\locale\en\LC_MESSAGES\DrvFRTst.mo"; DestDir: "{app}\Bin\locale\en\LC_MESSAGES\"; Flags: ${Archbit}; Components: main
+Source: "Bin\History_ru.txt"; DestDir: "{app}"; DestName: "History.txt"; Languages: ru
+Source: "Bin\History_en.txt"; DestDir: "{app}"; DestName: "History.txt"; Languages: en
+; Application
+Source: "Bin\FPUpdater.exe"; DestDir: "{app}\Bin"; Flags: ignoreversion 
+Source: "Bin\Archive.zip"; DestDir: "{app}\Bin"; Flags: ignoreversion 
 ; DFU drivers
-Source: "Res\DFU\Driver\*"; DestDir: "{app}\Bin\DFU\Driver"; Flags: recursesubdirs createallsubdirs ${Archbit}; Components: usbdrivers; AfterInstall: InstallDrivers
-Source: "Res\DFU\Util\*"; DestDir: "{app}\Bin\DFU\Util"; Flags: recursesubdirs createallsubdirs ${Archbit}; Components: main 
-; usb drivers
-Source: "Res\Drivers\*"; DestDir: "{app}\Bin\Drivers"; Flags: recursesubdirs createallsubdirs ${Archbit}; Components: usbdrivers; AfterInstall: InstallDrivers
+Source: "Bin\DFU\Driver\*"; DestDir: "{app}\Bin\DFU\Driver"; Flags: recursesubdirs createallsubdirs; AfterInstall: InstallDrivers
 [Icons]
 ; Version history
-Name: "{group}\{cm:VersionHistory}"; Filename: "{app}\History.txt"; Components: main
+Name: "{group}\{cm:VersionHistory}"; Filename: "{app}\History.txt"; 
 ; Main
-Name: "{group}\{cm:DriverTest} ${version2} ${Arch2}"; Filename: "{app}\Bin\DrvFRTst.exe"; WorkingDir: "{app}\Bin"; Components: main
-;Name: "{group}\{cm:DriverTest1C} ${version2}"; Filename: "{app}\Bin\DrvFRTst1C.exe"; WorkingDir: "{app}\Bin"; Components: main
-;Name: "{group}\{cm:ServiceProg}"; Filename: "{app}\Bin\ServiceProg.exe"; WorkingDir: "{app}\Bin"; Components: main
-Name: "{group}\{cm:FiscalMaster} ${version2} ${Arch2}"; Filename: "{app}\Bin\FiscalMaster.exe"; WorkingDir: "{app}\Bin"; Components: main
-;Name: "{group}\{cm:TaxProg2}"; Filename: "{app}\Bin\TaxProg2.exe"; WorkingDir: "{app}\Bin"; Components: main
-Name: "{group}\{cm:ServerFR} ${version2} ${Arch2}"; Filename: "{app}\Bin\SrvFR.exe"; WorkingDir: "{app}\Bin"; Components: main
-Name: "{group}\{cm:OKassaFolder}\{cm:OKassaMaster}"; Filename: "{app}\Bin\OKassa\MROK.exe"; WorkingDir: "{app}\Bin\OKassa"; Components: okassa; Check: not Is64BitInstallMode
-Name: "{group}\{cm:OKassaFolder}\{cm:OKassaMaster}"; Filename: "{app}\Bin\OKassa\MROKx64.exe"; WorkingDir: "{app}\Bin\OKassa"; Components: okassa; Check: Is64BitInstallMode
-
-;Name: "{group}\{cm:OKassaFolder}\{cm:OKassaMaster}"; Filename: "{app}\Bin\OKassa\OKassaMaster.exe"; WorkingDir: "{app}\Bin\OKassa"; Components: okassa
-;Name: "{group}\{cm:OKassaFolder}\{cm:OKassaDoc}"; Filename: "{app}\Bin\OKassa\Doc\Облачная Касса (Инструкция администратора личного кабинета)_Версия_1.3_310315.htm";Components: okassa
-Name: "{group}\{cm:UninstallShortcutText} Драйвер ККТ ${version2} ${Arch2}"; Filename: "{uninstallexe}"
-;Samples
-Name: "{group}\Samples"; Filename: "{app}\Samples"; WorkingDir: "{app}"; Components: Samples
-;Name: "{group}\Samples\Borland C++ Builder 6.0"; Filename: "{app}\Samples\Borland C++ Builder 6.0"; WorkingDir: "{app}"; Components: Samples
-;Name: "{group}\Samples\1Cv7.5"; Filename: "{app}\Samples\1C\1C 7.5"; WorkingDir: "{app}"; Components: Samples
-;Name: "{group}\Samples\1Cv7.7"; Filename: "{app}\Samples\1C\1C 7.7"; WorkingDir: "{app}"; Components: Samples
+Name: "{group}\{cm:AppName} ${version2}"; Filename: "{app}\Bin\FPUpdater.exe"; WorkingDir: "{app}\Bin"; 
 ; Shortcuts
-Name: "{userdesktop}\{cm:DriverTest} ${version2} ${Arch2}"; Filename: "{app}\Bin\DrvFRTst.exe"; Tasks: desktopicon
-Name: "{userdesktop}\{cm:FiscalMaster} ${version2} ${Arch2}"; Filename: "{app}\Bin\FiscalMaster.exe"; Tasks: desktopicon
-Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{cm:DriverTest} ${version2} ${Arch2}"; Filename: "{app}\Bin\DrvFRTst.exe"; Tasks: quicklaunchicon
-Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{cm:FiscalMaster} ${version2} ${Arch2}"; Filename: "{app}\Bin\FiscalMaster.exe"; Tasks: quicklaunchicon
-
-[Run]
-Filename: "{app}\Bin\SrvFR.exe"; Parameters: "/regserver"; Flags: nowait; Components: main
-Filename: "{app}\Bin\DrvFRTst.exe"; Description: {cm:StartApplication}; Flags: postinstall nowait skipifsilent skipifdoesntexist; Components: main
-Filename: "{app}\Bin\OKassa\MROK.exe"; Description: {cm:StartOkassa}; Flags: postinstall nowait skipifsilent skipifdoesntexist; Components: okassa; Check: not Is64BitInstallMode
-Filename: "{app}\Bin\OKassa\MROKx64.exe"; Description: {cm:StartOkassa}; Flags: postinstall nowait skipifsilent skipifdoesntexist; Components: okassa; Check: Is64BitInstallMode
-[Registry]
-; 1C samples menu
-Root: HKCU; Subkey: "Software\1C\1Cv7\7.5\Titles"; ValueType: string; ValueName: "{app}\Samples\1C\1C 7.5\"; ValueData: {cm:AppName}; Flags: uninsdeletevalue; Components: Samples
-Root: HKCU; Subkey: "Software\1C\1Cv7\7.7\Titles"; ValueType: string; ValueName: "{app}\Samples\1C\1C 7.7\"; ValueData: {cm:AppName}; Flags: uninsdeletevalue; Components: Samples
-; Clear trial timestamp
-Root: HKLM; Subkey: "Software\ShtrihM\DrvFR\Param"; ValueType: none; ValueName: "LCTStamp"; Flags: deletevalue uninsdeletevalue;
-; Driver version
-Root: HKCU; Subkey: "Software\ShtrihM\DrvFR\Param"; ValueType: string; ValueName: "DriverVersion"; ValueData: "${version}"; Flags: uninsdeletevalue
+Name: "{userdesktop}\{cm:AppName} ${version2} "; Filename: "{app}\Bin\FPUpdater.exe"; Tasks: desktopicon
+[UninstallDelete]
+Type: files; Name: "{app}\Bin\*.log"
