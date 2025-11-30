@@ -1,4 +1,4 @@
-program Acceptance;
+program FPUpdaterAcc;
 uses
   Forms,
   TestFramework,

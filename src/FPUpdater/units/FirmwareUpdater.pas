@@ -7,7 +7,7 @@ interface
 {TODO: Добавить перерегистрацию ФН}
 {TODO: Добавить прошивку по протоколу XModem}
 {TODO: Проверить правильность лога прошивальщика}
-{TODO: Проверить правильность лога драйвера ФР}
+{TODO: Сделать проверку записи тестового ПО в ККМ с рабочими ключами и наоборот}
 {TODO: Сделать работу интерфейса}
 {TODO: Сделать установщик}
 {TODO: Отдать на тестирование}
@@ -145,6 +145,7 @@ type
     FirmwareValid: Boolean;         //
     PortNumber: Integer;            // Тип подключения ККМ
     UpdateMode: TUpdateMode;        // Режим обновления ПО
+    SigningKey: Integer;            // Ключи для подписи
   end;
 
   { TUpdateStatus }
@@ -156,7 +157,6 @@ type
     StartTime: TDateTime;
     ResultText: string;
     ElapsedSeconds: Integer;
-    TimeText: string;
     UpdateAvailable: Boolean;
   end;
 
@@ -175,7 +175,6 @@ type
       const Item: TUpdateItem): Boolean;
     procedure SetStatus(const Value: TUpdateStatus);
   public
-    procedure UpdateStatus;
     procedure DeleteLog;
     procedure CheckStopped;
     procedure DownloadFiles;
@@ -512,7 +511,6 @@ end;
 
 procedure TFirmwareUpdater.CheckStopped;
 begin
-  UpdateStatus;
   if FStopped then
     raise Exception.Create('Прервано пользователем');
 end;
@@ -539,7 +537,7 @@ end;
 
 procedure TFirmwareUpdater.UpdateFirmware;
 begin
-  Status.IsStarted := True;
+  FStatus.IsStarted := True;
   FStatus.StartTime := Now;
 
   Logger.Debug(Separator);
@@ -554,7 +552,6 @@ begin
       end;
     end;
   finally
-    UpdateStatus;
     FStatus.IsStarted := False;
   end;
   Logger.Debug(Separator);
@@ -744,9 +741,19 @@ begin
 end;
 
 function TFirmwareUpdater.ReadEcrInfo: TEcrInfo;
+
+  function GetSigningKey(const Version: string): Integer;
+  begin
+    Result := SigningKeyUnknown;
+    if Pos('W', Version) > 0 then Result := SigningKeyTehnoWork;
+    if Pos('T', Version) > 0 then Result := SigningKeyTehnoTest;
+    if Pos('N', Version) > 0 then Result := SigningKeyShtrihWork;
+    if Pos('P', Version) > 0 then Result := SigningKeyShtrihInter;
+  end;
+
 begin
   SetStatusText('Проверка состояния ККМ');
-
+  // Полный запрос состояния
   Result.FirmwareValid := True;
   Driver.GetECRStatus;
   if (Driver.ResultCode = 123) or (Driver.ResultCode = 56) then
@@ -755,23 +762,29 @@ begin
     Result.FirmwareValid := False;
     Exit;
   end;
-
-  Result.PortNumber := Driver.PortNumber;
+  Result.PortNumber := PORT_COM;
   Result.FirmwareVersion := '';
   Result.FirmwareBuild := -1;
   Result.FirmwareDate := -1;
-  Result.BootVer := -1;
-  Result.Serial := ReadSerialNumber;
-  if Driver.ReadLoaderVersion = 0 then
+  Result.SigningKey := SigningKeyUnknown;
+  if Driver.ResultCode = 0 then
   begin
-    Result.BootVer := StrToInt(Driver.LoaderVersion);
-  end else
-  begin
-    raise Exception.Create('ККТ на связи. Однако не удалось прочитать версию загрузчика, прошивка невозможна.');
+    Result.PortNumber := Driver.PortNumber;
+    Result.FirmwareVersion := Driver.ECRSoftVersion;
+    Result.FirmwareBuild := Driver.ECRBuild;
+    Result.FirmwareDate := Driver.ECRSoftDate;
+    Result.Serial := ReadSerialNumber;
+    Result.SigningKey := GetSigningKey(Driver.FMSoftVersion);
+    // Читаем версию загрузчика
+    Result.BootVer := -1;
+    if Driver.ReadLoaderVersion = 0 then
+    begin
+      Result.BootVer := StrToInt(Driver.LoaderVersion);
+    end else
+    begin
+      raise Exception.Create('ККТ на связи. Однако не удалось прочитать версию загрузчика, прошивка невозможна.');
+    end;
   end;
-  Result.FirmwareVersion := Driver.ECRSoftVersion;
-  Result.FirmwareBuild := Driver.ECRBuild;
-  Result.FirmwareDate := Driver.ECRSoftDate;
 end;
 
 procedure TFirmwareUpdater.UpdateInfoText(EcrInfo: TEcrInfo);
@@ -1382,16 +1395,6 @@ begin
   end;
 end;
 
-procedure TFirmwareUpdater.UpdateStatus;
-begin
-  if FStatus.IsStarted then
-  begin
-    FStatus.ElapsedSeconds := SecondsBetween(Now, FStatus.StartTime);
-    FStatus.TimeText := Format('Время начала: %s, прошло секунд, %d', [
-      TimeToStr(Status.StartTime), Status.ElapsedSeconds]);
-  end;
-end;
-
 function TFirmwareUpdater.GetStatus: TUpdateStatus;
 begin
   FLock.Enter;
@@ -1800,6 +1803,18 @@ begin
     end;
   end;
 end;
+
+(*
+procedure TFirmwareUpdater.CheckSigningKey(EcrSigningKey, FileSigningKey: Integer);
+begin
+  if EcrSigningKey = SigningKeyUnknown then Exit;
+  if FileSigningKey = SigningKeyUnknown then Exit;
+
+  if EcrSigningKey then
+
+end;
+*)
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // 1. Если документы не уходят, то можно перезагрузить устройство

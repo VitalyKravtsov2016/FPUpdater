@@ -1,0 +1,17 @@
+[30.11.2025 21:39:09.897] [00008268] [DEBUG] TestUpdateFirmwareShtrih.0
+[30.11.2025 21:39:09.901] [00008268] [DEBUG] Проверка состояния ККМ
+[30.11.2025 21:39:15.401] [00008268] [DEBUG] DFU, запись файла "tb_ldr_1939_test.bin"
+[30.11.2025 21:39:15.403] [00008268] [DEBUG] Проверка драйвера DFU
+[30.11.2025 21:39:15.404] [00008268] [DEBUG] Переход в режим DFU
+[30.11.2025 21:39:20.439] [00008268] [DEBUG] Запись файла tb_ldr_1939_test.bin
+[30.11.2025 21:39:20.691] [00008268] [ERROR] Ошибка загрузки прошивки. The pipe has been ended, dfu-util 0.8
+
+Copyright 2005-2009 Weston Schmidt, Harald Welte and OpenMoko Inc.
+Copyright 2010-2014 Tormod Volden and Stefan Schmidt
+This program is Free Software and has ABSOLUTELY NO WARRANTY
+Please report bugs to dfu-util@lists.gnumonks.org
+
+Invalid DFU suffix signature
+A valid DFU suffix will be required in a future dfu-util release!!!
+No DFU capable USB device available
+

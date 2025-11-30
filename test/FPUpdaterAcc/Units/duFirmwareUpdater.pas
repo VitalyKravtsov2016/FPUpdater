@@ -88,7 +88,7 @@ procedure TFirmwareUpdaterTest.SetUp;
 begin
   Updater := TFirmwareUpdater.Create;
   //Updater.Path := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'data\';
-  Updater.Path := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'test\';
+  Updater.Path := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'smtest\';
   Updater.DeleteLog;
   Updater.LoadFiles(Updater.Path);
 end;
@@ -385,8 +385,7 @@ var
 begin
   Logger.Debug('TestUpdateFirmwareShtrih.0');
   Ecr := Updater.ReadEcrInfo;
-  IsTehnoTestKeys := Pos('T', Driver.FMSoftVersion) > 0;
-  if not IsTehnoTestKeys then
+  if Ecr.SigningKey = SigningKeyTehnoWork then
     raise Exception.Create('Боевой софт откатить нельзя');
 
   if Ecr.BootVer <> 153 then

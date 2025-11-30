@@ -62,14 +62,21 @@ end;
 
 procedure TfmMain.UpdatePage;
 var
+  TimeText: string;
   Status: TUpdateStatus;
+  ElapsedSeconds: Integer;
 begin
-  Updater.UpdateStatus;
   Status := Updater.Status;
   MemoInfo.Text := Status.InfoText;
-  edtStatus.Text := Status.Text;
-  lblTime.Caption := Status.TimeText;
   btnStop.Enabled := Status.IsStarted;
+  if Status.IsStarted then
+  begin
+    ElapsedSeconds := SecondsBetween(Now, Status.StartTime);
+    TimeText := Format('Время начала: %s, прошло секунд, %d', [
+      TimeToStr(Status.StartTime), ElapsedSeconds]);
+  end;
+  lblTime.Caption := TimeText;
+  edtStatus.Text := Status.Text;
   btnStart.Enabled := (not Status.IsStarted)and(Status.UpdateAvailable);
   btnProperties.Enabled := not Status.IsStarted;
 end;

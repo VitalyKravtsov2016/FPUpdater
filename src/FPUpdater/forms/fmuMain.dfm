@@ -7,6 +7,7 @@ object fmMain: TfmMain
   ClientHeight = 263
   ClientWidth = 568
   Color = clBtnFace
+  CustomTitleBar.CaptionAlignment = taCenter
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -37,7 +38,6 @@ object fmMain: TfmMain
     Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1072
     TabOrder = 2
     OnClick = btnPropertiesClick
-    ExplicitLeft = 431
   end
   object btnStart: TButton
     Left = 432
@@ -48,7 +48,6 @@ object fmMain: TfmMain
     Caption = #1054#1073#1085#1086#1074#1080#1090#1100
     TabOrder = 0
     OnClick = btnStartClick
-    ExplicitLeft = 431
   end
   object MemoInfo: TMemo
     Left = 8
@@ -64,7 +63,6 @@ object fmMain: TfmMain
     Font.Style = []
     ParentFont = False
     TabOrder = 4
-    ExplicitWidth = 417
   end
   object btnStop: TButton
     Left = 432
@@ -76,7 +74,6 @@ object fmMain: TfmMain
     Enabled = False
     TabOrder = 1
     OnClick = btnStopClick
-    ExplicitLeft = 431
   end
   object btnClose: TButton
     Left = 433
@@ -87,7 +84,6 @@ object fmMain: TfmMain
     Caption = #1047#1072#1082#1088#1099#1090#1100
     TabOrder = 3
     OnClick = btnCloseClick
-    ExplicitLeft = 432
   end
   object edtStatus: TEdit
     Left = 8
@@ -98,7 +94,6 @@ object fmMain: TfmMain
     Color = clBtnFace
     ReadOnly = True
     TabOrder = 5
-    ExplicitWidth = 417
   end
   object Timer: TTimer
     OnTimer = TimerTimer

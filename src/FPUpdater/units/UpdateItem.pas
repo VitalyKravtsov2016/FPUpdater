@@ -9,6 +9,15 @@ uses
 
 const
   /////////////////////////////////////////////////////////////////////////////
+  /// SigningKey values
+  ///
+  SigningKeyUnknown         = 0; // инфраструктура неизвестна
+  SigningKeyTehnoTest       = 1; // инфраструктура tehno test
+  SigningKeyTehnoWork       = 2; // инфраструктура tehno work
+  SigningKeyShtrihWork      = 3; // инфраструктура shtrih
+  SigningKeyShtrihInter     = 4; // инфраструктура shtrih промежуточная
+
+  /////////////////////////////////////////////////////////////////////////////
   /// Action values
   // Update loader
   ACTION_UPDATE_LOADER    = 1;
@@ -65,6 +74,7 @@ type
     Tables: TTableItems;    // Значения таблиц
     DownAllowed: Boolean;   // ???
     Force: Boolean;         // Загружать если равны версии
+    SigningKey: Integer;    // Тип ключей для подписи
   end;
   TUpdateItems = array of TUpdateItem;
 
@@ -133,6 +143,10 @@ begin
     Item.Force := false;
     if Json.FindValue('force')<>nil then
       Item.Force := JsonGetBoolean(Json, 'force');
+
+    Item.SigningKey := SigningKeyUnknown;
+    if Json.FindValue('SigningKey')<>nil then
+      Item.SigningKey := JsonGetInteger(Json, 'SigningKey');
   end;
 
   if Item.Action = ACTION_WRITE_LICENSES then
@@ -207,6 +221,10 @@ begin
     Item.Force := false;
     if Json.FindValue('force')<>nil then
       Item.Force := JsonGetBoolean(Json, 'force');
+
+    Item.SigningKey := SigningKeyUnknown;
+    if Json.FindValue('SigningKey') <> nil then
+      Item.SigningKey := JsonGetInteger(Json, 'SigningKey');
   end;
 end;
 
