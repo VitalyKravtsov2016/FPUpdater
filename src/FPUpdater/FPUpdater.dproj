@@ -128,9 +128,9 @@
     <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
     <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     <VerInfo_Release>1</VerInfo_Release>
-    <VerInfo_Build>68</VerInfo_Build>
+    <VerInfo_Build>69</VerInfo_Build>
     <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
-    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.68;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.1.0;Comments=</VerInfo_Keys>
+    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.69;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.1.0;Comments=</VerInfo_Keys>
     <VerInfo_Locale>1033</VerInfo_Locale>
     <Icon_MainIcon>TorgBalance.ico</Icon_MainIcon>
     <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>

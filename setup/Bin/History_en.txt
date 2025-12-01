@@ -9,7 +9,7 @@
 *******************************************************************
 
   FPUpdater_1.0.exe
-  28 november 2025 13:00
+  01 december 2025 13:00
   
   [+] First application version
 	  
