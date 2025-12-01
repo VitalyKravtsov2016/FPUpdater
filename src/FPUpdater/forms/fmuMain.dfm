@@ -62,6 +62,7 @@ object fmMain: TfmMain
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
+    ReadOnly = True
     TabOrder = 4
   end
   object btnStop: TButton
@@ -96,6 +97,7 @@ object fmMain: TfmMain
     TabOrder = 5
   end
   object Timer: TTimer
+    Enabled = False
     OnTimer = TimerTimer
     Left = 112
   end

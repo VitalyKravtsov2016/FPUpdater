@@ -151,13 +151,10 @@ type
   { TUpdateStatus }
 
   TUpdateStatus = record
-    IsStarted: Boolean;
     Text: string;
-    InfoText: string;
     StartTime: TDateTime;
-    ResultText: string;
-    ElapsedSeconds: Integer;
     UpdateAvailable: Boolean;
+    IsStarted: Boolean;
   end;
 
   { TFirmwareUpdater }
@@ -165,15 +162,19 @@ type
   TFirmwareUpdater = class
   private
     FPath: string;
+    FDriver: TDriver;
     FThread: TNotifyThread;
     FLock: TCriticalsection;
     FStopped: Boolean;
     FStatus: TUpdateStatus;
     FItems: TUpdateItems;
     FParams: TUpdateParams;
+    function GetDriver: TDriver;
     function ValidUpdateItem(Action: Integer; const Ecr: TEcrInfo;
       const Item: TUpdateItem): Boolean;
     procedure SetStatus(const Value: TUpdateStatus);
+
+    property Driver: TDriver read GetDriver;
   public
     procedure DeleteLog;
     procedure CheckStopped;
@@ -216,8 +217,6 @@ type
       var License: TEcrLicense): Boolean;
     function GetUpdateMode(PortNumber: Integer): TUpdateMode;
     function ReadCashRegister: Currency;
-    function FindUpdateItem(const Data: TEcrInfo; Action: Integer;
-      var Item: TUpdateItem): Boolean;
     function GetLogFileName: string;
     procedure DoUpdateFirmware;
     function FindDevice(const Serial: string): Boolean;
@@ -240,6 +239,12 @@ type
     function WaitForDFUDevice(Timeout: Cardinal): Boolean;
     procedure SetVComConnection;
     procedure UpdateInfoText(EcrInfo: TEcrInfo);
+    procedure UpdateFirmware;
+    function CheckEcrUpdateable: Boolean;
+    function FindDeviceLocal2(const Params: TSearchParams): Boolean;
+
+    property Items: TUpdateItems read FItems;
+    property Path: string read FPath write FPath;
   public
     constructor Create;
     destructor Destroy; override;
@@ -247,14 +252,11 @@ type
     procedure Start;
     procedure Stop;
     procedure Wait;
-    procedure ShowProperties;
-    procedure UpdateFirmware;
     procedure LoadParameters;
-    function CheckEcrUpdateable: Boolean;
+    function FindUpdateItem(const Data: TEcrInfo; Action: Integer;
+      var Item: TUpdateItem): Boolean;
 
-    property Items: TUpdateItems read FItems;
     property Params: TUpdateParams read FParams;
-    property Path: string read FPath write FPath;
     property Status: TUpdateStatus read GetStatus write SetStatus;
   end;
 
@@ -467,7 +469,15 @@ destructor TFirmwareUpdater.Destroy;
 begin
   Stop;
   FLock.Free;
+  FDriver.Free;
   inherited Destroy;
+end;
+
+function TFirmwareUpdater.GetDriver: TDriver;
+begin
+  if FDriver = nil then
+    FDriver := TDriver.Create(nil);
+  Result := FDriver;
 end;
 
 function TFirmwareUpdater.GetLogFileName: string;
@@ -480,16 +490,12 @@ begin
   DeleteFile(GetLogFileName);
 end;
 
-procedure TFirmwareUpdater.ShowProperties;
-begin
-  Driver.ShowProperties;
-end;
-
 procedure TFirmwareUpdater.Start;
 begin
   if Status.IsStarted then
     raise Exception.Create('Обновление уже идет.');
 
+  Stop;
   FStopped := False;
   FThread := TNotifyThread.CreateThread(Execute);
 end;
@@ -497,8 +503,12 @@ end;
 procedure TFirmwareUpdater.Stop;
 begin
   FStopped := True;
-  FThread.Free;
-  FThread := nil;
+  if FThread <> nil then
+  begin
+    FThread.WaitFor;
+    FThread.Free;
+    FThread := nil;
+  end;
 end;
 
 procedure TFirmwareUpdater.Wait;
@@ -831,7 +841,6 @@ begin
     begin
       Lines.Add('Обновления не найдены');
     end;
-    FStatus.InfoText := Lines.Text;
   finally
     Lines.Free;
   end;
@@ -842,7 +851,6 @@ begin
   try
     DownloadFiles;
     LoadFiles(FPath);
-    UpdateInfoText(ReadEcrInfo);
     FStatus.Text := '';
   except
     on E: Exception do
@@ -1159,7 +1167,6 @@ begin
   Result := Pos('DFU', RunDfuUtil(FPath, '-l')) <> 0;
 end;
 
-
 procedure TFirmwareUpdater.XModemUploadFile(ComNumber: Integer;
   const Path, FileName: string);
 var
@@ -1338,7 +1345,6 @@ var
   Search: TDeviceSearch;
 begin
   Result := False;
-  Driver.ConnectionType := CT_LOCAL;
   Search := TDeviceSearch.Create;
   try
     Search.DoTechReset := True;
@@ -1353,6 +1359,8 @@ begin
         (Params.Port = Port.DevicePort) then
       begin
         Logger.Debug('Устройство найдено');
+        Driver.ConnectionType := CT_LOCAL;
+        Driver.ProtocolType := 0; // Standard
         Driver.ComNumber := Port.PortNumber;
         Driver.BaudRate := Port.BaudRate;
         Driver.Timeout := 1000;
@@ -1372,6 +1380,38 @@ begin
   end;
 end;
 
+function TFirmwareUpdater.FindDeviceLocal2(const Params: TSearchParams): Boolean;
+var
+  RC: Integer;
+  CurDate: TDateTime;
+begin
+  Driver.ConnectionType := CT_LOCAL;
+  RC := Driver.FindDevice;
+  if (RC = $74) or (RC = $79) or (RC = $78)  then
+  begin
+    RC := Driver.ResetSettings;
+    if RC = 147 then
+      Driver.Check(Driver.ResetSettings)
+    else
+      Driver.Check(Rc);
+
+    CurDate := Date;
+    Driver.Date := CurDate;
+    Driver.Check(Driver.SetDate);
+    Driver.Date := CurDate;
+    Driver.Check(Driver.ConfirmDate);
+    Driver.Time := Time;
+    Driver.Check(Driver.SetTime);
+  end;
+  Driver.Check(RC);
+  Driver.Check(Driver.ReadSerialNumber);
+  Result := Driver.SerialNumber = Params.Serial;
+  if not Result then Exit;
+
+  Driver.Check(Driver.GetECRStatus);
+  Result := Driver.PortNumber = Params.Port;
+end;
+
 
 procedure TFirmwareUpdater.SetBaudRate(BaudRate: Integer);
 begin
@@ -1384,15 +1424,14 @@ begin
 end;
 
 procedure TFirmwareUpdater.SetStatusText(const Text: string);
+var
+  AStatus: TUpdateStatus;
 begin
   Logger.Debug(Text);
 
-  FLock.Enter;
-  try
-    FStatus.Text := Text;
-  finally
-    FLock.Leave;
-  end;
+  AStatus := GetStatus;
+  AStatus.Text := Text;
+  SetStatus(AStatus);
 end;
 
 function TFirmwareUpdater.GetStatus: TUpdateStatus;
@@ -1613,7 +1652,7 @@ procedure TFirmwareUpdater.CheckDocSent;
 var
   IsTimeout: Boolean;
 begin
-  SetStatusText('Проверка отправленныз документов...');
+  SetStatusText('Проверка отправленных документов...');
   IsTimeout := not WaitDocSent(FParams.DocSentTimeoutInSec);
   if IsTimeout and FParams.PrintStatus then
   begin
@@ -1633,7 +1672,7 @@ begin
   if IsTimeout then
     raise Exception.Create(
       'Перерегистрация на ФФД 1.2 не может быть произведена. Есть неотправленные в ОФД документы');
-  SetStatusText('Проверка отправленныз документов: OK');
+  SetStatusText('Проверка отправленных документов: OK');
 end;
 
 function TFirmwareUpdater.ReadCashRegister: Currency;

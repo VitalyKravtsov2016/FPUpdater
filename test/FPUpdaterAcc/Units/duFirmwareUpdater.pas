@@ -34,8 +34,6 @@ type
   published
     procedure TestFindUpdateItem;
     procedure TestFindDeviceLocal;
-    procedure TestDiscoverDevice;
-
     procedure TestDfuUpload;
     procedure TestFirmwareUpdateCom;
     procedure TestFirmwareUpdateVCom;
@@ -45,11 +43,9 @@ type
     procedure TestRestoreTables;
     procedure TestUploadFirmware;
     procedure TestSetConnectionType;
-
     procedure TestGetOfdParams;
     procedure TestLoadParams;
     procedure TestUpdateFirmwareShtrih;
-
     procedure TestCreateShtrihEcr;
     procedure TestFirmwareUpdateRNDIS3;
     procedure TestWaitForDFUDevice;
@@ -58,6 +54,8 @@ type
     procedure SetVComConnection;
     procedure SetRndisConnection;
     procedure TestFNFiscalization;
+
+    procedure TestDiscoverDevice;
   end;
 
 implementation
@@ -333,18 +331,6 @@ begin
   SearchParams.Timeout := FirmwareRebootTimeout;
   if not Updater.FindDeviceLocal(SearchParams) then
     raise Exception.Create('Устройство не найдено');
-end;
-
-procedure TFirmwareUpdaterTest.TestDiscoverDevice;
-var
-  SearchParams: TSearchParams;
-begin
-  SearchParams.Port := PORT_VCOM;
-  SearchParams.Serial := '';
-  //SearchParams.Serial := '0478110006079411';
-  //SearchParams.Serial := '0374360004103321';
-  SearchParams.Timeout := FirmwareRebootTimeout;
-  Updater.DiscoverDevice(SearchParams);
 end;
 
 procedure TFirmwareUpdaterTest.TestUploadFirmware;
@@ -626,6 +612,19 @@ begin
   Check(TickCount < 3000, 'DFU device up time > 3000 ms');
   // Wait
 end;
+
+procedure TFirmwareUpdaterTest.TestDiscoverDevice;
+var
+  SearchParams: TSearchParams;
+begin
+  SearchParams.Port := PORT_VCOM;
+  SearchParams.Serial := '';
+  //SearchParams.Serial := '0478110006079411';
+  //SearchParams.Serial := '0374360004103321';
+  SearchParams.Timeout := FirmwareRebootTimeout;
+  Updater.DiscoverDevice(SearchParams);
+end;
+
 
 
 

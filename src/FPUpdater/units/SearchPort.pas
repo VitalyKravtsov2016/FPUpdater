@@ -380,6 +380,8 @@ var
   i: Integer;
 begin
   DeviceFound := False;
+  Driver.ConnectionType := CT_LOCAL;
+  Driver.ProtocolType := 0; // Standard
   for i := Low(BAUD_RATE_CODE_SEARCH_ORDER) to High(BAUD_RATE_CODE_SEARCH_ORDER) do
   begin
     if FStopFlag then

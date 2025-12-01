@@ -100,9 +100,7 @@ type
   end;
 
 procedure FreeDriver;
-
 function Driver: TDriver;
-
 function DriverExists: Boolean;
 
 implementation
@@ -177,20 +175,20 @@ begin
     $72:
       begin
         Text := SCommandNotSupportedInSubMode;
-        if Driver.GetECRStatus = 0 then
-          Text := Text + Format(' (%s)', [Driver.ECRAdvancedModeDescription]);
+        if GetECRStatus = 0 then
+          Text := Text + Format(' (%s)', [ECRAdvancedModeDescription]);
         raise EDriverError.Create2($72, Text);
       end;
 
     $73:
       begin
         Text := SCommandNotSupportedInMode;
-        if Driver.GetECRStatus = 0 then
-          Text := Text + Format(' (%s)', [Driver.ECRModeDescription]);
+        if GetECRStatus = 0 then
+          Text := Text + Format(' (%s)', [ECRModeDescription]);
         raise EDriverError.Create2($73, Text);
       end;
   else
-    raise EDriverError.Create2(AResultCode, Driver.ResultCodeDescription);
+    raise EDriverError.Create2(AResultCode, ResultCodeDescription);
   end
 end;
 
@@ -234,16 +232,16 @@ end;
 
 function TDriver.ReadIntParam(ParamID: Integer): Integer;
 begin
-  Driver.ModelParamNumber := ParamID;
-  Check(Driver.ReadModelParamValue);
-  Result := StrToInt(Driver.ModelParamValue);
+  ModelParamNumber := ParamID;
+  Check(ReadModelParamValue);
+  Result := StrToInt(ModelParamValue);
 end;
 
 function TDriver.ReadBoolParam(ParamID: Integer): Boolean;
 begin
-  Driver.ModelParamNumber := ParamID;
-  Check(Driver.ReadModelParamValue);
-  Result := Driver.ModelParamValue = True;
+  ModelParamNumber := ParamID;
+  Check(ReadModelParamValue);
+  Result := ModelParamValue = True;
 end;
 
 function TDriver.GetCapEJournal: Boolean;
@@ -594,11 +592,11 @@ var
 begin
   if AFont = 0 then
   begin
-    Driver.StringForPrinting := AStr;
-    Check(Driver.PrintStringWithWrap);
+    StringForPrinting := AStr;
+    Check(PrintStringWithWrap);
     Exit;
   end;
-  L := Driver.GetPrintStringWidth(AFont);
+  L := GetPrintStringWidth(AFont);
   sl := TStringList.Create;
   try
     sl.Text := AStr;
@@ -609,7 +607,7 @@ begin
         RepCount := 0;
         StringForPrinting := Copy(s, 1, L);
         repeat
-          Driver.FontType := AFont;
+          FontType := AFont;
           Res := PrintStringWithFont;
           Inc(RepCount);
           if (Res = $50) or (Res = $4B) then
@@ -688,17 +686,17 @@ function TDriver.GetPrintStringWidth(AFont: Integer): Integer;
 var
   sPassword: Integer;
 begin
-  sPassword := Driver.Password;
+  sPassword := Password;
   try
-    Driver.Password := Driver.SysAdminPassword;
-    Driver.FontType := AFont;
-    Check(Driver.GetFontMetrics);
+    Password := SysAdminPassword;
+    FontType := AFont;
+    Check(GetFontMetrics);
     if CharWidth <> 0 then
-      Result := Trunc(Driver.PrintWidth / Driver.CharWidth)
+      Result := Trunc(PrintWidth / CharWidth)
     else
       Result := 40;
   finally
-    Driver.Password := sPassword;
+    Password := sPassword;
   end;
 end;
 
@@ -706,15 +704,15 @@ function TDriver.SendCommand(const ABytes: TBytes): Integer;
 begin
   BinaryConversion := BINARY_CONVERSION_HEX;
   TransferBytes := BytesToHex(ABytes);
-  Result := Driver.ExchangeBytes;
+  Result := ExchangeBytes;
 end;
 
 function TDriver.SendCommand(const ABytes: TBytes; var AResponse: TBytes): Integer;
 begin
   BinaryConversion := BINARY_CONVERSION_HEX;
   TransferBytes := BytesToHex(ABytes);
-  Result := Driver.ExchangeBytes;
-  AResponse := HexToBytes(Driver.TransferBytes);
+  Result := ExchangeBytes;
+  AResponse := HexToBytes(TransferBytes);
 end;
 
 end.

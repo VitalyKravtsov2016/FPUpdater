@@ -4,8 +4,7 @@
 		"PrintStatus": false,
 		"FFDNeedUpdate": 2,
 		"DocSentTimeoutInSec": 5,
-		"RestoreCashRegister": true,
-		"ForceUpload": true
+		"RestoreCashRegister": true
 	},
 	"RULES": [
 		{
