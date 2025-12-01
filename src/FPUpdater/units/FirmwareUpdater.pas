@@ -169,11 +169,13 @@ type
     FStatus: TUpdateStatus;
     FItems: TUpdateItems;
     FParams: TUpdateParams;
+    FOnComplete: TNotifyEvent;
+
     function GetDriver: TDriver;
     function ValidUpdateItem(Action: Integer; const Ecr: TEcrInfo;
       const Item: TUpdateItem): Boolean;
     procedure SetStatus(const Value: TUpdateStatus);
-
+    procedure ThreadTerminated(Sender: TObject);
     property Driver: TDriver read GetDriver;
   public
     procedure DeleteLog;
@@ -255,9 +257,12 @@ type
     procedure LoadParameters;
     function FindUpdateItem(const Data: TEcrInfo; Action: Integer;
       var Item: TUpdateItem): Boolean;
+    function FindLoader(EcrInfo: TEcrInfo; var Item: TUpdateItem): Boolean;
+    function FindFirmware(EcrInfo: TEcrInfo; var Item: TUpdateItem): Boolean;
 
     property Params: TUpdateParams read FParams;
     property Status: TUpdateStatus read GetStatus write SetStatus;
+    property OnComplete: TNotifyEvent read FOnComplete write FOnComplete;
   end;
 
 implementation
@@ -498,6 +503,8 @@ begin
   Stop;
   FStopped := False;
   FThread := TNotifyThread.CreateThread(Execute);
+  FThread.OnTerminate := ThreadTerminated;
+  FThread.Resume;
 end;
 
 procedure TFirmwareUpdater.Stop;
@@ -509,6 +516,12 @@ begin
     FThread.Free;
     FThread := nil;
   end;
+end;
+
+procedure TFirmwareUpdater.ThreadTerminated(Sender: TObject);
+begin
+  if Assigned(FOnComplete) then
+    FOnComplete(Self);
 end;
 
 procedure TFirmwareUpdater.Wait;
@@ -660,7 +673,9 @@ begin
   WaitForDevice(EcrInfo.Serial, FirmwareRebootTimeout);
   // Перерегистрация ФФД
   UpdateFFD(Item);
-
+  // Ожидание отправки отчета о перефискализации
+  Driver.Check(Driver.FNGetInfoExchangeStatus);
+  Logger.Debug(Format('Неотправленных документов: %d', [Driver.MessageCount]));
   SetStatusText(Format('Обновление выполнено успешно. Время выполнения: %d', [
     SecondsBetween(Now, FStatus.StartTime)]));
 end;
@@ -1611,6 +1626,11 @@ begin
     Driver.FinishDocument;
     Driver.WaitForPrinting;
   end;
+
+  if not WaitDocSent(FParams.DocSentTimeoutInSec) then
+  begin
+    Logger.Debug('Не дождались передачи документов.');
+  end;
 end;
 
 procedure TFirmwareUpdater.Feed(ALineCount: Integer);
@@ -1641,9 +1661,17 @@ begin
 
     Driver.Check(Driver.FNGetInfoExchangeStatus);
     Result := Driver.MessageCount = 0;
-    if Result then Break;
+    if Result then
+    begin
+      SetStatusText('Все документы переданы');
+      Break;
+    end;
 
-    if Abs(GetTickCount - TickCount) > (1000 * TimeoutInSec) then Break;
+    if Abs(GetTickCount - TickCount) > (1000 * TimeoutInSec) then
+    begin
+      SetStatusText('Таймаут отправки сообщений в ОФД');
+      Break;
+    end;
     Sleep(500);
   end;
 end;
@@ -1842,6 +1870,25 @@ begin
     end;
   end;
 end;
+
+function TFirmwareUpdater.FindLoader(EcrInfo: TEcrInfo;
+  var Item: TUpdateItem): Boolean;
+begin
+  Result := False;
+  while FindUpdateItem(EcrInfo, ACTION_UPDATE_LOADER, Item) do
+  begin
+    Result := True;
+    EcrInfo.BootVer := Item.NewBootVer;
+    if Item.Force then Break;
+  end;
+end;
+
+function TFirmwareUpdater.FindFirmware(EcrInfo: TEcrInfo;
+  var Item: TUpdateItem): Boolean;
+begin
+  Result := FindUpdateItem(EcrInfo, ACTION_UPDATE_FIRMWARE, Item);
+end;
+
 
 (*
 procedure TFirmwareUpdater.CheckSigningKey(EcrSigningKey, FileSigningKey: Integer);

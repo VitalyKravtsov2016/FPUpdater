@@ -32,6 +32,7 @@ type
     procedure SetUp; override;
     procedure TearDown; override;
   published
+    procedure TestShowProperties;
     procedure TestFindUpdateItem;
     procedure TestFindDeviceLocal;
     procedure TestDiscoverDevice;
@@ -343,6 +344,11 @@ begin
   SetVComConnection;
 end;
 
+procedure TFirmwareUpdaterTest.TestShowProperties;
+begin
+  Driver.ShowProperties;
+end;
+
 procedure TFirmwareUpdaterTest.UpdateLoader(const Serial, FileName: string;
   BootVer: Integer);
 begin
@@ -367,6 +373,7 @@ begin
 
   if Ecr.BootVer <> 153 then
   begin
+    Ecr.BootVer := 155;
     // VCOM для скорости
     //SetVComConnection;
     // Обнуление ФН для скорости перезапуска ФР

@@ -36,6 +36,8 @@ type
     function ReadEcrInfo: TEcrInfo;
     function GetUpdater: TFirmwareUpdater;
     function GetInfoText(EcrInfo: TEcrInfo): string;
+    procedure UpdateCompleted(Sender: TObject);
+    procedure UpdateEcrInfo;
 
     property Updater: TFirmwareUpdater read GetUpdater;
   public
@@ -113,7 +115,7 @@ procedure TfmMain.FormCreate(Sender: TObject);
 begin
   Caption := Application.Title + ' ver. ' + GetFileVersionInfoStr;
   Updater.LoadParameters;
-  MemoInfo.Text := GetInfoText(ReadEcrInfo);
+  UpdateEcrInfo;
   UpdatePage;
 end;
 
@@ -187,14 +189,12 @@ begin
     LoaderLine := '';
     FirmwareLine := '';
     FUpdateAvailable := False;
-    while Updater.FindUpdateItem(EcrInfo, ACTION_UPDATE_LOADER, Item) do
+    if Updater.FindLoader(EcrInfo, Item) then
     begin
       FUpdateAvailable := True;
-      EcrInfo.BootVer := Item.NewBootVer;
       LoaderLine := Format('Загрузчик до версии %d', [Item.NewBootVer]);
-      if Item.Force then Break;
     end;
-    if Updater.FindUpdateItem(EcrInfo, ACTION_UPDATE_FIRMWARE, Item) then
+    if Updater.FindFirmware(EcrInfo, Item) then
     begin
       FUpdateAvailable := True;
       FirmwareLine := Format('ПО ККМ до версии %s, сборка: %d от %s',
@@ -223,13 +223,12 @@ begin
   btnStart.Enabled := False;
   btnStop.Enabled := True;
   try
-    (*
     if not Updater.CheckEcrUpdateable then
     begin
       fmUnsupported.ShowModal;
       Exit;
     end;
-    *)
+    Updater.OnComplete := UpdateCompleted;
     Updater.Start;
     Timer.Enabled := True;
   except
@@ -238,6 +237,23 @@ begin
       btnStart.Enabled := True;
       btnStop.Enabled := False;
       raise;
+    end;
+  end;
+end;
+
+procedure TfmMain.UpdateCompleted(Sender: TObject);
+begin
+  UpdateEcrInfo;
+end;
+
+procedure TfmMain.UpdateEcrInfo;
+begin
+  try
+    MemoInfo.Text := GetInfoText(ReadEcrInfo);
+  except
+    on E: Exception do
+    begin
+      MemoInfo.Text := 'Ошибка: ' + E.Message;
     end;
   end;
 end;

@@ -468,6 +468,7 @@ begin
   ClearState;
   FThread.Free;
   FThread := TNotifyThread.CreateThread(ThreadProc);
+  FThread.Resume;
 end;
 
 procedure TSearchPort.ThreadProc(Sender: TObject);

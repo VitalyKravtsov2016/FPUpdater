@@ -9,7 +9,7 @@ uses
   TestFramework,
   // This
   FirmwareUpdater, DrvFRLib_TLB, untDriver, UpdateItem, LogFile,
-  StringUtils, XModem;
+  StringUtils, XModem, EcrManager;
 
 type
 
@@ -54,8 +54,9 @@ type
     procedure SetVComConnection;
     procedure SetRndisConnection;
     procedure TestFNFiscalization;
-
     procedure TestDiscoverDevice;
+
+    procedure TestReadEcrState;
   end;
 
 implementation
@@ -625,8 +626,19 @@ begin
   Updater.DiscoverDevice(SearchParams);
 end;
 
-
-
+procedure TFirmwareUpdaterTest.TestReadEcrState;
+var
+  Text: string;
+  Manager: TEcrManager;
+begin
+  Manager := TEcrManager.Create(Driver);
+  try
+    Manager.ReadFullStatus;
+    Manager.Lines.SaveToFile('EcrStatus.txt');
+  finally
+    Manager.Free;
+  end;
+end;
 
 initialization
   RegisterTest('', TFirmwareUpdaterTest.Suite);

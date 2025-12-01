@@ -26,7 +26,8 @@ uses
   LangUtils in '..\..\src\FPUpdater\units\LangUtils.pas',
   PrinterTypes in '..\..\src\FPUpdater\units\PrinterTypes.pas',
   ComportUtils in '..\..\src\FPUpdater\units\ComportUtils.pas',
-  UpdateItem in '..\..\src\FPUpdater\units\UpdateItem.pas';
+  UpdateItem in '..\..\src\FPUpdater\units\UpdateItem.pas',
+  EcrManager in '..\..\src\FPUpdater\units\EcrManager.pas';
 
 {$R *.RES}
 {$R arhive.res}
