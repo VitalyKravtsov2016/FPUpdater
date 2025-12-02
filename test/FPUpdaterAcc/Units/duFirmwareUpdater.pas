@@ -45,8 +45,6 @@ type
     procedure TestSetConnectionType;
     procedure TestGetOfdParams;
     procedure TestLoadParams;
-    procedure TestUpdateFirmwareShtrih;
-    procedure TestCreateShtrihEcr;
     procedure TestFirmwareUpdateRNDIS3;
     procedure TestWaitForDFUDevice;
     procedure TestUpdateFFD;
@@ -57,6 +55,8 @@ type
     procedure TestDiscoverDevice;
 
     procedure TestReadEcrState;
+    procedure TestUpdateFirmwareShtrih;
+    procedure TestCreateShtrihEcr;
   end;
 
 implementation
@@ -373,7 +373,7 @@ begin
   Logger.Debug('TestUpdateFirmwareShtrih.0');
   Ecr := Updater.ReadEcrInfo;
   if Ecr.SigningKey = SigningKeyTehnoWork then
-    raise Exception.Create('Боевой софт откатить нельзя');
+    raise Exception.Create('Обновить можно только тестовую кассу');
 
   if Ecr.BootVer <> 153 then
   begin
@@ -392,7 +392,7 @@ begin
       UpdateLoader(Ecr.Serial, 'tb_ldr_3000_test.bin', 3000);
       Ecr.BootVer := 3000;
     end;
-    if Ecr.BootVer = 3000 then
+    if (Ecr.BootVer = 3000)or(Ecr.BootVer < 153) then
     begin
       UpdateLoader(Ecr.Serial, 'sm_ldr_153.bin', 153);
       Ecr.BootVer := 153;

@@ -8,7 +8,8 @@ uses
   System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
   Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ExtCtrls, DateUtils,
   // This
-  FirmwareUpdater, fmuUnsupported, untVInfo, untDriver, UpdateItem;
+  FirmwareUpdater, fmuUnsupported, untVInfo, untDriver, UpdateItem,
+  NotifyThread, JvComponentBase, JvThread;
 
 type
   { TfmMain }
@@ -29,15 +30,16 @@ type
     procedure btnCloseClick(Sender: TObject);
     procedure btnStopClick(Sender: TObject);
   private
+    FThread: TNotifyThread;
     FUpdater: TFirmwareUpdater;
     FUpdateAvailable: Boolean;
 
     procedure CheckStarted;
-    function ReadEcrInfo: TEcrInfo;
+    procedure UpdateEcrInfo;
+    procedure UpdateCompleted(Sender: TObject);
+
     function GetUpdater: TFirmwareUpdater;
     function GetInfoText(EcrInfo: TEcrInfo): string;
-    procedure UpdateCompleted(Sender: TObject);
-    procedure UpdateEcrInfo;
 
     property Updater: TFirmwareUpdater read GetUpdater;
   public
@@ -119,57 +121,6 @@ begin
   UpdatePage;
 end;
 
-function TfmMain.ReadEcrInfo: TEcrInfo;
-
-  function GetSigningKey(const Version: string): Integer;
-  begin
-    Result := SigningKeyUnknown;
-    if Pos('W', Version) > 0 then Result := SigningKeyTehnoWork;
-    if Pos('T', Version) > 0 then Result := SigningKeyTehnoTest;
-    if Pos('N', Version) > 0 then Result := SigningKeyShtrihWork;
-    if Pos('P', Version) > 0 then Result := SigningKeyShtrihInter;
-  end;
-
-begin
-  // Полный запрос состояния
-  Result.FirmwareValid := True;
-  Driver.GetECRStatus;
-  try
-    if (Driver.ResultCode = 123) or (Driver.ResultCode = 56) then
-    begin
-      Result.FirmwareValid := False;
-      Exit;
-    end;
-    Result.PortNumber := PORT_COM;
-    Result.FirmwareVersion := '';
-    Result.FirmwareBuild := -1;
-    Result.FirmwareDate := -1;
-    Result.SigningKey := SigningKeyUnknown;
-    if Driver.ResultCode = 0 then
-    begin
-      Result.PortNumber := Driver.PortNumber;
-      Result.FirmwareVersion := Driver.ECRSoftVersion;
-      Result.FirmwareBuild := Driver.ECRBuild;
-      Result.FirmwareDate := Driver.ECRSoftDate;
-      Result.SigningKey := GetSigningKey(Driver.FMSoftVersion);
-      // Серийный номер
-      Driver.Check(Driver.ReadSerialNumber);
-      Result.Serial := Driver.SerialNumber;
-      // Читаем версию загрузчика
-      Result.BootVer := -1;
-      if Driver.ReadLoaderVersion = 0 then
-      begin
-        Result.BootVer := StrToInt(Driver.LoaderVersion);
-      end else
-      begin
-        raise Exception.Create('ККТ на связи. Однако не удалось прочитать версию загрузчика, прошивка невозможна.');
-      end;
-    end;
-  finally
-    Driver.Disconnect;
-  end;
-end;
-
 function TfmMain.GetInfoText(EcrInfo: TEcrInfo): string;
 var
   Lines: TStrings;
@@ -249,7 +200,7 @@ end;
 procedure TfmMain.UpdateEcrInfo;
 begin
   try
-    MemoInfo.Text := GetInfoText(ReadEcrInfo);
+    MemoInfo.Text := GetInfoText(Updater.ReadEcrInfo);
   except
     on E: Exception do
     begin

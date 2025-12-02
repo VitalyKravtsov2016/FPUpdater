@@ -501,6 +501,9 @@ begin
     raise Exception.Create('Обновление уже идет.');
 
   Stop;
+  FDriver.Free;
+  FDriver := nil;
+
   FStopped := False;
   FThread := TNotifyThread.CreateThread(Execute);
   FThread.OnTerminate := ThreadTerminated;
