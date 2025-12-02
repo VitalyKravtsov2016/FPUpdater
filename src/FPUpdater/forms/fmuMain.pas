@@ -140,10 +140,11 @@ begin
     LoaderLine := '';
     FirmwareLine := '';
     FUpdateAvailable := False;
-    if Updater.FindLoader(EcrInfo, Item) then
+    if Updater.FindLastLoader(EcrInfo, Item) then
     begin
       FUpdateAvailable := True;
       LoaderLine := Format('Загрузчик до версии %d', [Item.NewBootVer]);
+      EcrInfo.BootVer := Item.NewBootVer;
     end;
     if Updater.FindFirmware(EcrInfo, Item) then
     begin

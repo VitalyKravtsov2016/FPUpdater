@@ -72,20 +72,45 @@ See http://www.suigeneris.org/want/ for details.
 			<include name="*.dcu"/>
 		</delete>
         <exec executable="msbuild.exe">
-            <arg value="/clp:ErrorsOnly /t:Build  ${FPUpdater}/FPUpdater.dproj /p:Platform=Win32 /p:Config=Release /p:DCC_ExeOutput=${setup}/Bin" />
+            <arg value="/clp:ErrorsOnly /t:Build  ${FPUpdater}/FPUpdater.dproj /p:Platform=Win32 /p:Config=Release /p:DCC_ExeOutput=${setup}/Bin/Win32" />
+        </exec>
+        <exec executable="msbuild.exe">
+            <arg value="/clp:ErrorsOnly /t:Build  ${FPUpdater}/FPUpdater.dproj /p:Platform=Win64 /p:Config=Release /p:DCC_ExeOutput=${setup}/Bin/Win64" />
         </exec>
 	</target>
-	<target name="setup">
-		<echo input="${setup}/setup_template.iss" file="${setup}/setup.iss"/>
-		<exec executable="iscc">
+
+    <target name="setup32">
+        <property name="Architecture" value="" />
+        <property name="Arch" value="Win32" />
+        <property name="Archbit" value="32bit" />
+        <property name="Arch2" value="(32-bit)" />
+        <echo input="${setup}/setup_template.iss" file="${setup}/setup.iss" />
+        <exec basedir="${setup}" executable="iscc">
 			<arg value="${setup}/Setup.iss"/>
 			<arg value="/Q"/>
-		</exec>
-		<delete file="${setup}/setup.iss"/>
-		<move tofile="${basepath}/FPUpdater_${version2}_${build}.exe">
-			<include name="${setup}/setup.exe"/>
-		</move>
-	</target>
+        </exec>
+        <move tofile="${basepath}/FPUpdater_${version2}_${build}_x32.exe">
+            <include name="${setup}/setup.exe" />
+        </move>
+        <delete file="${setup}/setup.iss" />
+    </target>
+	
+    <target name="setup64">
+        <property name="Architecture" value="ArchitecturesInstallIn64BitMode=x64" />
+        <property name="Arch" value="Win64" />
+        <property name="Archbit" value="64bit" />
+        <property name="Arch2" value="(64-bit)" />
+        <echo input="${setup}/setup_template.iss" file="${setup}/setup.iss" />
+        <exec basedir="${setup}" executable="iscc">
+            <arg value="Setup.iss" />
+            <arg value="/Q" />
+        </exec>
+        <move tofile="${basepath}/FPUpdater_${version2}_${build}_x64.exe">
+            <include name="${setup}/setup.exe" />
+        </move>
+        <delete file="${setup}/setup.iss" />
+    </target>
+
 	<target name="build">
 		<ini file="release.ini">
 			<write section="releases" key="current" value="${version}"/>
@@ -93,5 +118,5 @@ See http://www.suigeneris.org/want/ for details.
 		</ini>
 	</target>
 	<target name="compile" depends="Compile-FPUpdater"/>
-	<target name="release" depends="clean,prepare,compile,setup,finalclean"/>
+	<target name="release" depends="clean,prepare,compile,setup32,setup64,finalclean"/>
 </project>

@@ -181,6 +181,7 @@ AllowNoIcons=Yes
 OutputDir="."
 UsePreviousAppDir=No
 UsePreviousGroup=No
+${Architecture}
 AppVersion=${version}
 AppPublisher= {cm:AppPublisher}
 AppPublisherURL= {cm:AppPublisherURL}
@@ -204,19 +205,19 @@ Name: "desktopicon"; Description: {cm:DesktopIconDescription}; GroupDescription:
 Name: "quicklaunchicon"; Description: {cm:QuickLaunchIconDescription}; GroupDescription: {cm:DesktopGroupDescription}; Flags: unchecked
 [Files]
 ; Version history
-Source: "Bin\History_ru.txt"; DestDir: "{app}"; DestName: "History.txt"; Languages: ru
-Source: "Bin\History_en.txt"; DestDir: "{app}"; DestName: "History.txt"; Languages: en
+Source: "Bin\History_ru.txt"; DestDir: "{app}"; DestName: "History.txt"; Languages: ru; Flags: ${Archbit}; 
+Source: "Bin\History_en.txt"; DestDir: "{app}"; DestName: "History.txt"; Languages: en; Flags: ${Archbit}; 
 ; Application
-Source: "Bin\FPUpdater.exe"; DestDir: "{app}\Bin"; Flags: ignoreversion 
-Source: "Bin\Archive.zip"; DestDir: "{app}\Bin"; Flags: ignoreversion 
+Source: "Bin\${Arch}\FPUpdater.exe"; DestDir: "{app}\Bin"; Flags: ignoreversion ${Archbit}; 
+Source: "Bin\Archive.zip"; DestDir: "{app}\Bin"; Flags: ignoreversion ${Archbit}; 
 ; DFU drivers
 Source: "Bin\DFU\Driver\*"; DestDir: "{app}\Bin\DFU\Driver"; Flags: recursesubdirs createallsubdirs; AfterInstall: InstallDrivers
 [Icons]
 ; Version history
 Name: "{group}\{cm:VersionHistory}"; Filename: "{app}\History.txt"; 
 ; Main
-Name: "{group}\{cm:AppName} ${version2}"; Filename: "{app}\Bin\FPUpdater.exe"; WorkingDir: "{app}\Bin"; 
+Name: "{group}\{cm:AppName} ${version2} ${Arch2}"; Filename: "{app}\Bin\FPUpdater.exe"; WorkingDir: "{app}\Bin"; 
 ; Shortcuts
-Name: "{userdesktop}\{cm:AppName} ${version2} "; Filename: "{app}\Bin\FPUpdater.exe"; Tasks: desktopicon
+Name: "{userdesktop}\{cm:AppName} ${version2} ${Arch2} "; Filename: "{app}\Bin\FPUpdater.exe"; Tasks: desktopicon
 [UninstallDelete]
 Type: files; Name: "{app}\Bin\*.log"

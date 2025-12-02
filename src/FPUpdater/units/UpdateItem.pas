@@ -25,6 +25,13 @@ const
   ACTION_UPDATE_FIRMWARE  = 2;
   // Write licenses
   ACTION_WRITE_LICENSES   = 3;
+  // Initialize fiscal storage
+  ACTION_INIT_FS          = 4;
+  // Fiscalize fiscal storage
+  ACTION_FISCALIZE_FS     = 5;
+  // Write tables
+  ACTION_WRITE_TABLES     = 6;
+
 
 type
   { TFFDNeedUpdate }

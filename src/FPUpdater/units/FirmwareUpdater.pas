@@ -172,10 +172,12 @@ type
     FOnComplete: TNotifyEvent;
 
     function GetDriver: TDriver;
-    function ValidUpdateItem(Action: Integer; const Ecr: TEcrInfo;
-      const Item: TUpdateItem): Boolean;
     procedure SetStatus(const Value: TUpdateStatus);
     procedure ThreadTerminated(Sender: TObject);
+    function ValidLoader(const Ecr: TEcrInfo; const Item: TUpdateItem): Boolean;
+    function ValidFirmware(const Ecr: TEcrInfo;
+      const Item: TUpdateItem): Boolean;
+    procedure CheckFSDebugVersion;
     property Driver: TDriver read GetDriver;
   public
     procedure DeleteLog;
@@ -224,7 +226,6 @@ type
     function FindDevice(const Serial: string): Boolean;
     procedure DiscoverDevice(const Params: TSearchParams);
     function FindDeviceLocal(const Params: TSearchParams): Boolean;
-    function FindItemIndex(const Ecr: TEcrInfo; Action: Integer): Integer;
     function FindOfdParams(const OfdInn: string;
       var OfdParams: TOfdParams): Boolean;
     function GetOfdParams(const UpdateItem: TUpdateItem; const OfdInn: string;
@@ -240,7 +241,6 @@ type
     function IsDFUDevicePresent: Boolean;
     function WaitForDFUDevice(Timeout: Cardinal): Boolean;
     procedure SetVComConnection;
-    procedure UpdateInfoText(EcrInfo: TEcrInfo);
     procedure UpdateFirmware;
     function CheckEcrUpdateable: Boolean;
     function FindDeviceLocal2(const Params: TSearchParams): Boolean;
@@ -255,10 +255,8 @@ type
     procedure Stop;
     procedure Wait;
     procedure LoadParameters;
-    function FindUpdateItem(const Data: TEcrInfo; Action: Integer;
-      var Item: TUpdateItem): Boolean;
-    function FindLoader(EcrInfo: TEcrInfo; var Item: TUpdateItem): Boolean;
-    function FindFirmware(EcrInfo: TEcrInfo; var Item: TUpdateItem): Boolean;
+    function FindLastLoader(Ecr: TEcrInfo; var AItem: TUpdateItem): Boolean;
+    function FindFirmware(Ecr: TEcrInfo; var AItem: TUpdateItem): Boolean;
 
     property Params: TUpdateParams read FParams;
     property Status: TUpdateStatus read GetStatus write SetStatus;
@@ -583,6 +581,14 @@ begin
   Logger.Debug(Separator);
 end;
 
+procedure TFirmwareUpdater.CheckFSDebugVersion;
+begin
+  // Проверка что ФН отладочный
+  Driver.Check(Driver.FNGetVersion);
+  if Driver.FNSoftType <> 0 then
+    raise Exception.Create('ФН должен быть отладочным');
+end;
+
 procedure TFirmwareUpdater.DoUpdateFirmware;
 var
   EcrInfo: TEcrInfo;
@@ -623,17 +629,20 @@ begin
   begin
     //SetVComConnection;
     // Update loader
-    while FindUpdateItem(EcrInfo, ACTION_UPDATE_LOADER, Item) do
+    for Item in FItems do
     begin
-      DfuUploadFile(FPath, Item.FileName);
-      DelayInMs(LoaderRebootDelay);
-      WaitForDevice(EcrInfo.Serial, LoaderRebootTimeout);
-      CheckLoaderUpdated(Item.NewBootVer);
-      EcrInfo.BootVer := Item.NewBootVer;
-      if Item.Force then Break;
+      if ValidLoader(EcrInfo, Item) then
+      begin
+        DfuUploadFile(FPath, Item.FileName);
+        DelayInMs(LoaderRebootDelay);
+        WaitForDevice(EcrInfo.Serial, LoaderRebootTimeout);
+        CheckLoaderUpdated(Item.NewBootVer);
+        EcrInfo.BootVer := Item.NewBootVer;
+        if Item.Force then Break;
+      end;
     end;
     // Up
-    if FindUpdateItem(EcrInfo, ACTION_UPDATE_FIRMWARE, Item) then
+    if FindFirmware(EcrInfo, Item) then
     begin
       DfuUploadFile(FPath, Item.FileName);
       DelayInMs(FirmwareRebootDelay);
@@ -645,6 +654,37 @@ begin
       // Проверка, обновилось ли ПО
       CheckFirmwareUpdated(Item);
       PrintUpdateCompleted;
+    end;
+    for Item in FItems do
+    begin
+      case Item.Action of
+        ACTION_INIT_FS:
+        begin
+          CheckFSDebugVersion;
+          SetStatusText(Item.info);
+          Driver.RequestType := 22;
+          Driver.Check(Driver.FNResetState);
+        end;
+        // Fiscalize fiscal storage
+        ACTION_FISCALIZE_FS:
+        begin
+          CheckFSDebugVersion;
+          Driver.Check(Driver.ReadSerialNumber);
+          (*
+          '9706048530'
+          Driver.Inn := Item.inn;
+          Driver.KKTRegistrationNumber := GenerateRNM('', Driver.Inn, Driver.SerialNumber);
+          Driver.TaxType := 1;
+          Driver.WorkMode := 0;
+          Driver.WorkModeEx := 16;
+          Driver.Timeout := 10000;
+          Driver.Check(Driver.FNBuildRegistrationReport);
+          Driver.WaitForPrinting;
+          Driver.Timeout := 1000;
+          *)
+        end;
+      end;
+
     end;
   end else
   begin
@@ -712,9 +752,13 @@ procedure TFirmwareUpdater.WriteLicenses(const Ecr: TEcrInfo);
 var
   Item: TUpdateItem;
 begin
-  if FindUpdateItem(Ecr, ACTION_WRITE_LICENSES, Item) then
+  for Item in FItems do
   begin
-    WriteLicense(FPath + Item.FileName, Ecr.Serial);
+    if Item.Action = ACTION_WRITE_LICENSES then
+    begin
+      WriteLicense(FPath + Item.FileName, Ecr.Serial);
+      Break;
+    end;
   end;
 end;
 
@@ -780,7 +824,7 @@ function TFirmwareUpdater.ReadEcrInfo: TEcrInfo;
   end;
 
 begin
-  SetStatusText('Проверка состояния ККМ');
+  Logger.Debug('Проверка состояния ККМ');
   // Полный запрос состояния
   Result.FirmwareValid := True;
   Driver.GetECRStatus;
@@ -812,55 +856,6 @@ begin
     begin
       raise Exception.Create('ККТ на связи. Однако не удалось прочитать версию загрузчика, прошивка невозможна.');
     end;
-  end;
-end;
-
-procedure TFirmwareUpdater.UpdateInfoText(EcrInfo: TEcrInfo);
-var
-  Lines: TStrings;
-  LoaderLine: string;
-  FirmwareLine: string;
-  Item: TUpdateItem;
-begin
-  Lines := TStringList.Create;
-  try
-    Lines.Add(Format('Версия загрузчика ККМ: %d', [EcrInfo.BootVer]));
-    Lines.Add(Format('Версия ПО ККМ: %s, сборка %d от %s', [
-      EcrInfo.FirmwareVersion,
-      EcrInfo.FirmwareBuild,
-      DateToStr(EcrInfo.FirmwareDate)]));
-    Lines.Add('');
-
-    LoaderLine := '';
-    FirmwareLine := '';
-    FStatus.UpdateAvailable := False;
-    while FindUpdateItem(EcrInfo, ACTION_UPDATE_LOADER, Item) do
-    begin
-      FStatus.UpdateAvailable := True;
-      EcrInfo.BootVer := Item.NewBootVer;
-      LoaderLine := Format('Загрузчик до версии %d', [Item.NewBootVer]);
-      if Item.Force then Break;
-    end;
-    if FindUpdateItem(EcrInfo, ACTION_UPDATE_FIRMWARE, Item) then
-    begin
-      FStatus.UpdateAvailable := True;
-      FirmwareLine := Format('ПО ККМ до версии %s, сборка: %d от %s',
-          [Item.fwver, Item.fwbuild, DateToStr(Item.fwdate)]);
-    end;
-
-    if FStatus.UpdateAvailable then
-    begin
-      Lines.Add('Программа обновит:');
-      if LoaderLine <> '' then Lines.Add(LoaderLine);
-      if FirmwareLine <> '' then Lines.Add(FirmwareLine);
-      Lines.Add('');
-      Lines.Add('Для начала нажмите кнопку "Обновить"');
-    end else
-    begin
-      Lines.Add('Обновления не найдены');
-    end;
-  finally
-    Lines.Free;
   end;
 end;
 
@@ -1074,17 +1069,6 @@ function TFirmwareUpdater.ReadSerialNumber: string;
 begin
   Driver.Check(Driver.ReadSerialNumber);
   Result := Driver.SerialNumber;
-end;
-
-function TFirmwareUpdater.FindUpdateItem(const Data: TEcrInfo;
-  Action: Integer; var Item: TUpdateItem): Boolean;
-var
-  Index: Integer;
-begin
-  Index := FindItemIndex(Data, Action);
-  Result := Index <> -1;
-  if Result then
-    Item := FItems[Index];
 end;
 
 procedure TFirmwareUpdater.CheckFirmwareUpdated(const Item: TUpdateItem);
@@ -1819,43 +1803,44 @@ begin
   end;
 end;
 
-function TFirmwareUpdater.ValidUpdateItem(Action: Integer;
-  const Ecr: TEcrInfo; const Item: TUpdateItem): Boolean;
+function TFirmwareUpdater.ValidLoader(const Ecr: TEcrInfo;
+  const Item: TUpdateItem): Boolean;
 begin
-  case Action of
-    ACTION_UPDATE_LOADER:
-    begin
-      // Если нужно переписывать для тестирования
-      Result := Item.Force and (Item.NewBootVer = Ecr.BootVer);
-      if Result then Exit;
+  Result := Item.Action = ACTION_UPDATE_LOADER;
+  if not Result then Exit;
 
-      Result := Item.CurrBootVer = Ecr.BootVer;
-      if Result then Exit;
+  // Если нужно переписывать для тестирования
+  Result := Item.Force and (Item.NewBootVer = Ecr.BootVer);
+  if Result then Exit;
 
-      if Item.CurrBootVer = 0 then
-      begin
-        Result := (Ecr.BootVer <> -1)and(Item.NewBootVer > Ecr.BootVer) and (Ecr.BootVer > 129);
-      end;
-    end;
+  Result := Item.CurrBootVer = Ecr.BootVer;
+  if Result then Exit;
 
-    ACTION_UPDATE_FIRMWARE:
-    begin
-      if  Ecr.BootVer >= Item.CurrBootVer then
-      begin
-        Result := True;
-        if (Item.fwbuild = Ecr.FirmwareBuild) and
-          (Item.fwver = Ecr.FirmwareVersion) then
-        begin
-          if not Item.Force then
-            Result := False;
-        end;
-      end;
-    end;
-  else
-    Result := True;
+  if Item.CurrBootVer = 0 then
+  begin
+    Result := (Ecr.BootVer <> -1)and(Item.NewBootVer > Ecr.BootVer) and (Ecr.BootVer > 129);
   end;
 end;
 
+function TFirmwareUpdater.ValidFirmware(const Ecr: TEcrInfo;
+  const Item: TUpdateItem): Boolean;
+begin
+  Result := Item.Action = ACTION_UPDATE_FIRMWARE;
+  if not Result then Exit;
+
+  if  Ecr.BootVer >= Item.CurrBootVer then
+  begin
+    Result := True;
+    if (Item.fwbuild = Ecr.FirmwareBuild) and
+      (Item.fwver = Ecr.FirmwareVersion) then
+    begin
+      if not Item.Force then
+        Result := False;
+    end;
+  end;
+end;
+
+(*
 function TFirmwareUpdater.FindItemIndex(const Ecr: TEcrInfo;
   Action: Integer): Integer;
 var
@@ -1873,27 +1858,45 @@ begin
     end;
   end;
 end;
+*)
 
-function TFirmwareUpdater.FindLoader(EcrInfo: TEcrInfo;
-  var Item: TUpdateItem): Boolean;
+function TFirmwareUpdater.FindLastLoader(Ecr: TEcrInfo;
+  var AItem: TUpdateItem): Boolean;
+var
+  Item: TUpdateItem;
 begin
   Result := False;
-  while FindUpdateItem(EcrInfo, ACTION_UPDATE_LOADER, Item) do
+  for Item in FItems do
   begin
-    Result := True;
-    EcrInfo.BootVer := Item.NewBootVer;
-    if Item.Force then Break;
+    if ValidLoader(Ecr, Item) then
+    begin
+      Result := True;
+      AItem := Item;
+      Ecr.BootVer := Item.NewBootVer;
+    end;
   end;
 end;
 
-function TFirmwareUpdater.FindFirmware(EcrInfo: TEcrInfo;
-  var Item: TUpdateItem): Boolean;
+function TFirmwareUpdater.FindFirmware(Ecr: TEcrInfo;
+  var AItem: TUpdateItem): Boolean;
+var
+  Item: TUpdateItem;
 begin
-  Result := FindUpdateItem(EcrInfo, ACTION_UPDATE_FIRMWARE, Item);
+  Result := False;
+  for Item in FItems do
+  begin
+    Result := ValidFirmware(Ecr, Item);
+    if Result then
+    begin
+      AItem := Item;
+      Break;
+    end;
+  end;
 end;
 
 
 (*
+
 procedure TFirmwareUpdater.CheckSigningKey(EcrSigningKey, FileSigningKey: Integer);
 begin
   if EcrSigningKey = SigningKeyUnknown then Exit;
@@ -1902,6 +1905,19 @@ begin
   if EcrSigningKey then
 
 end;
+
+function TFirmwareUpdater.FindUpdateItem(const Data: TEcrInfo;
+  Action: Integer; var Item: TUpdateItem): Boolean;
+var
+  Index: Integer;
+begin
+  Index := FindItemIndex(Data, Action);
+  Result := Index <> -1;
+  if Result then
+    Item := FItems[Index];
+end;
+
+
 *)
 
 
