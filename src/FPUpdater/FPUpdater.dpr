@@ -29,12 +29,11 @@ uses
   ComportUtils in 'units\ComportUtils.pas';
 
 {$R *.res}
-{$R arhive.res}
 
 begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
-  Application.Title := 'Прошивальщик';
+  Application.Title := 'Прошивальщик ' + GetFileVersionInfoStr;
   Application.CreateForm(TfmMain, fmMain);
   Application.CreateForm(TfmUnsupported, fmUnsupported);
   fmMain.Position := poDesktopCenter;

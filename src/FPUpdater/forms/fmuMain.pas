@@ -30,9 +30,8 @@ type
     procedure btnCloseClick(Sender: TObject);
     procedure btnStopClick(Sender: TObject);
   private
-    FThread: TNotifyThread;
-    FUpdater: TFirmwareUpdater;
     FUpdateAvailable: Boolean;
+    FUpdater: TFirmwareUpdater;
 
     procedure CheckStarted;
     procedure UpdateEcrInfo;
@@ -115,7 +114,7 @@ end;
 
 procedure TfmMain.FormCreate(Sender: TObject);
 begin
-  Caption := Application.Title + ' ver. ' + GetFileVersionInfoStr;
+  Caption := Application.Title;
   Updater.LoadParameters;
   UpdateEcrInfo;
   UpdatePage;
@@ -206,6 +205,15 @@ end;
 
 procedure TfmMain.UpdateCompleted(Sender: TObject);
 begin
+  if Updater.Status.IsSucceeded then
+  begin
+    MessageBox(Handle, PChar(Updater.Status.ResultText),
+      PChar(Caption), MB_OK or MB_ICONINFORMATION);
+  end else
+  begin
+    MessageBox(Handle, PChar(Updater.Status.ResultText),
+      PChar(Caption), MB_OK or MB_ICONEXCLAMATION);
+  end;
   UpdateEcrInfo;
 end;
 

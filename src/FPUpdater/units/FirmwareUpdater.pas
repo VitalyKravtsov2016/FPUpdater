@@ -152,9 +152,11 @@ type
 
   TUpdateStatus = record
     Text: string;
+    ResultText: string;
     StartTime: TDateTime;
     UpdateAvailable: Boolean;
     IsStarted: Boolean;
+    IsSucceeded: Boolean;
   end;
 
   { TFirmwareUpdater }
@@ -573,23 +575,36 @@ begin
 end;
 
 procedure TFirmwareUpdater.UpdateFirmware;
+var
+  AStatus: TUpdateStatus;
 begin
-  FStatus.IsStarted := True;
-  FStatus.StartTime := Now;
+  AStatus := GetStatus;
+  AStatus.StartTime := Now;
+  AStatus.IsStarted := True;
+  AStatus.IsSucceeded := False;
+  SetStatus(AStatus);
 
   Logger.Debug(Separator);
   try
-    try
-      DoUpdateFirmware;
-    except
-      on E: Exception do
-      begin
-        Logger.Error('Ошибка: ' + E.Message);
-        raise;
-      end;
+    DoUpdateFirmware;
+
+    AStatus := GetStatus;
+    AStatus.IsStarted := False;
+    AStatus.IsSucceeded := True;
+    AStatus.ResultText := 'Обновление выполнено успешно.';
+    SetStatus(AStatus);
+  except
+    on E: Exception do
+    begin
+      AStatus := GetStatus;
+      AStatus.IsStarted := False;
+      AStatus.IsSucceeded := True;
+      AStatus.ResultText := 'Ошибка: ' + E.Message;
+      SetStatus(AStatus);
+
+      Logger.Error('Ошибка: ' + E.Message);
+      raise;
     end;
-  finally
-    FStatus.IsStarted := False;
   end;
   Logger.Debug(Separator);
 end;
@@ -748,7 +763,7 @@ begin
   Driver.Check(Driver.FNGetInfoExchangeStatus);
   Logger.Debug(Format('Неотправленных документов: %d', [Driver.MessageCount]));
   SetStatusText(Format('Обновление выполнено успешно. Время выполнения: %d', [
-    SecondsBetween(Now, FStatus.StartTime)]));
+    SecondsBetween(Now, GetStatus.StartTime)]));
 end;
 
 procedure TFirmwareUpdater.SetVComConnection;
@@ -887,7 +902,6 @@ begin
   try
     DownloadFiles;
     LoadFiles(FPath);
-    FStatus.Text := '';
   except
     on E: Exception do
     begin
@@ -952,7 +966,7 @@ begin
 end;
 
 const
-  ArhiveURL = 'http://cb.litepass.ru:8080/techno/arhive_22.zip';
+  ArhiveURL = 'http://cb.litepass.ru:8080/techno/arhive_beeline.zip';
 
 //Проверяем обновления на сервере
 function TFirmwareUpdater.CheckUpdateAvailable: Boolean;
@@ -1614,7 +1628,7 @@ begin
     Reason := Driver.ReadTableInt(18, 1, 22) or $200000;
     Driver.WriteTableInt(18, 1, 22, Reason);
   end;
-  Driver.RegistrationReasonCode := 4; // Изменение настроек ККТ
+  Driver.RegistrationReasonCode := FParams.RegReasonCode;
   Driver.Inn := Trim(Driver.ReadTableStr(18, 1, 2));
   Driver.KKTRegistrationNumber := Trim(Driver.ReadTableStr(18, 1, 3));
   Driver.TaxType := FParams.TaxType;

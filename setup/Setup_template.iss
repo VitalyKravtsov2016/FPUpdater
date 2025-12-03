@@ -173,9 +173,9 @@ ru.HistoryFileName=History_ru.txt
 
 [Setup]
 AppName= {cm:AppName}
-AppVerName= {cm:AppName} ${version2}"
+AppVerName= {cm:AppName} ${version2}_${build}"
 DefaultDirName= {pf}\{cm:DefaultDirName}
-DefaultGroupName= {cm:DefaultGroupName} ${version2} 
+DefaultGroupName= {cm:DefaultGroupName} ${version2}_${build} 
 UninstallDisplayIcon= {app}\Uninstall.exe
 AllowNoIcons=Yes
 OutputDir="."

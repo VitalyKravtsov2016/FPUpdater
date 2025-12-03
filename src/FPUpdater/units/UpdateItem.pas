@@ -49,6 +49,7 @@ type
     TaxType: Integer;                   // Тип налогообложения
     WorkMode: Integer;                  // Режим работы
     WorkModeEx: Integer;
+    RegReasonCode: Integer;             // Код причины перерегистрации
   end;
 
 
@@ -215,9 +216,11 @@ begin
   Result := Value.GetValue<Integer>(APath);
 end;
 
-function JsonGetInteger(Value: TJSONValue; const APath: string; DefValue: Integer): Integer; overload;
+function JsonGetInteger(Json: TJSONValue; const APath: string; DefValue: Integer): Integer; overload;
 begin
-  Result := StrToIntDef(JsonGetString(Value, APath), DefValue);
+  Result := DefValue;
+  if Json.FindValue(APath) <> nil then
+    Result := StrToIntDef(Json.GetValue<String>(APath), DefValue);
 end;
 
 // 'YYYY-MM-DD','-'
@@ -251,9 +254,10 @@ begin
       Params.DocSentTimeoutInSec := JsonGetInteger(JSONValue, 'DocSentTimeoutInSec');
       Params.RestoreCashRegister := JsonGetBoolean(JSONValue, 'RestoreCashRegister');
       Params.FFDNeedUpdate := TFFDNeedUpdate(JsonGetInteger(JSONValue, 'FFDNeedUpdate'));
-      Params.TaxType := JsonGetInteger(JSONValue, 'TaxType');
-      Params.WorkMode := JsonGetInteger(JSONValue, 'WorkMode');
-      Params.WorkModeEx := JsonGetInteger(JSONValue, 'WorkModeEx');
+      Params.TaxType := JsonGetInteger(JSONValue, 'TaxType', 0);
+      Params.WorkMode := JsonGetInteger(JSONValue, 'WorkMode', 0);
+      Params.WorkModeEx := JsonGetInteger(JSONValue, 'WorkModeEx', 0);
+      Params.RegReasonCode := JsonGetInteger(JSONValue, 'RegReasonCode', 0);
     end;
   finally
     JSONObject.Free;

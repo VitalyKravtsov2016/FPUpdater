@@ -39,6 +39,7 @@ See http://www.suigeneris.org/want/ for details.
 	<property name="src" value="${basepath}/src"/>
 	<property name="test" value="${basepath}/test"/>
 	<property name="setup" value="${basepath}/setup"/>
+    <property name="brcc" value="${setup}/util/brcc32.exe" />
 	<property name="FPUpdater" value="${src}/FPUpdater"/>
 	<target name="prepare">
 		<echo message="version=${version}"/>
@@ -71,7 +72,11 @@ See http://www.suigeneris.org/want/ for details.
 		<delete dir="${dcu}">
 			<include name="*.dcu"/>
 		</delete>
-        <exec executable="msbuild.exe">
+        <echo input="${FPUpdater}/FPUpdater.rt" file="${FPUpdater}/FPUpdater.rc" />
+        <exec executable="${brcc}">
+            <arg value="${FPUpdater}/FPUpdater.rc" />
+        </exec>        
+		<exec executable="msbuild.exe">
             <arg value="/clp:ErrorsOnly /t:Build  ${FPUpdater}/FPUpdater.dproj /p:Platform=Win32 /p:Config=Release /p:DCC_ExeOutput=${setup}/Bin/Win32" />
         </exec>
         <exec executable="msbuild.exe">
