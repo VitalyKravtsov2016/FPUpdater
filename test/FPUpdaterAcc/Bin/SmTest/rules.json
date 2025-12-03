@@ -7,7 +7,8 @@
 		"RestoreCashRegister": false,
 		"TaxType": 1,
 		"WorkMode": 0,
-		"WorkModeEx": 0
+		"WorkModeEx": 0,
+		"RegReasonCode": 4
 	},
 	"RULES": [
 		{
