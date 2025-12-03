@@ -1579,7 +1579,7 @@ procedure TFirmwareUpdater.ChangeFFD(const Tables: TTableItems);
 var
   Text: string;
   OfdInn: string;
-  Reason: Integer;
+  Code: Integer;
   FFDVer: Integer;
   OfdParams: TOfdParams;
   IsFFDChanged: Boolean;
@@ -1623,11 +1623,16 @@ begin
       Driver.WriteTableInt(19, 1, 6, OfdParams.PortKM);
   end;
 
+  // WorkModeEx
+  Driver.WriteTableInt(Driver.FSTableNumber, 1, 21, FParams.WorkModeEx);
+  // RegReasonCodeEx
+  Code := FParams.RegReasonCodeEx;
   if IsFFDChanged then
   begin
-    Reason := Driver.ReadTableInt(18, 1, 22) or $200000;
-    Driver.WriteTableInt(18, 1, 22, Reason);
+    Code := Code or $200000;
   end;
+  Driver.WriteTableInt(Driver.FSTableNumber, 1, 22, Code);
+
   Driver.RegistrationReasonCode := FParams.RegReasonCode;
   Driver.Inn := Trim(Driver.ReadTableStr(18, 1, 2));
   Driver.KKTRegistrationNumber := Trim(Driver.ReadTableStr(18, 1, 3));
@@ -1648,7 +1653,6 @@ begin
     Driver.FinishDocument;
     Driver.WaitForPrinting;
   end;
-
   if not WaitDocSent(FParams.DocSentTimeoutInSec) then
   begin
     Logger.Debug('Не дождались передачи документов.');
@@ -1689,7 +1693,7 @@ begin
       Break;
     end;
 
-    if Abs(GetTickCount - TickCount) > (1000 * TimeoutInSec) then
+    if Integer(GetTickCount - TickCount) > (1000 * TimeoutInSec) then
     begin
       SetStatusText('Таймаут отправки сообщений в ОФД');
       Break;

@@ -50,6 +50,7 @@ type
     WorkMode: Integer;                  // Режим работы
     WorkModeEx: Integer;
     RegReasonCode: Integer;             // Код причины перерегистрации
+    RegReasonCodeEx: Integer;           // Расширеный код причины перерегистрации
   end;
 
 
@@ -258,6 +259,7 @@ begin
       Params.WorkMode := JsonGetInteger(JSONValue, 'WorkMode', 0);
       Params.WorkModeEx := JsonGetInteger(JSONValue, 'WorkModeEx', 0);
       Params.RegReasonCode := JsonGetInteger(JSONValue, 'RegReasonCode', 0);
+      Params.RegReasonCodeEx := JsonGetInteger(JSONValue, 'RegReasonCodeEx', 0);
     end;
   finally
     JSONObject.Free;

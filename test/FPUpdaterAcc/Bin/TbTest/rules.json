@@ -8,7 +8,8 @@
 		"TaxType": 1,
 		"WorkMode": 0,
 		"WorkModeEx": 16,
-		"RegReasonCode": 4
+		"RegReasonCode": 4,
+		"RegReasonCodeEx": 64
 	},
 	"RULES": [
 		{
