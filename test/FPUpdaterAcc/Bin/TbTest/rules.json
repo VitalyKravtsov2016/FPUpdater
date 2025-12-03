@@ -4,7 +4,10 @@
 		"PrintStatus": false,
 		"FFDNeedUpdate": 2,
 		"DocSentTimeoutInSec": 5,
-		"RestoreCashRegister": true
+		"RestoreCashRegister": true,
+		"TaxType": 1,
+		"WorkMode": 0,
+		"WorkModeEx": 16
 	},
 	"RULES": [
 		{
@@ -13,7 +16,7 @@
 			"savesetting": false,
 			"bootloader": 0,
 			"blver": 155,
-			"info": "Будет произведен переход на ПО ККТ \"Торговый баланс М\". \nНажмите кнопку Обновить для продолжения!"
+			"info": "Запись загрузчика"
 		},
 		{
 			"level": 1,
@@ -21,7 +24,7 @@
 			"savesetting": false,
 			"bootloader": 155,
 			"blver": 1939,
-			"info": "Будет произведен переход на ПО ККТ \"Торговый баланс М\". \nНажмите кнопку Обновить для продолжения!",
+			"info": "Запись загрузчика",
 			"force": true
 		},
 		{
@@ -29,7 +32,7 @@
 			"file": "tb_app_7099_test.bin",
 			"savesetting": true,
 			"bootloader": 1939,
-			"info": "Будет произведено обновление на ПО ККТ с поддержкой НДС 22% . \nНажмите кнопку Обновить для продолжения!",
+			"info": "Запись ПО ККТ Т.3, сборка 7099 от 2025-11-20",
 			"fwver": "T.3",
 			"fwbuild": 7099,
 			"fwdate": "2025-11-20",
@@ -258,11 +261,47 @@
 					"field": 5,
 					"type": 0,
 					"value": 1
+				},
+				{
+					"table": 19,
+					"row": 1,
+					"field": 1,
+					"type": 1,
+					"value": "k-server.1-ofd-test.ru"
+				},
+				{
+					"table": 19,
+					"row": 1,
+					"field": 2,
+					"type": 0,
+					"value": 7777
+				},
+				{
+					"table": 18,
+					"row": 1,
+					"field": 10,
+					"type": 1,
+					"value": "Первый ОФД (АО 'ЭСК')"
+				},
+				{
+					"table": 18,
+					"row": 1,
+					"field": 11,
+					"type": 1,
+					"value": "1-ofd.ru"
+				},
+				{
+					"table": 18,
+					"row": 1,
+					"field": 12,
+					"type": 1,
+					"value": "7709364346"
 				}
 			]
 		},
 		{
 			"level": 3,
+			"info": "Запись лицензии",
 			"file": "Licenses.slf"
 		}
 	]

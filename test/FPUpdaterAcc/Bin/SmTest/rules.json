@@ -1,28 +1,23 @@
 {
 	"Params": {
-		"SaveTables": false,
+		"SaveTables": true,
 		"PrintStatus": false,
 		"FFDNeedUpdate": 0,
 		"DocSentTimeoutInSec": 5,
-		"RestoreCashRegister": false
+		"RestoreCashRegister": false,
+		"TaxType": 1,
+		"WorkMode": 0,
+		"WorkModeEx": 0
 	},
 	"RULES": [
-		{
-			"level": 4,
-			"info": "Инициализация архива ФН"
-		},
-		{
-			"level": 5,
-			"info": "Фискализация ФН",
-			"inn": "9706048530"
-		},
 		{
 			"level": 1,
 			"file": "sm_ldr_155.bin",
 			"savesetting": false,
 			"bootloader": 0,
 			"blver": 155,
-			"info": "Обновление загрузчика до 155"
+			"info": "Обновление загрузчика до 155",
+			"force": true
 		},
 		{
 			"level": 1,
@@ -46,18 +41,32 @@
 			"savesetting": false,
 			"bootloader": 3000,
 			"blver": 153,
-			"info": "Обновление загрузчика до 153"
+			"info": "Обновление загрузчика до 153",
+			"force": true
 		},
 		{
 			"level": 2,
 			"file": "sm_app_62922_c1.bin",
 			"savesetting": true,
 			"bootloader": 153,
-			"info": "Обновление программы до версии C.1 62922"
+			"info": "Обновление программы до версии C.1 62922",
 			"fwver": "C.1",
 			"fwbuild": 62922,
 			"fwdate": "2025-01-10",
-			"updatetables": [
+			"force": true
+		},
+		{
+			"level": 4,
+			"info": "Инициализация архива ФН"
+		},
+		{
+			"level": 5,
+			"info": "Фискализация ФН",
+			"inn": "9706048530"
+		},
+		{
+			"level": 6,
+			"tables": [
 				{
 					"table": 8,
 					"row": 1,
@@ -281,6 +290,48 @@
 					"field": 5,
 					"type": 0,
 					"value": 1
+				},
+				{
+					"table": 1,
+					"row": 1,
+					"field": 28,
+					"type": 0,
+					"value": 1
+				},
+				{
+					"table": 19,
+					"row": 1,
+					"field": 1,
+					"type": 1,
+					"value": "k-server.1-ofd-test.ru"
+				},
+				{
+					"table": 19,
+					"row": 1,
+					"field": 2,
+					"type": 0,
+					"value": 7777
+				},
+				{
+					"table": 18,
+					"row": 1,
+					"field": 10,
+					"type": 1,
+					"value": "Первый ОФД (АО 'ЭСК')"
+				},
+				{
+					"table": 18,
+					"row": 1,
+					"field": 11,
+					"type": 1,
+					"value": "1-ofd.ru"
+				},
+				{
+					"table": 18,
+					"row": 1,
+					"field": 12,
+					"type": 1,
+					"value": "7709364346"
 				}
 			]
 		}

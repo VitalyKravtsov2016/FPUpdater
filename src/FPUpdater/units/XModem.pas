@@ -76,6 +76,7 @@ begin
   end;
 end;
 
+{$R-}
 function CRCCITT16(const Buffer: AnsiString; Polynom, Initial: Word): Word;
 var
   i,j: Integer;
@@ -92,6 +93,7 @@ begin
   end;
   Result:=Result and $ffff;
 end;
+{$R+}
 
 procedure TXModem.CheckCancelled;
 begin

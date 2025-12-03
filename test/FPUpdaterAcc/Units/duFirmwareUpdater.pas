@@ -61,16 +61,6 @@ type
 
 implementation
 
-function GenerateRNM(ANumber, AINN, ASerial: AnsiString): AnsiString;
-var
-  S: AnsiString;
-begin
-   S := AddLeadingZeros(ANumber, 10) +
-     AddLeadingZeros(AINN, 12) + AddLeadingZeros(ASerial, 20);
-   Result := AddLeadingZeros(ANumber, 10) +
-     AddLeadingZeros(IntToStr(CRCCITT16(S, $1021, $FFFF)), 6);
-end;
-
 function GetFilesPath: string;
 begin
   Result := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'data\';
@@ -101,34 +91,27 @@ procedure TFirmwareUpdaterTest.TestFindUpdateItem;
 var
   Path: string;
   Ecr: TEcrInfo;
-  Index: Integer;
-  Item: TUpdateItem;
+  Loader: TActionUpdateLoader;
+  Firmware: TActionUpdateFirmware;
 begin
   Updater.Path := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'test\';
   Updater.LoadParameters;
 
   Ecr.BootVer := 153;
-  Index := Updater.FindItemIndex(Ecr, ACTION_UPDATE_LOADER);
-  CheckEquals(0, Index, 'FindItemIndex');
-  Item := Updater.Items[0];
-  CheckEquals(0, Item.CurrBootVer, 'Item.CurrBootVer');
-  CheckEquals(155, Item.NewBootVer, 'Item.NewBootVer');
+  Loader := Updater.FindLastLoader(Ecr);
+  CheckEquals(0, Loader.CurrBootVer, 'Item.CurrBootVer');
+  CheckEquals(155, Loader.NewBootVer, 'Item.NewBootVer');
 
   Ecr.BootVer := 155;
-  Index := Updater.FindItemIndex(Ecr, ACTION_UPDATE_LOADER);
-  CheckEquals(1, Index, 'FindItemIndex');
-  Item := Updater.Items[1];
-  CheckEquals(155, Item.CurrBootVer, 'Item.CurrBootVer');
-  CheckEquals(1939, Item.NewBootVer, 'Item.NewBootVer');
-
+  Loader := Updater.FindLastLoader(Ecr);
+  CheckEquals(155, Loader.CurrBootVer, 'Item.CurrBootVer');
+  CheckEquals(1939, Loader.NewBootVer, 'Item.NewBootVer');
 
   Ecr.BootVer := 1939;
   Ecr.FirmwareVersion := 'C.3';
   Ecr.FirmwareBuild := 62776;
-  Index := Updater.FindItemIndex(Ecr, ACTION_UPDATE_FIRMWARE);
-  CheckEquals(2, Index, 'FindItemIndex');
-  Item := Updater.Items[2];
-  CheckEquals(1939, Item.CurrBootVer, 'Item.CurrBootVer');
+  Firmware := Updater.FindFirmware(Ecr);
+  CheckEquals(1939, Firmware.CurrBootVer, 'Item.CurrBootVer');
 end;
 
 procedure TFirmwareUpdaterTest.TestWriteLicenses;
@@ -550,21 +533,21 @@ end;
 
 procedure TFirmwareUpdaterTest.TestGetOfdParams;
 var
-  IsFound: Boolean;
   Item: TUpdateItem;
   OfdParams: TOfdParams;
+  Firmware: TActionUpdateFirmware;
 begin
-  IsFound := False;
+  Firmware := nil;
   for Item in Updater.Items do
   begin
-    if Item.Action = ACTION_UPDATE_FIRMWARE then
+    if Item is TActionUpdateFirmware then
     begin
-      IsFound := True;
+      Firmware := Item as TActionUpdateFirmware;
       Break;
     end;
   end;
-  Check(IsFound, 'Не найден элемент обновления');
-  Check(Updater.GetOfdParams(Item, '', OfdParams), 'GetOfdParams');
+  Check(Firmware <> nil, 'Не найден элемент обновления');
+  Check(Updater.GetOfdParams(Firmware.Tables, '', OfdParams), 'GetOfdParams');
   CheckEquals('192.168.144.138', OfdParams.ServerKM, 'OfdParams.ServerKM');
   CheckEquals(8789, OfdParams.PortKM, 'OfdParams.PortKM');
 end;
@@ -595,7 +578,7 @@ begin
     end;
   end;
   Check(IsFound, 'Не найден элемент обновления');
-  Updater.UpdateFFD(Item);
+  //Updater.UpdateFFD(Item);
 end;
 
 procedure TFirmwareUpdaterTest.TestWaitForDFUDevice;

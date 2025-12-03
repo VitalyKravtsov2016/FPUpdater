@@ -24,7 +24,7 @@ const
   // Update firmware
   ACTION_UPDATE_FIRMWARE  = 2;
   // Write licenses
-  ACTION_WRITE_LICENSES   = 3;
+  ACTION_WRITE_LICENSE    = 3;
   // Initialize fiscal storage
   ACTION_INIT_FS          = 4;
   // Fiscalize fiscal storage
@@ -46,7 +46,11 @@ type
     RestoreCashRegister: Boolean;       // Восстанавливать регистр наличных
     PrintStatus: Boolean;               // Печатать на чековой ленте
     FFDNeedUpdate: TFFDNeedUpdate;      // Нужно ли перерегистрировать ФН
+    TaxType: Integer;                   // Тип налогообложения
+    WorkMode: Integer;                  // Режим работы
+    WorkModeEx: Integer;
   end;
+
 
   { TTableItem }
 
@@ -62,33 +66,139 @@ type
 
   { TUpdateItem }
 
-  TUpdateItem = record
-    Action: Integer;        // Действие,
-                            // 1 - обновить загрузчик,
-                            // 2 - обновить программу,
-                            // 3 - записать лицензии
-    FileName: string;       // Имя файла
-    RestoreTables: Boolean; // Нужно ли восстановить значения таблиц
-    CurrBootVer: Integer;   // Версия загрузчика устройства
-    NewBootVer: Integer;    // Версия загрузчика в файле
-    firmware: string;       // ???
-    build: Integer;         // ???
-    date: TDate;            // ???
-    info: string;           // ???
-    fwver: string;          // Версия ПО ФР, например 'T.3'
-    fwbuild: Integer;       // Сборка ПО ФР, например '7052'
-    fwdate: TDate;          // Дата ПО ФР, например '2025-10-31'
-    Tables: TTableItems;    // Значения таблиц
-    DownAllowed: Boolean;   // ???
-    Force: Boolean;         // Загружать если равны версии
-    SigningKey: Integer;    // Тип ключей для подписи
+  TUpdateItem = class
+  private
+    FAction: Integer;
+    FInfo: string;
+  public
+    procedure CheckFileExists(const Path: string); virtual;
+    property Action: Integer read FAction;
+    property Info: string read FInfo;
   end;
-  TUpdateItems = array of TUpdateItem;
+
+  TActionWriteLicense = class(TUpdateItem)
+  private
+    FFileName: string;
+  public
+    procedure CheckFileExists(const Path: string); override;
+    property FileName: string read FFileName;
+  end;
+
+  { TActionUpdateLoader }
+
+  TActionUpdateLoader = class(TUpdateItem)
+  private
+    FFileName: string;     // Имя файла
+    FCurrBootVer: Integer; // Версия загрузчика устройства
+    FNewBootVer: Integer;  // Версия загрузчика в файле
+    FForce: Boolean;       // Загружать если равны версии
+    FSigningKey: Integer;  // Тип ключей для подписи
+  public
+    procedure CheckFileExists(const Path: string); override;
+    property FileName: string read FFileName;
+    property CurrBootVer: Integer read FCurrBootVer;
+    property NewBootVer: Integer read FNewBootVer;
+    property Force: Boolean read FForce;
+    property SigningKey: Integer read FSigningKey;
+  end;
+
+  { TActionUpdateFirmware }
+
+  TActionUpdateFirmware = class(TUpdateItem)
+  private
+    FInfo: string;            // Описание операции
+    FFileName: string;        // Имя файла
+    FCurrBootVer: Integer;    // Версия загрузчика устройства
+    FNewBootVer: Integer;     // Версия загрузчика в файле
+    FForce: Boolean;          // Загружать если равны версии
+    FSigningKey: Integer;     // Тип ключей для подписи
+    FVersion: string;         // Версия ПО ФР, например 'T.3'
+    FBuild: Integer;          // Сборка ПО ФР, например '7052'
+    FDate: TDate;             // Дата ПО ФР, например '2025-10-31'
+    FTables: TTableItems;     // Значения таблиц
+    FRestoreTables: Boolean;  // Нужно ли восстановить значения таблиц
+  public
+    procedure CheckFileExists(const Path: string); override;
+    property Info: string read FInfo;
+    property Force: Boolean read FForce;
+    property FileName: string read FFileName;
+    property CurrBootVer: Integer read FCurrBootVer;
+    property NewBootVer: Integer read FNewBootVer;
+    property SigningKey: Integer read FSigningKey;
+    property Version: string read FVersion;
+    property Build: Integer read FBuild;
+    property Date: TDate read FDate;
+    property Tables: TTableItems read FTables;
+    property RestoreTables: Boolean read FRestoreTables;
+  end;
+
+  { TActionInitFS }
+
+  TActionInitFS = class(TUpdateItem)
+  end;
+
+  { TActionInitFS }
+
+  TActionFiscalizeFS = class(TUpdateItem)
+  private
+    FInn: string;
+  public
+    property Inn: string read FInn;
+  end;
+
+  { TActionWriteTables }
+
+  TActionWriteTables = class(TUpdateItem)
+  private
+    FTables: TTableItems;    // Значения таблиц
+  public
+    property Tables: TTableItems read FTables;
+  end;
+
+  TUpdateItems = TObjectList<TUpdateItem>;
+
+  { TJsonreader }
+
+  TJsonreader = class
+  private
+    FItems: TUpdateItems;
+
+    procedure LoadItemJson(Json: TJSONObject);
+    procedure LoadItemInitFS(Json: TJSONObject);
+    procedure LoadItemWriteTables(Json: TJSONObject);
+    procedure LoadItemFiscalizeFS(Json: TJSONObject);
+    procedure LoadItemWriteLicense(Json: TJSONObject);
+    function LoadTables(Json: TJSONValue): TTableItems;
+    function GetJsonString(Json: TJSONObject; const Name: string): string;
+    procedure LoadItemUpdateLoader(Json: TJSONObject);
+    procedure LoadItemUpdateFirmware(Json: TJSONObject);
+  public
+    constructor Create(AItems: TUpdateItems);
+    procedure LoadFromFile(const FileName: string);
+  end;
 
 procedure UpdateParamsLoadFromFile(const FileName: string; var Params: TUpdateParams);
-procedure UpdateItemsLoadFromFile(const FileName: string; var Items: TUpdateItems);
+procedure UpdateItemsLoadFromFile(const FileName: string; Items: TUpdateItems);
 
 implementation
+
+procedure CheckFile(const FileName: string);
+begin
+  if not FileExists(FileName) then
+    raise Exception.CreateFmt('Файл не найден, "%s"', [FileName]);
+end;
+
+procedure UpdateItemsLoadFromFile(const FileName: string; Items: TUpdateItems);
+var
+  Reader: TJsonReader;
+begin
+  Reader := TJsonReader.Create(Items);
+  try
+    Reader.LoadFromFile(FileName);
+  finally
+    Reader.Free;
+  end;
+end;
 
 function JsonGetString(Value: TJSONValue; const APath: string): string;
 begin
@@ -121,120 +231,6 @@ begin
   Result := StrToDate(DateStr, FormatSettings);
 end;
 
-procedure ReadUpdateItem(Json: TJSONObject; var Item: TUpdateItem);
-var
-  i: Integer;
-  Table: TJSONValue;
-  Tables: TJSONValue;
-  JSONArray: TJSONArray;
-begin
-  // Сначала обязательные
-  Item.Action := JsonGetInteger(Json, 'level');
-  if Item.Action = ACTION_UPDATE_LOADER then
-  begin
-    Item.FileName := JsonGetString(Json, 'file');
-    Item.CurrBootVer := JsonGetInteger(Json, 'bootloader');
-    // Затем необязательные
-    Item.RestoreTables := False;
-    if Json.FindValue('savesetting') <> nil then
-      Item.RestoreTables := JsonGetBoolean(Json, 'savesetting');
-
-    Item.NewBootVer := -1;
-    if Json.FindValue('blver')<>nil then
-      Item.NewBootVer := JsonGetInteger(Json, 'blver');
-
-    Item.info := 'нет данных';
-    if Json.FindValue('info')<>nil then
-      Item.info := JsonGetString(Json, 'info');
-
-    Item.Force := false;
-    if Json.FindValue('force')<>nil then
-      Item.Force := JsonGetBoolean(Json, 'force');
-
-    Item.SigningKey := SigningKeyUnknown;
-    if Json.FindValue('SigningKey')<>nil then
-      Item.SigningKey := JsonGetInteger(Json, 'SigningKey');
-  end;
-
-  if Item.Action = ACTION_WRITE_LICENSES then
-  begin
-    Item.FileName := JsonGetString(Json, 'file');
-  end;
-
-  if Item.Action = ACTION_UPDATE_FIRMWARE then
-  begin
-    Item.FileName := JsonGetString(Json, 'file');
-    Item.CurrBootVer := JsonGetInteger(Json, 'bootloader');
-
-    Item.Build := 0;
-    if Json.FindValue('build') <> nil then
-      Item.Build := JsonGetInteger(Json, 'build');
-
-    Tables := Json.FindValue('updatetables');
-    if (Tables <> nil) and (Tables is TJSONArray) then
-    begin
-      JSONArray := Tables as TJSONArray;
-      SetLength(Item.Tables, JSONArray.Count);
-      for i := 0 to JSONArray.Count-1 do
-      begin
-        Table := JSONArray[i];
-        Item.Tables[i].Table := Table.GetValue<Integer>('table');
-        Item.Tables[i].Row := Table.GetValue<Integer>('row');
-        Item.Tables[i].Field := Table.GetValue<Integer>('field');
-        Item.Tables[i].FieldType := Table.GetValue<Integer>('type');
-        if Item.Tables[i].FieldType = 0 then
-          Item.Tables[i].intvalue := Table.GetValue<Integer>('value')
-        else
-          Item.Tables[i].strvalue := Table.GetValue<String>('value');
-      end;
-    end;
-    // Затем необязательные
-    Item.RestoreTables := False;
-    if Json.FindValue('savesetting') <> nil then
-      Item.RestoreTables := JsonGetBoolean(Json, 'savesetting');
-
-    Item.firmware := '__';
-    if Json.FindValue('firmware') <> nil then
-      Item.firmware := JsonGetString(Json, 'firmware');
-
-    Item.Date := 0;
-    if Json.FindValue('date') <> nil then
-      Item.Date := JsonStrToDate(Json.GetValue<String>('date'));
-
-    Item.NewBootVer := -1;
-    if Json.FindValue('blver')<>nil then
-      Item.NewBootVer := JsonGetInteger(Json, 'blver');
-
-    Item.fwver := 'неизвестно';
-    if Json.FindValue('fwver')<>nil then
-      Item.fwver := JsonGetString(Json, 'fwver');
-
-    Item.fwbuild := -1;
-    if Json.FindValue('fwbuild')<>nil then
-      Item.fwbuild := JsonGetInteger(Json, 'fwbuild');
-
-    Item.fwdate := 0;
-    if Json.FindValue('fwdate')<>nil then
-      Item.fwdate := JsonStrToDate(Json.GetValue<String>('fwdate'));
-
-    Item.info := 'нет данных';
-    if Json.FindValue('info')<>nil then
-      Item.info := JsonGetString(Json, 'info');
-
-    Item.downallowed := false;
-    if Json.FindValue('downallowed')<>nil then
-      Item.downallowed := JsonGetBoolean(Json, 'downallowed');
-
-    Item.Force := false;
-    if Json.FindValue('force')<>nil then
-      Item.Force := JsonGetBoolean(Json, 'force');
-
-    Item.SigningKey := SigningKeyUnknown;
-    if Json.FindValue('SigningKey') <> nil then
-      Item.SigningKey := JsonGetInteger(Json, 'SigningKey');
-  end;
-end;
-
 // Чтение файла json
 procedure UpdateParamsLoadFromFile(const FileName: string;
   var Params: TUpdateParams);
@@ -255,14 +251,24 @@ begin
       Params.DocSentTimeoutInSec := JsonGetInteger(JSONValue, 'DocSentTimeoutInSec');
       Params.RestoreCashRegister := JsonGetBoolean(JSONValue, 'RestoreCashRegister');
       Params.FFDNeedUpdate := TFFDNeedUpdate(JsonGetInteger(JSONValue, 'FFDNeedUpdate'));
+      Params.TaxType := JsonGetInteger(JSONValue, 'TaxType');
+      Params.WorkMode := JsonGetInteger(JSONValue, 'WorkMode');
+      Params.WorkModeEx := JsonGetInteger(JSONValue, 'WorkModeEx');
     end;
   finally
     JSONObject.Free;
   end;
 end;
 
-// Чтение файла json
-procedure UpdateItemsLoadFromFile(const FileName:string; var Items: TUpdateItems);
+{ TJsonReader }
+
+constructor TJsonReader.Create(AItems: TUpdateItems);
+begin
+  inherited Create;
+  FItems := AItems;
+end;
+
+procedure TJsonReader.LoadFromFile(const FileName: string);
 var
   i: Integer;
   JSONText: string;
@@ -277,15 +283,205 @@ begin
     if (JSONValue <> nil) and (JSONValue is TJSONArray) then
     begin
       JSONArray := JSONValue as TJSONArray;
-      SetLength(Items, JSONArray.Count);
       for i := 0 to JSONArray.Count-1 do
       begin
-        ReadUpdateItem(TJSONObject(JSONArray.Items[i]), Items[i]);
+        LoadItemJson(TJSONObject(JSONArray.Items[i]));
       end;
     end;
   finally
     JSONObject.Free;
   end;
+end;
+
+procedure TJsonReader.LoadItemJson(Json: TJSONObject);
+var
+  ActionId: Integer;
+begin
+  ActionId := JsonGetInteger(Json, 'level');
+  case ActionId of
+    ACTION_UPDATE_LOADER: LoadItemUpdateLoader(Json);
+    ACTION_UPDATE_FIRMWARE: LoadItemUpdateFirmware(Json);
+    ACTION_WRITE_LICENSE: LoadItemWriteLicense(Json);
+    ACTION_INIT_FS: LoadItemInitFS(Json);
+    ACTION_FISCALIZE_FS: LoadItemFiscalizeFS(Json);
+    ACTION_WRITE_TABLES: LoadItemWriteTables(Json);
+  end;
+end;
+
+function TJsonReader.GetJsonString(Json: TJSONObject; const Name: string): string;
+begin
+  Result := '';
+  if Json.FindValue(Name) <> nil then
+    Result := JsonGetString(Json, Name);
+end;
+
+procedure TJsonReader.LoadItemUpdateLoader(Json: TJSONObject);
+var
+  Item: TActionUpdateLoader;
+begin
+  Item := TActionUpdateLoader.Create;
+  Item.FAction := ACTION_UPDATE_LOADER;
+  Item.FInfo := GetJsonString(Json, 'info');
+  Item.FFileName := JsonGetString(Json, 'file');
+  Item.FCurrBootVer := JsonGetInteger(Json, 'bootloader');
+
+  Item.FNewBootVer := -1;
+  if Json.FindValue('blver')<>nil then
+    Item.FNewBootVer := JsonGetInteger(Json, 'blver');
+
+  Item.FForce := false;
+  if Json.FindValue('force')<>nil then
+    Item.FForce := JsonGetBoolean(Json, 'force');
+
+  Item.FSigningKey := SigningKeyUnknown;
+  if Json.FindValue('SigningKey')<>nil then
+    Item.FSigningKey := JsonGetInteger(Json, 'SigningKey');
+
+  FItems.Add(Item);
+end;
+
+procedure TJsonReader.LoadItemUpdateFirmware(Json: TJSONObject);
+var
+  Item: TActionUpdateFirmware;
+begin
+  Item := TActionUpdateFirmware.Create;
+  Item.FAction := ACTION_UPDATE_FIRMWARE;
+  Item.FInfo := GetJsonString(Json, 'info');
+  Item.FFileName := JsonGetString(Json, 'file');
+  Item.FCurrBootVer := JsonGetInteger(Json, 'bootloader');
+  Item.FTables := LoadTables(Json.FindValue('updatetables'));
+
+
+  Item.FNewBootVer := -1;
+  if Json.FindValue('blver')<>nil then
+    Item.FNewBootVer := JsonGetInteger(Json, 'blver');
+
+  Item.FForce := false;
+  if Json.FindValue('force')<>nil then
+    Item.FForce := JsonGetBoolean(Json, 'force');
+
+  Item.FSigningKey := SigningKeyUnknown;
+  if Json.FindValue('SigningKey')<>nil then
+    Item.FSigningKey := JsonGetInteger(Json, 'SigningKey');
+
+  // Затем необязательные
+  Item.FRestoreTables := False;
+  if Json.FindValue('savesetting') <> nil then
+    Item.FRestoreTables := JsonGetBoolean(Json, 'savesetting');
+
+  Item.FDate := 0;
+  if Json.FindValue('date') <> nil then
+    Item.FDate := JsonStrToDate(Json.GetValue<String>('date'));
+
+  Item.FVersion := 'неизвестно';
+  if Json.FindValue('fwver')<>nil then
+    Item.FVersion := JsonGetString(Json, 'fwver');
+
+  Item.FBuild := -1;
+  if Json.FindValue('fwbuild')<>nil then
+    Item.FBuild := JsonGetInteger(Json, 'fwbuild');
+
+  Item.FDate := 0;
+  if Json.FindValue('fwdate')<>nil then
+    Item.FDate := JsonStrToDate(Json.GetValue<String>('fwdate'));
+
+  FItems.Add(Item);
+end;
+
+procedure TJsonReader.LoadItemWriteLicense(Json: TJSONObject);
+var
+  Item: TActionWriteLicense;
+begin
+  Item := TActionWriteLicense.Create;
+  Item.FAction := ACTION_WRITE_LICENSE;
+  Item.FInfo := GetJsonString(Json, 'info');
+  Item.FFileName := JsonGetString(Json, 'file');
+  FItems.Add(Item);
+end;
+
+procedure TJsonReader.LoadItemInitFS(Json: TJSONObject);
+var
+  Item: TActionInitFS;
+begin
+  Item := TActionInitFS.Create;
+  Item.FAction := ACTION_INIT_FS;
+  Item.FInfo := GetJsonString(Json, 'info');
+  FItems.Add(Item);
+end;
+
+procedure TJsonReader.LoadItemFiscalizeFS(Json: TJSONObject);
+var
+  Item: TActionFiscalizeFS;
+begin
+  Item := TActionFiscalizeFS.Create;
+  Item.FAction := ACTION_FISCALIZE_FS;
+  Item.FInfo := GetJsonString(Json, 'info');
+  Item.FInn := JsonGetString(Json, 'inn');
+  FItems.Add(Item);
+end;
+
+procedure TJsonReader.LoadItemWriteTables(Json: TJSONObject);
+var
+  Item: TActionWriteTables;
+begin
+  Item := TActionWriteTables.Create;
+
+  Item.FAction := ACTION_WRITE_TABLES;
+  Item.FInfo := GetJsonString(Json, 'info');
+  Item.FTables := LoadTables(Json.FindValue('tables'));
+  FItems.Add(Item);
+end;
+
+function TJsonReader.LoadTables(Json: TJSONValue): TTableItems;
+var
+  i: Integer;
+  Table: TJSONValue;
+  JSONArray: TJSONArray;
+begin
+  if (Json <> nil) and (Json is TJSONArray) then
+  begin
+    JSONArray := Json as TJSONArray;
+    SetLength(Result, JSONArray.Count);
+    for i := 0 to JSONArray.Count-1 do
+    begin
+      Table := JSONArray[i];
+      Result[i].Table := Table.GetValue<Integer>('table');
+      Result[i].Row := Table.GetValue<Integer>('row');
+      Result[i].Field := Table.GetValue<Integer>('field');
+      Result[i].FieldType := Table.GetValue<Integer>('type');
+      if Result[i].FieldType = 0 then
+        Result[i].intvalue := Table.GetValue<Integer>('value')
+      else
+        Result[i].strvalue := Table.GetValue<String>('value');
+    end;
+  end;
+end;
+
+{ TActionWriteLicense }
+
+procedure TActionWriteLicense.CheckFileExists(const Path: string);
+begin
+  CheckFile(Path + FileName);
+end;
+
+{ TUpdateItem }
+
+procedure TUpdateItem.CheckFileExists(const Path: string);
+begin
+end;
+
+{ TActionUpdateLoader }
+
+procedure TActionUpdateLoader.CheckFileExists(const Path: string);
+begin
+  CheckFile(Path + FileName);
+end;
+
+{ TActionUpdateFirmware }
+
+procedure TActionUpdateFirmware.CheckFileExists(const Path: string);
+begin
+  CheckFile(Path + FileName);
 end;
 
 end.

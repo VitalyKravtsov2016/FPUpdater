@@ -127,6 +127,8 @@ var
   Item: TUpdateItem;
   LoaderLine: string;
   FirmwareLine: string;
+  Loader: TActionUpdateLoader;
+  Firmware: TActionUpdateFirmware;
 begin
   Lines := TStringList.Create;
   try
@@ -139,25 +141,34 @@ begin
 
     LoaderLine := '';
     FirmwareLine := '';
-    FUpdateAvailable := False;
-    if Updater.FindLastLoader(EcrInfo, Item) then
+    FUpdateAvailable := Updater.Items.Count > 0;
+    Loader := Updater.FindLastLoader(EcrInfo);
+    if Loader <> nil then
     begin
-      FUpdateAvailable := True;
-      LoaderLine := Format('Загрузчик до версии %d', [Item.NewBootVer]);
-      EcrInfo.BootVer := Item.NewBootVer;
+      LoaderLine := Format('Обновление загрузчика до версии %d', [Loader.NewBootVer]);
+      EcrInfo.BootVer := Loader.NewBootVer;
     end;
-    if Updater.FindFirmware(EcrInfo, Item) then
+    Firmware := Updater.FindFirmware(EcrInfo);
+    if Firmware <> nil then
     begin
-      FUpdateAvailable := True;
-      FirmwareLine := Format('ПО ККМ до версии %s, сборка: %d от %s',
-          [Item.fwver, Item.fwbuild, DateToStr(Item.fwdate)]);
+      FirmwareLine := Format('Обновление ПО ККМ до версии %s, сборка: %d от %s',
+          [Firmware.Version, Firmware.Build, DateToStr(Firmware.Date)]);
     end;
 
     if FUpdateAvailable then
     begin
-      Lines.Add('Программа обновит:');
-      if LoaderLine <> '' then Lines.Add(LoaderLine);
-      if FirmwareLine <> '' then Lines.Add(FirmwareLine);
+      Lines.Add('Программа выполнит:');
+      if (LoaderLine <> '')or(FirmwareLine <> '') then
+      begin
+        if LoaderLine <> '' then Lines.Add(LoaderLine);
+        if FirmwareLine <> '' then Lines.Add(FirmwareLine);
+      end;
+      for Item in Updater.Items do
+      begin
+        if Item.Action in [ACTION_WRITE_LICENSE, ACTION_INIT_FS,
+          ACTION_FISCALIZE_FS, ACTION_WRITE_TABLES] then
+          Lines.Add(Item.Info);
+      end;
       Lines.Add('');
       Lines.Add('Для начала нажмите кнопку "Обновить"');
     end else

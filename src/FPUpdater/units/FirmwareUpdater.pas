@@ -174,9 +174,9 @@ type
     function GetDriver: TDriver;
     procedure SetStatus(const Value: TUpdateStatus);
     procedure ThreadTerminated(Sender: TObject);
-    function ValidLoader(const Ecr: TEcrInfo; const Item: TUpdateItem): Boolean;
+    function ValidLoader(const Ecr: TEcrInfo; const Item: TActionUpdateLoader): Boolean;
     function ValidFirmware(const Ecr: TEcrInfo;
-      const Item: TUpdateItem): Boolean;
+      const Item: TActionUpdateFirmware): Boolean;
     procedure CheckFSDebugVersion;
     property Driver: TDriver read GetDriver;
   public
@@ -187,8 +187,8 @@ type
     procedure Execute(Sender: TObject);
     procedure SetStatusText(const Text: string);
     procedure DecryptFile(const DstFileName, SrcFileName: string);
-    procedure CheckFilesExists(const Path: string; Items: TUpdateItems);
-    procedure CheckFirmwareUpdated(const Item: TUpdateItem);
+    procedure CheckFilesExists(const Path: string);
+    procedure CheckFirmwareUpdated(const Item: TActionUpdateFirmware);
     procedure DelayInMs(DelayInMs: Integer);
     procedure SetBaudRate(BaudRate: Integer);
     procedure Feed(ALineCount: Integer);
@@ -228,10 +228,9 @@ type
     function FindDeviceLocal(const Params: TSearchParams): Boolean;
     function FindOfdParams(const OfdInn: string;
       var OfdParams: TOfdParams): Boolean;
-    function GetOfdParams(const UpdateItem: TUpdateItem; const OfdInn: string;
-      var OfdParams: TOfdParams): Boolean;
-    procedure UpdateFFD(const Item: TUpdateItem);
-    procedure ChangeFFD(const Item: TUpdateItem; AFFD: TFFDNeedUpdate);
+    function GetOfdParams(const Tables: TTableItems;
+      const OfdInn: string; var OfdParams: TOfdParams): Boolean;
+    procedure ChangeFFD(const Tables: TTableItems);
     function WaitDocSent(TimeoutInSec: Integer): Boolean;
     procedure DecryptFiles(const InPath, OutPath: string);
     procedure UnzipArhive(const OutPath, FileName: string);
@@ -255,15 +254,28 @@ type
     procedure Stop;
     procedure Wait;
     procedure LoadParameters;
-    function FindLastLoader(Ecr: TEcrInfo; var AItem: TUpdateItem): Boolean;
-    function FindFirmware(Ecr: TEcrInfo; var AItem: TUpdateItem): Boolean;
+    function FindFirmware(Ecr: TEcrInfo): TActionUpdateFirmware;
+    function FindLastLoader(Ecr: TEcrInfo): TActionUpdateLoader;
 
     property Params: TUpdateParams read FParams;
     property Status: TUpdateStatus read GetStatus write SetStatus;
     property OnComplete: TNotifyEvent read FOnComplete write FOnComplete;
   end;
 
+function GenerateRNM(ANumber, AINN, ASerial: AnsiString): AnsiString;
+
 implementation
+
+function GenerateRNM(ANumber, AINN, ASerial: AnsiString): AnsiString;
+var
+  S: AnsiString;
+begin
+   S := AddLeadingZeros(ANumber, 10) +
+     AddLeadingZeros(AINN, 12) + AddLeadingZeros(ASerial, 20);
+   Result := AddLeadingZeros(ANumber, 10) +
+     AddLeadingZeros(IntToStr(CRCCITT16(S, $1021, $FFFF)), 6);
+end;
+
 
 const
   OfdParamsArray: array[1..13] of TOfdParams =
@@ -452,12 +464,12 @@ begin
   end;
 end;
 
-
 { TFirmwareUpdater }
 
 constructor TFirmwareUpdater.Create;
 begin
   inherited Create;
+  FItems := TUpdateItems.Create;
   FLock := TCriticalSection.Create;
 
   Logger.FileName := GetLogFileName;
@@ -472,6 +484,7 @@ destructor TFirmwareUpdater.Destroy;
 begin
   Stop;
   FLock.Free;
+  FItems.Free;
   FDriver.Free;
   inherited Destroy;
 end;
@@ -595,7 +608,14 @@ var
   Item: TUpdateItem;
   CashRegister: Currency;
   SearchParams: TSearchParams;
+  Loader: TActionUpdateLoader;
+  Firmware: TActionUpdateFirmware;
+  FiscalizeFS: TActionFiscalizeFS;
+  Tables: TTableItems;
+  ActionWriteTables: TActionWriteTables;
 begin
+  Loader := nil;
+  Firmware := nil;
   CashRegister := 0;
   SetStatusText('Обновление устройства');
   CheckStopped;
@@ -631,20 +651,25 @@ begin
     // Update loader
     for Item in FItems do
     begin
-      if ValidLoader(EcrInfo, Item) then
+      if Item is TActionUpdateLoader then
       begin
-        DfuUploadFile(FPath, Item.FileName);
-        DelayInMs(LoaderRebootDelay);
-        WaitForDevice(EcrInfo.Serial, LoaderRebootTimeout);
-        CheckLoaderUpdated(Item.NewBootVer);
-        EcrInfo.BootVer := Item.NewBootVer;
-        if Item.Force then Break;
+        Loader := Item as TActionUpdateLoader;
+        if ValidLoader(EcrInfo, Loader) then
+        begin
+          DfuUploadFile(FPath, Loader.FileName);
+          DelayInMs(LoaderRebootDelay);
+          WaitForDevice(EcrInfo.Serial, LoaderRebootTimeout);
+          CheckLoaderUpdated(Loader.NewBootVer);
+          EcrInfo.BootVer := Loader.NewBootVer;
+        end;
       end;
     end;
     // Up
-    if FindFirmware(EcrInfo, Item) then
+    Firmware := FindFirmware(EcrInfo);
+    if Firmware <> nil then
     begin
-      DfuUploadFile(FPath, Item.FileName);
+      Tables := Firmware.Tables;
+      DfuUploadFile(FPath, Firmware.FileName);
       DelayInMs(FirmwareRebootDelay);
       // Ищем устройство на порту VCOM
       SearchParams.Serial := EcrInfo.Serial;
@@ -652,8 +677,14 @@ begin
       SearchParams.Port := PORT_VCOM;
       DiscoverDevice(SearchParams);
       // Проверка, обновилось ли ПО
-      CheckFirmwareUpdated(Item);
+      CheckFirmwareUpdated(Firmware);
       PrintUpdateCompleted;
+      // Запись таблиц
+      if FParams.SaveTables then
+      begin
+        WriteTablesFile(EcrInfo.Serial);
+      end;
+      WriteTables(Firmware.Tables);
     end;
     for Item in FItems do
     begin
@@ -668,29 +699,31 @@ begin
         // Fiscalize fiscal storage
         ACTION_FISCALIZE_FS:
         begin
+          FiscalizeFS := Item as TActionFiscalizeFS;
           CheckFSDebugVersion;
           Driver.Check(Driver.ReadSerialNumber);
-          (*
-          '9706048530'
-          Driver.Inn := Item.inn;
+          Driver.Inn := FiscalizeFS.Inn;
           Driver.KKTRegistrationNumber := GenerateRNM('', Driver.Inn, Driver.SerialNumber);
-          Driver.TaxType := 1;
-          Driver.WorkMode := 0;
-          Driver.WorkModeEx := 16;
+          Driver.TaxType := FParams.TaxType;
+          Driver.WorkMode := FParams.WorkMode;
+          Driver.WorkModeEx := FParams.WorkModeEx;
           Driver.Timeout := 10000;
           Driver.Check(Driver.FNBuildRegistrationReport);
           Driver.WaitForPrinting;
           Driver.Timeout := 1000;
-          *)
         end;
-      end;
+        ACTION_WRITE_TABLES:
+        begin
+          ActionWriteTables := Item as TActionWriteTables;
+          WriteTables(ActionWriteTables.Tables);
+        end;
 
+      end;
     end;
   end else
   begin
     raise Exception.Create('Не реализовано');
   end;
-
   // Запись лицензий
   WriteLicenses(EcrInfo);
   if EcrInfo.FirmwareValid then
@@ -699,12 +732,7 @@ begin
     begin
       PrintCashIn(CashRegister);
     end;
-    if FParams.SaveTables then
-    begin
-      WriteTablesFile(EcrInfo.Serial);
-    end;
   end;
-  WriteTables(Item.Tables);
   // Перезагрузка
   SetStatusText('Перезагрузка ККМ...');
   Driver.RebootKKT;
@@ -715,7 +743,7 @@ begin
   DelayInMs(FirmwareRebootDelay);
   WaitForDevice(EcrInfo.Serial, FirmwareRebootTimeout);
   // Перерегистрация ФФД
-  UpdateFFD(Item);
+  ChangeFFD(Tables);
   // Ожидание отправки отчета о перефискализации
   Driver.Check(Driver.FNGetInfoExchangeStatus);
   Logger.Debug(Format('Неотправленных документов: %d', [Driver.MessageCount]));
@@ -743,20 +771,15 @@ begin
   end;
 end;
 
-procedure TFirmwareUpdater.UpdateFFD(const Item: TUpdateItem);
-begin
-  ChangeFFD(Item, FParams.FFDNeedUpdate);
-end;
-
 procedure TFirmwareUpdater.WriteLicenses(const Ecr: TEcrInfo);
 var
   Item: TUpdateItem;
 begin
   for Item in FItems do
   begin
-    if Item.Action = ACTION_WRITE_LICENSES then
+    if Item.Action = ACTION_WRITE_LICENSE then
     begin
-      WriteLicense(FPath + Item.FileName, Ecr.Serial);
+      WriteLicense(FPath + TActionWriteLicense(Item).FileName, Ecr.Serial);
       Break;
     end;
   end;
@@ -912,7 +935,7 @@ begin
 
   UpdateItemsLoadFromFile(FileName, FItems);
   UpdateParamsLoadFromFile(FileName, FParams);
-  CheckFilesExists(InPath, FItems);
+  CheckFilesExists(InPath);
 end;
 
 // Cохраняем таблицы при обновлении приложения
@@ -1071,17 +1094,17 @@ begin
   Result := Driver.SerialNumber;
 end;
 
-procedure TFirmwareUpdater.CheckFirmwareUpdated(const Item: TUpdateItem);
+procedure TFirmwareUpdater.CheckFirmwareUpdated(const Item: TActionUpdateFirmware);
 begin
   Driver.Check(Driver.GetECRStatus);
   begin
-    if Driver.ECRSoftVersion <> Item.fwver then
+    if Driver.ECRSoftVersion <> Item.Version then
       raise Exception.CreateFmt('Версия ПО ФР отличается, %s <> %s',
-      [Driver.ECRSoftVersion, Item.fwver]);
+      [Driver.ECRSoftVersion, Item.Version]);
 
-    if Driver.ECRBuild <> Item.fwbuild then
+    if Driver.ECRBuild <> Item.Build then
       raise Exception.CreateFmt('Сборка ПО ФР отличается, %d <> %d',
-      [Driver.ECRBuild, Item.fwbuild]);
+      [Driver.ECRBuild, Item.Build]);
   end;
 end;
 
@@ -1104,9 +1127,11 @@ begin
   if not FileExists(DfuUtilFile) then
     raise Exception.CreateFmt('Файл "%s" не найден.', [DfuUtilFile]);
 
+  (*
   SetStatusText('Проверка драйвера DFU');
   if not CheckDFU then
     raise Exception.Create('Не установлен драйвер DFU, прошивка невозможна.');
+  *)
 
   // Переход в DFU
   SetStatusText('Переход в режим DFU');
@@ -1456,14 +1481,13 @@ begin
   end;
 end;
 
-procedure TFirmwareUpdater.CheckFilesExists(const Path: string; Items: TUpdateItems);
+procedure TFirmwareUpdater.CheckFilesExists(const Path: string);
 var
-  I: Integer;
+  Item: TUpdateItem;
 begin
-  for I := 0 to Length(Items)-1 do
+  for Item in Items do
   begin
-    if not FileExists(Path + Items[i].FileName) then
-      raise Exception.Create('Недостаточно файлов для работы.');
+    Item.CheckFileExists(Path)
   end;
 end;
 
@@ -1537,8 +1561,7 @@ begin
   end;
 end;
 
-procedure TFirmwareUpdater.ChangeFFD(const Item: TUpdateItem;
-  AFFD: TFFDNeedUpdate);
+procedure TFirmwareUpdater.ChangeFFD(const Tables: TTableItems);
 var
   Text: string;
   OfdInn: string;
@@ -1547,9 +1570,7 @@ var
   OfdParams: TOfdParams;
   IsFFDChanged: Boolean;
 begin
-  CheckDocSent;
-
-  case AFFD of
+  case FParams.FFDNeedUpdate of
     NoUpdateNeeded:
     begin
       Logger.Debug('No update needed');
@@ -1560,7 +1581,7 @@ begin
   else
     FFDVer := 4;
   end;
-
+  CheckDocSent;
   if FParams.PrintStatus then
   begin
     Feed(2);
@@ -1580,7 +1601,7 @@ begin
   IsFFDChanged := Driver.ReadTableInt(17, 1, 17) <> FFDVer;
   Driver.WriteTableInt(17, 1, 17, FFDVer);
   OfdInn := Driver.ReadTableStr(18, 1, 12);
-  if GetOfdParams(Item, OfdInn, OfdParams) then
+  if GetOfdParams(Tables, OfdInn, OfdParams) then
   begin
     if OfdParams.ServerKM <> '' then
       Driver.WriteTableStr(19, 1, 5, OfdParams.ServerKM);
@@ -1593,12 +1614,12 @@ begin
     Reason := Driver.ReadTableInt(18, 1, 22) or $200000;
     Driver.WriteTableInt(18, 1, 22, Reason);
   end;
-
   Driver.RegistrationReasonCode := 4; // Изменение настроек ККТ
   Driver.Inn := Trim(Driver.ReadTableStr(18, 1, 2));
   Driver.KKTRegistrationNumber := Trim(Driver.ReadTableStr(18, 1, 3));
-  Driver.TaxType := Driver.ReadTableInt(18, 1, 5);
-  Driver.WorkMode := Driver.ReadTableInt(18, 1, 6);
+  Driver.TaxType := FParams.TaxType;
+  Driver.WorkMode := FParams.WorkMode;
+  Driver.WorkModeEx := FParams.WorkModeEx;
   Driver.Check(Driver.FNBuildReregistrationReport);
   Driver.WaitForPrinting;
   SetStatusText(Text + ': OK');
@@ -1773,7 +1794,7 @@ end;
 //19,1,5,64,1,0,3000,'Сервер км','192.168.144.138'
 //19,1,6,2,0,1,65535,'Порт км','8789'
 
-function TFirmwareUpdater.GetOfdParams(const UpdateItem: TUpdateItem;
+function TFirmwareUpdater.GetOfdParams(const Tables: TTableItems;
   const OfdInn: string; var OfdParams: TOfdParams): Boolean;
 var
   Ofd: TOfdParams;
@@ -1782,7 +1803,7 @@ begin
   Ofd.Inn := OfdInn;
   Ofd.ServerKM := '';
   Ofd.PortKM := 0;
-  for Item in UpdateItem.Tables do
+  for Item in Tables do
   begin
     if (Item.Table = 19)and(Item.Row = 1)and (Item.Field = 5) then
     begin
@@ -1804,11 +1825,8 @@ begin
 end;
 
 function TFirmwareUpdater.ValidLoader(const Ecr: TEcrInfo;
-  const Item: TUpdateItem): Boolean;
+  const Item: TActionUpdateLoader): Boolean;
 begin
-  Result := Item.Action = ACTION_UPDATE_LOADER;
-  if not Result then Exit;
-
   // Если нужно переписывать для тестирования
   Result := Item.Force and (Item.NewBootVer = Ecr.BootVer);
   if Result then Exit;
@@ -1823,16 +1841,13 @@ begin
 end;
 
 function TFirmwareUpdater.ValidFirmware(const Ecr: TEcrInfo;
-  const Item: TUpdateItem): Boolean;
+  const Item: TActionUpdateFirmware): Boolean;
 begin
-  Result := Item.Action = ACTION_UPDATE_FIRMWARE;
-  if not Result then Exit;
-
   if  Ecr.BootVer >= Item.CurrBootVer then
   begin
     Result := True;
-    if (Item.fwbuild = Ecr.FirmwareBuild) and
-      (Item.fwver = Ecr.FirmwareVersion) then
+    if (Item.Build = Ecr.FirmwareBuild) and
+      (Item.Version = Ecr.FirmwareVersion) then
     begin
       if not Item.Force then
         Result := False;
@@ -1860,38 +1875,37 @@ begin
 end;
 *)
 
-function TFirmwareUpdater.FindLastLoader(Ecr: TEcrInfo;
-  var AItem: TUpdateItem): Boolean;
+function TFirmwareUpdater.FindLastLoader(Ecr: TEcrInfo): TActionUpdateLoader;
 var
   Item: TUpdateItem;
 begin
-  Result := False;
+  Result := nil;
   for Item in FItems do
   begin
-    if ValidLoader(Ecr, Item) then
+    if Item is TActionUpdateLoader then
     begin
-      Result := True;
-      AItem := Item;
-      Ecr.BootVer := Item.NewBootVer;
+      Result := Item as TActionUpdateLoader;
+      if ValidLoader(Ecr, Result) then
+      begin
+        Ecr.BootVer := Result.NewBootVer;
+      end;
     end;
   end;
 end;
 
-function TFirmwareUpdater.FindFirmware(Ecr: TEcrInfo;
-  var AItem: TUpdateItem): Boolean;
+function TFirmwareUpdater.FindFirmware(Ecr: TEcrInfo): TActionUpdateFirmware;
 var
   Item: TUpdateItem;
 begin
-  Result := False;
   for Item in FItems do
   begin
-    Result := ValidFirmware(Ecr, Item);
-    if Result then
+    if Item is TActionUpdateFirmware then
     begin
-      AItem := Item;
-      Break;
+      Result := Item as TActionUpdateFirmware;
+      if ValidFirmware(Ecr, Result) then Exit;
     end;
   end;
+  Result := nil;
 end;
 
 

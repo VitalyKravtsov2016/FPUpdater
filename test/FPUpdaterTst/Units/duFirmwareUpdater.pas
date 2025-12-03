@@ -33,7 +33,6 @@ type
     procedure TearDown; override;
   published
     procedure TestShowProperties;
-    procedure TestFindUpdateItem;
     procedure TestFindDeviceLocal;
     procedure TestDiscoverDevice;
 
@@ -47,14 +46,12 @@ type
     procedure TestUploadFirmware;
     procedure TestSetConnectionType;
 
-    procedure TestGetOfdParams;
     procedure TestLoadParams;
     procedure TestUpdateFirmwareShtrih;
 
     procedure TestCreateShtrihEcr;
     procedure TestFirmwareUpdateRNDIS3;
     procedure TestWaitForDFUDevice;
-    procedure TestUpdateFFD;
     procedure SetComConnection;
     procedure SetVComConnection;
     procedure SetRndisConnection;
@@ -73,40 +70,6 @@ end;
 procedure TFirmwareUpdaterTest.TearDown;
 begin
   Updater.Free;
-end;
-
-procedure TFirmwareUpdaterTest.TestFindUpdateItem;
-var
-  Path: string;
-  Ecr: TEcrInfo;
-  Index: Integer;
-  Item: TUpdateItem;
-begin
-  Updater.Path := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'test\';
-  Updater.LoadParameters;
-
-  Ecr.BootVer := 153;
-  Index := Updater.FindItemIndex(Ecr, ACTION_UPDATE_LOADER);
-  CheckEquals(0, Index, 'FindItemIndex');
-  Item := Updater.Items[0];
-  CheckEquals(0, Item.CurrBootVer, 'Item.CurrBootVer');
-  CheckEquals(155, Item.NewBootVer, 'Item.NewBootVer');
-
-  Ecr.BootVer := 155;
-  Index := Updater.FindItemIndex(Ecr, ACTION_UPDATE_LOADER);
-  CheckEquals(1, Index, 'FindItemIndex');
-  Item := Updater.Items[1];
-  CheckEquals(155, Item.CurrBootVer, 'Item.CurrBootVer');
-  CheckEquals(1939, Item.NewBootVer, 'Item.NewBootVer');
-
-
-  Ecr.BootVer := 1939;
-  Ecr.FirmwareVersion := 'C.3';
-  Ecr.FirmwareBuild := 62776;
-  Index := Updater.FindItemIndex(Ecr, ACTION_UPDATE_FIRMWARE);
-  CheckEquals(2, Index, 'FindItemIndex');
-  Item := Updater.Items[2];
-  CheckEquals(1939, Item.CurrBootVer, 'Item.CurrBootVer');
 end;
 
 procedure TFirmwareUpdaterTest.TestWriteLicenses;
@@ -545,28 +508,6 @@ begin
   CheckEquals('20.11.2025', FirmwareDate, 'Ecr.FirmwareDate <> 20.11.2025');
 end;
 
-procedure TFirmwareUpdaterTest.TestGetOfdParams;
-var
-  IsFound: Boolean;
-  Item: TUpdateItem;
-  OfdParams: TOfdParams;
-begin
-  IsFound := False;
-  for Item in Updater.Items do
-  begin
-    if Item.Action = ACTION_UPDATE_FIRMWARE then
-    begin
-      IsFound := True;
-      Break;
-    end;
-  end;
-  Check(IsFound, 'Не найден элемент обновления');
-  Check(Updater.GetOfdParams(Item, '', OfdParams), 'GetOfdParams');
-  CheckEquals('192.168.144.138', OfdParams.ServerKM, 'OfdParams.ServerKM');
-  CheckEquals(8789, OfdParams.PortKM, 'OfdParams.PortKM');
-end;
-
-
 procedure TFirmwareUpdaterTest.TestLoadParams;
 begin
   CheckEquals(True, Updater.Params.SaveTables, 'Params.SaveTables');
@@ -574,25 +515,6 @@ begin
   CheckEquals(Ord(FFD12), Ord(Updater.Params.FFDNeedUpdate), 'Params.FFDNeedUpdate');
   CheckEquals(True, Updater.Params.RestoreCashRegister, 'Params.RestoreCashRegister');
   CheckEquals(5, Updater.Params.DocSentTimeoutInSec, 'Params.DocSentTimeoutInSec');
-end;
-
-procedure TFirmwareUpdaterTest.TestUpdateFFD;
-var
-  IsFound: Boolean;
-  Item: TUpdateItem;
-  OfdParams: TOfdParams;
-begin
-  IsFound := False;
-  for Item in Updater.Items do
-  begin
-    if Item.Action = ACTION_UPDATE_FIRMWARE then
-    begin
-      IsFound := True;
-      Break;
-    end;
-  end;
-  Check(IsFound, 'Не найден элемент обновления');
-  Updater.UpdateFFD(Item);
 end;
 
 procedure TFirmwareUpdaterTest.TestWaitForDFUDevice;

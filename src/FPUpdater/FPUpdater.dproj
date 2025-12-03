@@ -5,7 +5,7 @@
     <FrameworkType>VCL</FrameworkType>
     <Base>True</Base>
     <Config Condition="'$(Config)'==''">Debug</Config>
-    <Platform Condition="'$(Platform)'==''">Win64</Platform>
+    <Platform Condition="'$(Platform)'==''">Win32</Platform>
     <TargetedPlatforms>3</TargetedPlatforms>
     <AppType>Application</AppType>
     <MainSource>FPUpdater.dpr</MainSource>
@@ -111,8 +111,7 @@
     <Icon_MainIcon>TorgBalance.ico</Icon_MainIcon>
     <DCC_ExeOutput>..\Bin</DCC_ExeOutput>
     <DCC_DcuOutput>DCU</DCC_DcuOutput>
-    <DCC_RangeChecking>true</DCC_RangeChecking>
-    <DCC_IntegerOverflowCheck>true</DCC_IntegerOverflowCheck>
+    <DCC_IOChecking>false</DCC_IOChecking>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
     <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
@@ -128,9 +127,9 @@
     <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
     <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     <VerInfo_Release>1</VerInfo_Release>
-    <VerInfo_Build>79</VerInfo_Build>
+    <VerInfo_Build>81</VerInfo_Build>
     <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
-    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.79;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.1.0;Comments=</VerInfo_Keys>
+    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.81;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.1.0;Comments=</VerInfo_Keys>
     <VerInfo_Locale>1033</VerInfo_Locale>
     <Icon_MainIcon>TorgBalance.ico</Icon_MainIcon>
     <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
@@ -144,14 +143,14 @@ $(PreBuildEvent)]]></PreBuildEvent>
     <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
     <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     <VerInfo_Locale>1033</VerInfo_Locale>
-    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.50;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.52;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     <Icon_MainIcon>TorgBalance.ico</Icon_MainIcon>
     <PostBuildEvent><![CDATA[copy /Y "$(OutputPath)" fwupdater64.exe
 $(PostBuildEvent)]]></PostBuildEvent>
     <PreBuildEvent><![CDATA[del .\$(Platform)\$(Config)\fwupdater64.exe
 $(PreBuildEvent)]]></PreBuildEvent>
     <VerInfo_Release>1</VerInfo_Release>
-    <VerInfo_Build>50</VerInfo_Build>
+    <VerInfo_Build>52</VerInfo_Build>
     <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
   </PropertyGroup>
   <ItemGroup>
@@ -226,12 +225,6 @@ $(PreBuildEvent)]]></PreBuildEvent>
             <Overwrite>true</Overwrite>
           </Platform>
         </DeployFile>
-        <DeployFile LocalName="..\Bin\FPUpdater.exe" Configuration="Debug" Class="ProjectOutput">
-          <Platform Name="Win32">
-            <RemoteName>FPUpdater.exe</RemoteName>
-            <Overwrite>true</Overwrite>
-          </Platform>
-        </DeployFile>
         <DeployFile LocalName="Win32\Release\FPUpdater.exe" Configuration="Release" Class="ProjectOutput">
           <Platform Name="Win32">
             <RemoteName>FPUpdater.exe</RemoteName>
@@ -242,6 +235,12 @@ $(PreBuildEvent)]]></PreBuildEvent>
           <Platform Name="Win32">
             <RemoteDir>Assets\</RemoteDir>
             <RemoteName>Logo44x44.png</RemoteName>
+            <Overwrite>true</Overwrite>
+          </Platform>
+        </DeployFile>
+        <DeployFile LocalName="..\Bin\FPUpdater.exe" Configuration="Debug" Class="ProjectOutput">
+          <Platform Name="Win32">
+            <RemoteName>FPUpdater.exe</RemoteName>
             <Overwrite>true</Overwrite>
           </Platform>
         </DeployFile>
