@@ -1028,25 +1028,17 @@ var
 begin
   FPath := GetEnvironmentVariable('TEMP')+'\'+copy(TPath.GetRandomFileName,1,8)+'\';
   ForceDirectories(FPath);
-
-  FileName := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'archive.zip';
-  if FileExists(FileName) then
+  // ≈сли обновлени€ есть - скачиваем архив
+  if DownloadArchive then
   begin
-    UnzipArhive(FPath, FileName);
+    UnzipArhive(Path, Path + 'arhive.zip');
   end else
   begin
-    ArchiveDownloaded := False;
-    // ≈сли обновлени€ есть - скачиваем архив
-    if CheckUpdateAvailable then
+    FileName := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'archive.zip';
+    if FileExists(FileName) then
     begin
-      ArchiveDownloaded := DownloadArchive;
+      UnzipArhive(FPath, FileName);
     end;
-    // ≈сли не удалось скачать, то распаковываем архив из ресурсов
-    if not ArchiveDownloaded then
-      UnpackArhiveToDrive;
-
-    UnzipArhive(Path + 'encrypt\', Path + 'arhive.zip');
-    DecryptFiles(Path + 'encrypt\', Path);
   end;
 end;
 
@@ -1108,7 +1100,6 @@ begin
     end;
   end;
 end;
-
 
 procedure TFirmwareUpdater.UnpackArhiveToDrive;
 var
