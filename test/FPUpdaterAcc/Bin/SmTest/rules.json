@@ -2,55 +2,46 @@
 	"Params": {
 		"SaveTables": true,
 		"PrintStatus": false,
-		"FFDNeedUpdate": 0,
 		"DocSentTimeoutInSec": 5,
-		"RestoreCashRegister": false,
-		"TaxType": 1,
-		"WorkMode": 0,
-		"WorkModeEx": 0,
-		"RegReasonCode": 4,
-		"RegReasonCodeEx": 64
+		"RestoreCashRegister": false
 	},
-	"RULES": [
+	"actions": [
 		{
-			"level": 1,
+			"action": 1,
 			"file": "sm_ldr_155.bin",
-			"savesetting": false,
-			"bootloader": 0,
-			"blver": 155,
+			"bootver": 0,
+			"newbootver": 155,
 			"info": "Обновление загрузчика до 155",
 			"force": true
 		},
 		{
-			"level": 1,
+			"action": 1,
 			"file": "tb_ldr_1939_test.bin",
-			"savesetting": false,
-			"bootloader": 155,
-			"blver": 1939,
+			"bootver": 155,
+			"newbootver": 1939,
 			"info": "Обновление загрузчика до 1939"
 		},
 		{
-			"level": 1,
+			"action": 1,
 			"file": "tb_ldr_3000_test.bin",
 			"savesetting": false,
-			"bootloader": 1939,
-			"blver": 3000,
+			"bootver": 1939,
+			"newbootver": 3000,
 			"info": "Обновление загрузчика до 3000"
 		},
 		{
-			"level": 1,
+			"action": 1,
 			"file": "sm_ldr_153.bin",
-			"savesetting": false,
-			"bootloader": 3000,
-			"blver": 153,
+			"bootver": 3000,
+			"newbootver": 153,
 			"info": "Обновление загрузчика до 153",
 			"force": true
 		},
 		{
-			"level": 2,
+			"action": 2,
 			"file": "sm_app_62922_c1.bin",
 			"savesetting": true,
-			"bootloader": 153,
+			"bootver": 153,
 			"info": "Обновление программы до версии C.1 62922",
 			"fwver": "C.1",
 			"fwbuild": 62922,
@@ -58,16 +49,20 @@
 			"force": true
 		},
 		{
-			"level": 4,
+			"action": 4,
 			"info": "Инициализация архива ФН"
 		},
 		{
-			"level": 5,
+			"action": 5,
 			"info": "Фискализация ФН",
-			"inn": "9706048530"
+			"inn": "9706048530",
+			"TaxType": 1,
+			"WorkMode": 0,
+			"WorkModeEx": 0
 		},
 		{
-			"level": 6,
+			"action": 6,
+			"info": "Запись дополнительных таблиц",
 			"tables": [
 				{
 					"table": 8,

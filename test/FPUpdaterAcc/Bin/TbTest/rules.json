@@ -4,42 +4,50 @@
 		"PrintStatus": false,
 		"FFDNeedUpdate": 2,
 		"DocSentTimeoutInSec": 5,
-		"RestoreCashRegister": true,
-		"TaxType": 1,
-		"WorkMode": 0,
-		"WorkModeEx": 16,
-		"RegReasonCode": 4,
-		"RegReasonCodeEx": 64
+		"RestoreCashRegister": true
 	},
-	"RULES": [
+	"actions": [
 		{
-			"level": 1,
+			"action": 1,
 			"file": "sm_ldr_155.bin",
-			"savesetting": false,
-			"bootloader": 0,
-			"blver": 155,
-			"info": "Запись загрузчика"
+			"bootver": 0,
+			"newbootver": 155,
+			"info": "Запись загрузчика 155"
 		},
 		{
-			"level": 1,
+			"action": 1,
 			"file": "tb_ldr_1939_test.bin",
-			"savesetting": false,
-			"bootloader": 155,
-			"blver": 1939,
-			"info": "Запись загрузчика",
+			"bootver": 155,
+			"newbootver": 1939,
+			"info": "Запись загрузчика 1939",
 			"force": true
 		},
 		{
-			"level": 2,
+			"action": 2,
 			"file": "tb_app_7099_test.bin",
 			"savesetting": true,
-			"bootloader": 1939,
+			"bootver": 1939,
 			"info": "Запись ПО ККТ Т.3, сборка 7099 от 2025-11-20",
 			"fwver": "T.3",
 			"fwbuild": 7099,
 			"fwdate": "2025-11-20",
-			"force": true,
-			"updatetables": [
+			"force": true
+		},
+		{
+			"action": 7,
+			"info": "Перефискализация ФН на ФФД 1.2",
+			"inn": "",
+			"TaxType": 1,
+			"WorkMode": 0,
+			"WorkModeEx": 16,
+			"RegReasonCode": 4,
+			"RegReasonCodeEx": 64,
+			"FfdVersion": 4
+		},
+		{
+			"action": 6,
+			"info": "Запись дополнительных таблиц",
+			"tables": [
 				{
 					"table": 8,
 					"row": 1,
@@ -302,7 +310,7 @@
 			]
 		},
 		{
-			"level": 3,
+			"action": 3,
 			"info": "Запись лицензии",
 			"file": "Licenses.slf"
 		}

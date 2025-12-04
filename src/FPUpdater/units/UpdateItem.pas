@@ -18,39 +18,38 @@ const
   SigningKeyShtrihInter     = 4; // инфраструктура shtrih промежуточная
 
   /////////////////////////////////////////////////////////////////////////////
-  /// Action values
-  // Update loader
+  /// Виды операций
+  ///
+  // Обновление загрузчика
   ACTION_UPDATE_LOADER    = 1;
-  // Update firmware
+
+  // Обновление программы
   ACTION_UPDATE_FIRMWARE  = 2;
-  // Write licenses
+
+  // Запись лицензий
   ACTION_WRITE_LICENSE    = 3;
-  // Initialize fiscal storage
+
+  // Инициализация тестового ФН
   ACTION_INIT_FS          = 4;
-  // Fiscalize fiscal storage
+
+  // Фискализация ФН
   ACTION_FISCALIZE_FS     = 5;
-  // Write tables
+
+  // Запись таблиц
   ACTION_WRITE_TABLES     = 6;
+
+  // Перерегистрация ФН
+  ACTION_REFISCALIZE_FS   = 7;
 
 
 type
-  { TFFDNeedUpdate }
-
-  TFFDNeedUpdate = (NoUpdateNeeded, FFD105, FFD12);
-
   { TUpdateParams }
 
   TUpdateParams = record
-    DocSentTimeoutInSec: Integer;       // Таймаут отправки документов в ОФД
     SaveTables: Boolean;                // Восстанавливать значения таблиц
-    RestoreCashRegister: Boolean;       // Восстанавливать регистр наличных
     PrintStatus: Boolean;               // Печатать на чековой ленте
-    FFDNeedUpdate: TFFDNeedUpdate;      // Нужно ли перерегистрировать ФН
-    TaxType: Integer;                   // Тип налогообложения
-    WorkMode: Integer;                  // Режим работы
-    WorkModeEx: Integer;
-    RegReasonCode: Integer;             // Код причины перерегистрации
-    RegReasonCodeEx: Integer;           // Расширеный код причины перерегистрации
+    DocSentTimeoutInSec: Integer;       // Таймаут отправки документов в ОФД
+    RestoreCashRegister: Boolean;       // Восстанавливать регистр наличных
   end;
 
 
@@ -117,7 +116,6 @@ type
     FVersion: string;         // Версия ПО ФР, например 'T.3'
     FBuild: Integer;          // Сборка ПО ФР, например '7052'
     FDate: TDate;             // Дата ПО ФР, например '2025-10-31'
-    FTables: TTableItems;     // Значения таблиц
     FRestoreTables: Boolean;  // Нужно ли восстановить значения таблиц
   public
     procedure CheckFileExists(const Path: string); override;
@@ -130,7 +128,6 @@ type
     property Version: string read FVersion;
     property Build: Integer read FBuild;
     property Date: TDate read FDate;
-    property Tables: TTableItems read FTables;
     property RestoreTables: Boolean read FRestoreTables;
   end;
 
@@ -143,9 +140,42 @@ type
 
   TActionFiscalizeFS = class(TUpdateItem)
   private
-    FInn: string;
+    FInn: string;           // ИНН
+    FTaxType: Integer;      // Тип налогообложения
+    FWorkMode: Integer;     // Режим работы
+    FWorkModeEx: Integer;   // Расширенный режим работы
+    FRegNumber: string;     // Регистрационный номер
+    FFfdVersion: Integer;     // Версия ФФД, на которую фискализировать
   public
     property Inn: string read FInn;
+    property TaxType: Integer read FTaxType;
+    property WorkMode: Integer read FWorkMode;
+    property WorkModeEx: Integer read FWorkModeEx;
+    property RegNumber: string read FRegNumber;
+    property FfdVersion: Integer read FFfdVersion;
+  end;
+
+  { TActionRefiscalizeFS }
+
+  TActionRefiscalizeFS = class(TUpdateItem)
+  private
+    FInn: string;             // ИНН
+    FTaxType: Integer;        // Тип налогообложения
+    FWorkMode: Integer;       // Режим работы
+    FWorkModeEx: Integer;     // Расширенный режим работы
+    FRegNumber: string;       // Регистрационный номер
+    FFfdVersion: Integer;     // Версия ФФД, на которую перерегистрировать
+    FRegReasonCode: Integer;  // Код причины перерегистрации
+    FRegReasonCodeEx: Integer; // Расширеный код причины перерегистрации
+  public
+    property Inn: string read FInn;
+    property TaxType: Integer read FTaxType;
+    property WorkMode: Integer read FWorkMode;
+    property WorkModeEx: Integer read FWorkModeEx;
+    property RegNumber: string read FRegNumber;
+    property FfdVersion: Integer read FFfdVersion;
+    property RegReasonCode: Integer read FRegReasonCode;
+    property RegReasonCodeEx: Integer read FRegReasonCodeEx;
   end;
 
   { TActionWriteTables }
@@ -169,6 +199,7 @@ type
     procedure LoadItemInitFS(Json: TJSONObject);
     procedure LoadItemWriteTables(Json: TJSONObject);
     procedure LoadItemFiscalizeFS(Json: TJSONObject);
+    procedure LoadItemRefiscalizeFS(Json: TJSONObject);
     procedure LoadItemWriteLicense(Json: TJSONObject);
     function LoadTables(Json: TJSONValue): TTableItems;
     function GetJsonString(Json: TJSONObject; const Name: string): string;
@@ -254,12 +285,6 @@ begin
       Params.PrintStatus := JsonGetBoolean(JSONValue, 'PrintStatus');
       Params.DocSentTimeoutInSec := JsonGetInteger(JSONValue, 'DocSentTimeoutInSec');
       Params.RestoreCashRegister := JsonGetBoolean(JSONValue, 'RestoreCashRegister');
-      Params.FFDNeedUpdate := TFFDNeedUpdate(JsonGetInteger(JSONValue, 'FFDNeedUpdate'));
-      Params.TaxType := JsonGetInteger(JSONValue, 'TaxType', 0);
-      Params.WorkMode := JsonGetInteger(JSONValue, 'WorkMode', 0);
-      Params.WorkModeEx := JsonGetInteger(JSONValue, 'WorkModeEx', 0);
-      Params.RegReasonCode := JsonGetInteger(JSONValue, 'RegReasonCode', 0);
-      Params.RegReasonCodeEx := JsonGetInteger(JSONValue, 'RegReasonCodeEx', 0);
     end;
   finally
     JSONObject.Free;
@@ -285,7 +310,7 @@ begin
   JSONText := TFile.ReadAllText(FileName, TEncoding.UTF8);
   JSONObject := TJSONObject.ParseJSONValue(JSONText) as TJSONObject;
   try
-    JSONValue := JSONObject.FindValue('RULES');
+    JSONValue := JSONObject.FindValue('actions');
     if (JSONValue <> nil) and (JSONValue is TJSONArray) then
     begin
       JSONArray := JSONValue as TJSONArray;
@@ -303,13 +328,14 @@ procedure TJsonReader.LoadItemJson(Json: TJSONObject);
 var
   ActionId: Integer;
 begin
-  ActionId := JsonGetInteger(Json, 'level');
+  ActionId := JsonGetInteger(Json, 'action');
   case ActionId of
     ACTION_UPDATE_LOADER: LoadItemUpdateLoader(Json);
     ACTION_UPDATE_FIRMWARE: LoadItemUpdateFirmware(Json);
     ACTION_WRITE_LICENSE: LoadItemWriteLicense(Json);
     ACTION_INIT_FS: LoadItemInitFS(Json);
     ACTION_FISCALIZE_FS: LoadItemFiscalizeFS(Json);
+    ACTION_REFISCALIZE_FS: LoadItemRefiscalizeFS(Json);
     ACTION_WRITE_TABLES: LoadItemWriteTables(Json);
   end;
 end;
@@ -329,11 +355,11 @@ begin
   Item.FAction := ACTION_UPDATE_LOADER;
   Item.FInfo := GetJsonString(Json, 'info');
   Item.FFileName := JsonGetString(Json, 'file');
-  Item.FCurrBootVer := JsonGetInteger(Json, 'bootloader');
+  Item.FCurrBootVer := JsonGetInteger(Json, 'bootver');
 
   Item.FNewBootVer := -1;
-  if Json.FindValue('blver')<>nil then
-    Item.FNewBootVer := JsonGetInteger(Json, 'blver');
+  if Json.FindValue('newbootver')<>nil then
+    Item.FNewBootVer := JsonGetInteger(Json, 'newbootver');
 
   Item.FForce := false;
   if Json.FindValue('force')<>nil then
@@ -354,13 +380,11 @@ begin
   Item.FAction := ACTION_UPDATE_FIRMWARE;
   Item.FInfo := GetJsonString(Json, 'info');
   Item.FFileName := JsonGetString(Json, 'file');
-  Item.FCurrBootVer := JsonGetInteger(Json, 'bootloader');
-  Item.FTables := LoadTables(Json.FindValue('updatetables'));
-
+  Item.FCurrBootVer := JsonGetInteger(Json, 'bootver');
 
   Item.FNewBootVer := -1;
-  if Json.FindValue('blver')<>nil then
-    Item.FNewBootVer := JsonGetInteger(Json, 'blver');
+  if Json.FindValue('newbootver')<>nil then
+    Item.FNewBootVer := JsonGetInteger(Json, 'newbootver');
 
   Item.FForce := false;
   if Json.FindValue('force')<>nil then
@@ -423,6 +447,37 @@ begin
   Item.FAction := ACTION_FISCALIZE_FS;
   Item.FInfo := GetJsonString(Json, 'info');
   Item.FInn := JsonGetString(Json, 'inn');
+  Item.FTaxType := JsonGetInteger(Json, 'TaxType');
+  Item.FWorkMode := JsonGetInteger(Json, 'WorkMode');
+  Item.FWorkModeEx := JsonGetInteger(Json, 'WorkModeEx');
+  Item.FFfdVersion := JsonGetInteger(Json, 'FfdVersion', 2);
+
+  Item.FRegNumber := '';
+  if Json.FindValue('RegNumber') <> nil then
+    Item.FRegNumber := JsonGetString(Json, 'RegNumber');
+
+  FItems.Add(Item);
+end;
+
+procedure TJsonReader.LoadItemRefiscalizeFS(Json: TJSONObject);
+var
+  Item: TActionRefiscalizeFS;
+begin
+  Item := TActionRefiscalizeFS.Create;
+  Item.FAction := ACTION_REFISCALIZE_FS;
+  Item.FInfo := GetJsonString(Json, 'info');
+  Item.FInn := JsonGetString(Json, 'inn');
+  Item.FTaxType := JsonGetInteger(Json, 'TaxType', 0);
+  Item.FWorkMode := JsonGetInteger(Json, 'WorkMode', 0);
+  Item.FWorkModeEx := JsonGetInteger(Json, 'WorkModeEx', 0);
+  Item.FRegReasonCode := JsonGetInteger(Json, 'RegReasonCode', 0);
+  Item.FRegReasonCodeEx := JsonGetInteger(Json, 'RegReasonCodeEx', 0);
+  Item.FFfdVersion := JsonGetInteger(Json, 'FfdVersion', 4);
+
+  Item.FRegNumber := '';
+  if Json.FindValue('RegNumber') <> nil then
+    Item.FRegNumber := JsonGetString(Json, 'RegNumber');
+
   FItems.Add(Item);
 end;
 
@@ -489,5 +544,22 @@ procedure TActionUpdateFirmware.CheckFileExists(const Path: string);
 begin
   CheckFile(Path + FileName);
 end;
+
+(*
+
+    TaxType: Integer;                   // Тип налогообложения
+    WorkMode: Integer;                  // Режим работы
+    WorkModeEx: Integer;
+
+      Params.FFDNeedUpdate := TFFDNeedUpdate(JsonGetInteger(JSONValue, 'FFDNeedUpdate'));
+      Params.TaxType := JsonGetInteger(JSONValue, 'TaxType', 0);
+      Params.WorkMode := JsonGetInteger(JSONValue, 'WorkMode', 0);
+      Params.WorkModeEx := JsonGetInteger(JSONValue, 'WorkModeEx', 0);
+      Params.RegReasonCode := JsonGetInteger(JSONValue, 'RegReasonCode', 0);
+      Params.RegReasonCodeEx := JsonGetInteger(JSONValue, 'RegReasonCodeEx', 0);
+
+
+*)
+
 
 end.

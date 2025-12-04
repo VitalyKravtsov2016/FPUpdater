@@ -4,7 +4,7 @@ object fmMain: TfmMain
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'fmMain'
-  ClientHeight = 263
+  ClientHeight = 264
   ClientWidth = 568
   Color = clBtnFace
   CustomTitleBar.CaptionAlignment = taCenter
@@ -17,17 +17,16 @@ object fmMain: TfmMain
   OnCreate = FormCreate
   DesignSize = (
     568
-    263)
+    264)
   PixelsPerInch = 96
   TextHeight = 13
   object lblTime: TLabel
     Left = 8
-    Top = 190
+    Top = 238
     Width = 418
     Height = 13
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
-    ExplicitWidth = 417
   end
   object btnProperties: TButton
     Left = 432
@@ -53,7 +52,7 @@ object fmMain: TfmMain
     Left = 8
     Top = 8
     Width = 418
-    Height = 153
+    Height = 201
     Anchors = [akLeft, akTop, akRight]
     Color = clInfoBk
     Font.Charset = DEFAULT_CHARSET
@@ -77,8 +76,8 @@ object fmMain: TfmMain
     OnClick = btnStopClick
   end
   object btnClose: TButton
-    Left = 433
-    Top = 216
+    Left = 430
+    Top = 215
     Width = 130
     Height = 41
     Anchors = [akRight, akBottom]
@@ -88,7 +87,7 @@ object fmMain: TfmMain
   end
   object edtStatus: TEdit
     Left = 8
-    Top = 167
+    Top = 215
     Width = 418
     Height = 21
     Anchors = [akLeft, akTop, akRight]

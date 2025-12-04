@@ -165,7 +165,7 @@ begin
       for Item in Updater.Items do
       begin
         if Item.Action in [ACTION_WRITE_LICENSE, ACTION_INIT_FS,
-          ACTION_FISCALIZE_FS, ACTION_WRITE_TABLES] then
+          ACTION_FISCALIZE_FS, ACTION_WRITE_TABLES, ACTION_REFISCALIZE_FS] then
           Lines.Add(Item.Info);
       end;
       Lines.Add('');
@@ -205,6 +205,7 @@ end;
 
 procedure TfmMain.UpdateCompleted(Sender: TObject);
 begin
+  UpdatePage;
   if Updater.Status.IsSucceeded then
   begin
     MessageBox(Handle, PChar(Updater.Status.ResultText),
@@ -221,6 +222,7 @@ procedure TfmMain.UpdateEcrInfo;
 begin
   try
     MemoInfo.Text := GetInfoText(Updater.ReadEcrInfo);
+    Updater.Driver.Disconnect;
   except
     on E: Exception do
     begin

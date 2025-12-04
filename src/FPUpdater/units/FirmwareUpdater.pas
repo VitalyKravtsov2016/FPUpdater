@@ -18,7 +18,7 @@ uses
   Windows, SysUtils, Classes, Registry, SyncObjs, ShlObj,
   System.Zip, System.IOUtils, System.Net.HttpClient,
   System.Net.HttpClientComponent, System.DateUtils,
-  ActiveX, JvSetupApi,
+  ComObj, ActiveX, JvSetupApi,
   // TurboPower
   uTPLb_Codec, uTPLb_CryptographicLibrary,
   // This
@@ -180,7 +180,10 @@ type
     function ValidFirmware(const Ecr: TEcrInfo;
       const Item: TActionUpdateFirmware): Boolean;
     procedure CheckFSDebugVersion;
-    property Driver: TDriver read GetDriver;
+    procedure FiscalizeFS(Action: TActionFiscalizeFS);
+    procedure InitializeFS(Item: TActionInitFS);
+    procedure RefiscalizeFS(Item: TActionRefiscalizeFS;
+      const Tables: TTableItems);
   public
     procedure DeleteLog;
     procedure CheckStopped;
@@ -208,7 +211,6 @@ type
     procedure XModemUploadFile(ComNumber: Integer; const Path,
       FileName: string);
     procedure WriteLicense(const FileName, Serial: string);
-    procedure WriteLicenses(const Ecr: TEcrInfo);
     procedure WaitForDevice(const Serial: string; TimeoutInMs: Integer);
 
     function Connect: Integer;
@@ -232,7 +234,6 @@ type
       var OfdParams: TOfdParams): Boolean;
     function GetOfdParams(const Tables: TTableItems;
       const OfdInn: string; var OfdParams: TOfdParams): Boolean;
-    procedure ChangeFFD(const Tables: TTableItems);
     function WaitDocSent(TimeoutInSec: Integer): Boolean;
     procedure DecryptFiles(const InPath, OutPath: string);
     procedure UnzipArhive(const OutPath, FileName: string);
@@ -259,6 +260,7 @@ type
     function FindFirmware(Ecr: TEcrInfo): TActionUpdateFirmware;
     function FindLastLoader(Ecr: TEcrInfo): TActionUpdateLoader;
 
+    property Driver: TDriver read GetDriver;
     property Params: TUpdateParams read FParams;
     property Status: TUpdateStatus read GetStatus write SetStatus;
     property OnComplete: TNotifyEvent read FOnComplete write FOnComplete;
@@ -560,16 +562,11 @@ const
 procedure TFirmwareUpdater.Execute(Sender: TObject);
 begin
   try
-    CoInitialize(nil);
-    try
-      UpdateFirmware;
-    finally
-      CoUninitialize;
-    end;
+    UpdateFirmware;
   except
     on E: Exception do
     begin
-      SetStatusText('Ошибка: ' + E.Message);
+      //
     end;
   end;
 end;
@@ -586,20 +583,30 @@ begin
 
   Logger.Debug(Separator);
   try
-    DoUpdateFirmware;
+    OleCheck(CoInitialize(nil));
+    try
+      DoUpdateFirmware;
+    finally
+      CoUninitialize;
+    end;
 
     AStatus := GetStatus;
     AStatus.IsStarted := False;
     AStatus.IsSucceeded := True;
-    AStatus.ResultText := 'Обновление выполнено успешно.';
+    AStatus.ResultText := 'Обновление выполнено успешно';
+    AStatus.Text := Format(
+      'Обновление выполнено успешно. Время выполнения: %d c.', [
+      SecondsBetween(Now, AStatus.StartTime)]);
+
     SetStatus(AStatus);
   except
     on E: Exception do
     begin
       AStatus := GetStatus;
       AStatus.IsStarted := False;
-      AStatus.IsSucceeded := True;
+      AStatus.IsSucceeded := False;
       AStatus.ResultText := 'Ошибка: ' + E.Message;
+      AStatus.Text := AStatus.ResultText;
       SetStatus(AStatus);
 
       Logger.Error('Ошибка: ' + E.Message);
@@ -625,7 +632,6 @@ var
   SearchParams: TSearchParams;
   Loader: TActionUpdateLoader;
   Firmware: TActionUpdateFirmware;
-  FiscalizeFS: TActionFiscalizeFS;
   Tables: TTableItems;
   ActionWriteTables: TActionWriteTables;
 begin
@@ -683,7 +689,6 @@ begin
     Firmware := FindFirmware(EcrInfo);
     if Firmware <> nil then
     begin
-      Tables := Firmware.Tables;
       DfuUploadFile(FPath, Firmware.FileName);
       DelayInMs(FirmwareRebootDelay);
       // Ищем устройство на порту VCOM
@@ -699,48 +704,54 @@ begin
       begin
         WriteTablesFile(EcrInfo.Serial);
       end;
-      WriteTables(Firmware.Tables);
-    end;
-    for Item in FItems do
-    begin
-      case Item.Action of
-        ACTION_INIT_FS:
-        begin
-          CheckFSDebugVersion;
-          SetStatusText(Item.info);
-          Driver.RequestType := 22;
-          Driver.Check(Driver.FNResetState);
+      // Запись дополнительных таблиц
+      for Item in FItems do
+      begin
+        case Item.Action of
+          ACTION_WRITE_TABLES:
+          begin
+            Tables := (Item as TActionWriteTables).Tables;
+            WriteTables(Tables);
+          end;
         end;
-        // Fiscalize fiscal storage
-        ACTION_FISCALIZE_FS:
-        begin
-          FiscalizeFS := Item as TActionFiscalizeFS;
-          CheckFSDebugVersion;
-          Driver.Check(Driver.ReadSerialNumber);
-          Driver.Inn := FiscalizeFS.Inn;
-          Driver.KKTRegistrationNumber := GenerateRNM('', Driver.Inn, Driver.SerialNumber);
-          Driver.TaxType := FParams.TaxType;
-          Driver.WorkMode := FParams.WorkMode;
-          Driver.WorkModeEx := FParams.WorkModeEx;
-          Driver.Timeout := 10000;
-          Driver.Check(Driver.FNBuildRegistrationReport);
-          Driver.WaitForPrinting;
-          Driver.Timeout := 1000;
-        end;
-        ACTION_WRITE_TABLES:
-        begin
-          ActionWriteTables := Item as TActionWriteTables;
-          WriteTables(ActionWriteTables.Tables);
-        end;
-
       end;
+
+      // Перезагрузка для применения таблиц
+      SetStatusText('Перезагрузка ККМ...');
+      Driver.RebootKKT;
+      Driver.Disconnect;
+      SetStatusText('Перезагрузка ККМ: OK');
+      // Читаем параметры подключения
+      Driver.Check(Driver.LoadParams);
+      DelayInMs(FirmwareRebootDelay);
+      WaitForDevice(EcrInfo.Serial, FirmwareRebootTimeout);
     end;
   end else
   begin
     raise Exception.Create('Не реализовано');
   end;
-  // Запись лицензий
-  WriteLicenses(EcrInfo);
+  for Item in FItems do
+  begin
+    CheckStopped;
+    case Item.Action of
+      ACTION_INIT_FS:
+      begin
+        InitializeFS(Item as TActionInitFS);
+      end;
+      ACTION_FISCALIZE_FS:
+      begin
+        FiscalizeFS(Item as TActionFiscalizeFS);
+      end;
+      ACTION_WRITE_LICENSE:
+      begin
+        WriteLicense(FPath + TActionWriteLicense(Item).FileName, EcrInfo.Serial);
+      end;
+      ACTION_REFISCALIZE_FS:
+      begin
+        RefiscalizeFS(Item as TActionRefiscalizeFS, Tables);
+      end;
+    end;
+  end;
   if EcrInfo.FirmwareValid then
   begin
     if FParams.RestoreCashRegister and (CashRegister <> 0) then
@@ -748,22 +759,136 @@ begin
       PrintCashIn(CashRegister);
     end;
   end;
-  // Перезагрузка
-  SetStatusText('Перезагрузка ККМ...');
-  Driver.RebootKKT;
-  Driver.Disconnect;
-  SetStatusText('Перезагрузка ККМ: OK');
-  // Читаем параметры подключения
-  Driver.Check(Driver.LoadParams);
-  DelayInMs(FirmwareRebootDelay);
-  WaitForDevice(EcrInfo.Serial, FirmwareRebootTimeout);
+end;
+
+procedure TFirmwareUpdater.RefiscalizeFS(Item: TActionRefiscalizeFS;
+  const Tables: TTableItems);
+var
+  Inn: string;
+  Text: string;
+  OfdInn: string;
+  Code: Integer;
+  OfdParams: TOfdParams;
+  IsFFDChanged: Boolean;
+begin
   // Перерегистрация ФФД
-  ChangeFFD(Tables);
+  case Item.FfdVersion of
+    0:
+    begin
+      Logger.Debug('ФФД = 0, обновление не нужно');
+      Exit;
+    end;
+    2:; // ФФД 1.05
+    4:; // ФФД 1.2
+  else
+    raise Exception.CreateFmt('Неверное значение формата ФФД, %d', [Item.FfdVersion]);
+  end;
+  CheckDocSent;
+  if FParams.PrintStatus then
+  begin
+    Feed(2);
+    PrintText('ПРОИЗВОДИТСЯ ПЕРЕРЕГИСТРАЦИЯ ККТ НА ФФД 1.2');
+    PrintText('НЕ ОТКЛЮЧАЙТЕ ПИТАНИЕ КАССЫ И КОМПЬЮТЕРА');
+    PrintText('ДОЖДИТЕСЬ ПЕЧАТИ СООБЩЕНИЯ');
+    PrintText('О ЗАВЕРШЕНИИ ПЕРЕРЕГИСТРАЦИИ');
+    Feed(14);
+  end;
+  SetStatusText('Печать отчета о состоянии расчетов...');
+  Driver.Check(Driver.FNBuildCalculationStateReport);
+  Driver.WaitForPrinting;
+  SetStatusText('Печать отчета о состоянии расчетов: OK');
+
+  Text := Format('Перерегистрация ККТ на %s', [FFDToStr(Item.FfdVersion)]);
+  SetStatusText(Text + '...');
+  IsFFDChanged := Driver.ReadTableInt(17, 1, 17) <> Item.FfdVersion;
+  Driver.WriteTableInt(17, 1, 17, Item.FfdVersion);
+  OfdInn := Driver.ReadTableStr(18, 1, 12);
+  if GetOfdParams(Tables, OfdInn, OfdParams) then
+  begin
+    if OfdParams.ServerKM <> '' then
+      Driver.WriteTableStr(19, 1, 5, OfdParams.ServerKM);
+    if OfdParams.PortKM <> 0 then
+      Driver.WriteTableInt(19, 1, 6, OfdParams.PortKM);
+  end;
+  // WorkModeEx
+  Driver.WriteTableInt(Driver.FSTableNumber, 1, 21, Item.WorkModeEx);
+  // RegReasonCodeEx
+  Code := Item.RegReasonCodeEx;
+  if IsFFDChanged then
+  begin
+    Code := Code or $200000;
+  end;
+  Driver.WriteTableInt(Driver.FSTableNumber, 1, 22, Code);
+
+  Inn := Trim(Item.Inn);
+  if Inn = '' then
+    Inn := Trim(Driver.ReadTableStr(18, 1, 2));
+
+  Driver.RegistrationReasonCode := Item.RegReasonCode;
+  Driver.Inn := Inn;
+  Driver.KKTRegistrationNumber := Trim(Driver.ReadTableStr(18, 1, 3));
+  Driver.TaxType := Item.TaxType;
+  Driver.WorkMode := Item.WorkMode;
+  Driver.WorkModeEx := Item.WorkModeEx;
+  Driver.Check(Driver.FNBuildReregistrationReport);
+  Driver.WaitForPrinting;
+  SetStatusText(Text + ': OK');
+
+  if FParams.PrintStatus then
+  begin
+    Feed(2);
+    PrintText('ПРОИЗВЕДЕНА АВТОМАТИЧЕСКАЯ ПЕРЕРЕГИСТРАЦИЯ');
+    PrintText('НА ФФД 1.2');
+    Feed(12);
+    Driver.WaitForPrinting;
+    Driver.FinishDocument;
+    Driver.WaitForPrinting;
+  end;
+  if not WaitDocSent(FParams.DocSentTimeoutInSec) then
+  begin
+    Logger.Debug('Не дождались передачи документов.');
+  end;
   // Ожидание отправки отчета о перефискализации
   Driver.Check(Driver.FNGetInfoExchangeStatus);
   Logger.Debug(Format('Неотправленных документов: %d', [Driver.MessageCount]));
-  SetStatusText(Format('Обновление выполнено успешно. Время выполнения: %d', [
-    SecondsBetween(Now, GetStatus.StartTime)]));
+end;
+
+procedure TFirmwareUpdater.InitializeFS(Item: TActionInitFS);
+begin
+  // Инициализировать можно только тестовый ФН
+  CheckFSDebugVersion;
+  SetStatusText(Item.info + '...');
+  Driver.RequestType := 22;
+  Driver.Check(Driver.FNResetState);
+  SetStatusText(Item.info + ': OK');
+end;
+
+procedure TFirmwareUpdater.FiscalizeFS(Action: TActionFiscalizeFS);
+var
+  RegNumber: string;
+begin
+  SetStatusText(Action.info + '...');
+  // Фискализируем только тестовый ФН
+  // Слишком ответственная операция для массового применения
+  CheckFSDebugVersion;
+  // Генерируем РНМ, если он не задан
+  RegNumber := Action.RegNumber;
+  if RegNumber = '' then
+  begin
+    Driver.Check(Driver.ReadSerialNumber);
+    RegNumber := GenerateRNM('', Action.Inn, Driver.SerialNumber);
+  end;
+  Driver.WriteTableInt(17, 1, 17, Action.FfdVersion);
+  // Фискализируем
+  Driver.Timeout := 10000;
+  Driver.Inn := Action.Inn;
+  Driver.KKTRegistrationNumber := RegNumber;
+  Driver.TaxType := Action.TaxType;
+  Driver.WorkMode := Action.WorkMode;
+  Driver.Check(Driver.FNBuildRegistrationReport);
+  Driver.WaitForPrinting;
+  Driver.Timeout := 1000;
+  SetStatusText(Action.info + ': OK');
 end;
 
 procedure TFirmwareUpdater.SetVComConnection;
@@ -783,20 +908,6 @@ begin
     SearchParams.Serial := Ecr.Serial;
     SearchParams.Timeout := FirmwareRebootTimeout;
     DiscoverDevice(SearchParams);
-  end;
-end;
-
-procedure TFirmwareUpdater.WriteLicenses(const Ecr: TEcrInfo);
-var
-  Item: TUpdateItem;
-begin
-  for Item in FItems do
-  begin
-    if Item.Action = ACTION_WRITE_LICENSE then
-    begin
-      WriteLicense(FPath + TActionWriteLicense(Item).FileName, Ecr.Serial);
-      Break;
-    end;
   end;
 end;
 
@@ -1572,90 +1683,6 @@ begin
         Result := Driver.ReadTableInt(10, 1, 29)
       else
         Result := Driver.ReadTableInt(17, 1, 17);
-  end;
-end;
-
-procedure TFirmwareUpdater.ChangeFFD(const Tables: TTableItems);
-var
-  Text: string;
-  OfdInn: string;
-  Code: Integer;
-  FFDVer: Integer;
-  OfdParams: TOfdParams;
-  IsFFDChanged: Boolean;
-begin
-  case FParams.FFDNeedUpdate of
-    NoUpdateNeeded:
-    begin
-      Logger.Debug('No update needed');
-      Exit;
-    end;
-    FFD105: FFDVer := 2;
-    FFD12: FFDVer := 4;
-  else
-    FFDVer := 4;
-  end;
-  CheckDocSent;
-  if FParams.PrintStatus then
-  begin
-    Feed(2);
-    PrintText('ПРОИЗВОДИТСЯ ПЕРЕРЕГИСТРАЦИЯ ККТ НА ФФД 1.2');
-    PrintText('НЕ ОТКЛЮЧАЙТЕ ПИТАНИЕ КАССЫ И КОМПЬЮТЕРА');
-    PrintText('ДОЖДИТЕСЬ ПЕЧАТИ СООБЩЕНИЯ');
-    PrintText('О ЗАВЕРШЕНИИ ПЕРЕРЕГИСТРАЦИИ');
-    Feed(14);
-  end;
-  SetStatusText('Печать отчета о состоянии расчетов...');
-  Driver.Check(Driver.FNBuildCalculationStateReport);
-  Driver.WaitForPrinting;
-  SetStatusText('Печать отчета о состоянии расчетов: OK');
-
-  Text := Format('Перерегистрация ККТ на %s', [FFDToStr(FFDVer)]);
-  SetStatusText(Text + '...');
-  IsFFDChanged := Driver.ReadTableInt(17, 1, 17) <> FFDVer;
-  Driver.WriteTableInt(17, 1, 17, FFDVer);
-  OfdInn := Driver.ReadTableStr(18, 1, 12);
-  if GetOfdParams(Tables, OfdInn, OfdParams) then
-  begin
-    if OfdParams.ServerKM <> '' then
-      Driver.WriteTableStr(19, 1, 5, OfdParams.ServerKM);
-    if OfdParams.PortKM <> 0 then
-      Driver.WriteTableInt(19, 1, 6, OfdParams.PortKM);
-  end;
-
-  // WorkModeEx
-  Driver.WriteTableInt(Driver.FSTableNumber, 1, 21, FParams.WorkModeEx);
-  // RegReasonCodeEx
-  Code := FParams.RegReasonCodeEx;
-  if IsFFDChanged then
-  begin
-    Code := Code or $200000;
-  end;
-  Driver.WriteTableInt(Driver.FSTableNumber, 1, 22, Code);
-
-  Driver.RegistrationReasonCode := FParams.RegReasonCode;
-  Driver.Inn := Trim(Driver.ReadTableStr(18, 1, 2));
-  Driver.KKTRegistrationNumber := Trim(Driver.ReadTableStr(18, 1, 3));
-  Driver.TaxType := FParams.TaxType;
-  Driver.WorkMode := FParams.WorkMode;
-  Driver.WorkModeEx := FParams.WorkModeEx;
-  Driver.Check(Driver.FNBuildReregistrationReport);
-  Driver.WaitForPrinting;
-  SetStatusText(Text + ': OK');
-
-  if FParams.PrintStatus then
-  begin
-    Feed(2);
-    PrintText('ПРОИЗВЕДЕНА АВТОМАТИЧЕСКАЯ ПЕРЕРЕГИСТРАЦИЯ');
-    PrintText('НА ФФД 1.2');
-    Feed(12);
-    Driver.WaitForPrinting;
-    Driver.FinishDocument;
-    Driver.WaitForPrinting;
-  end;
-  if not WaitDocSent(FParams.DocSentTimeoutInSec) then
-  begin
-    Logger.Debug('Не дождались передачи документов.');
   end;
 end;
 
