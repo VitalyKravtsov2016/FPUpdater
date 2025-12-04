@@ -5,7 +5,9 @@ interface
 uses
   // VCL
   System.SysUtils, System.Variants, System.Classes, System.JSON,
-  System.Generics.Collections, System.IOUtils;
+  System.Generics.Collections, System.IOUtils,
+  // This
+  LogFile;
 
 const
   /////////////////////////////////////////////////////////////////////////////
@@ -235,7 +237,9 @@ end;
 
 function JsonGetString(Value: TJSONValue; const APath: string): string;
 begin
-  Result := Value.GetValue<String>(APath);
+  Result := '';
+  if Value.FindValue(APath) <> nil then
+    Result := Value.GetValue<String>(APath);
 end;
 
 function JsonGetBoolean(Value: TJSONValue; const APath: string): Boolean;
@@ -328,15 +332,22 @@ procedure TJsonReader.LoadItemJson(Json: TJSONObject);
 var
   ActionId: Integer;
 begin
-  ActionId := JsonGetInteger(Json, 'action');
-  case ActionId of
-    ACTION_UPDATE_LOADER: LoadItemUpdateLoader(Json);
-    ACTION_UPDATE_FIRMWARE: LoadItemUpdateFirmware(Json);
-    ACTION_WRITE_LICENSE: LoadItemWriteLicense(Json);
-    ACTION_INIT_FS: LoadItemInitFS(Json);
-    ACTION_FISCALIZE_FS: LoadItemFiscalizeFS(Json);
-    ACTION_REFISCALIZE_FS: LoadItemRefiscalizeFS(Json);
-    ACTION_WRITE_TABLES: LoadItemWriteTables(Json);
+  try
+    ActionId := JsonGetInteger(Json, 'action');
+    case ActionId of
+      ACTION_UPDATE_LOADER: LoadItemUpdateLoader(Json);
+      ACTION_UPDATE_FIRMWARE: LoadItemUpdateFirmware(Json);
+      ACTION_WRITE_LICENSE: LoadItemWriteLicense(Json);
+      ACTION_INIT_FS: LoadItemInitFS(Json);
+      ACTION_FISCALIZE_FS: LoadItemFiscalizeFS(Json);
+      ACTION_REFISCALIZE_FS: LoadItemRefiscalizeFS(Json);
+      ACTION_WRITE_TABLES: LoadItemWriteTables(Json);
+    end;
+  except
+    on E: Exception do
+    begin
+      Logger.Error('LoadItemJson: ' + E.Message);
+    end;
   end;
 end;
 

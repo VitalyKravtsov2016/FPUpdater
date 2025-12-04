@@ -9,7 +9,7 @@
 		{
 			"action": 1,
 			"file": "sm_ldr_155.bin",
-			"bootloader": 0,
+			"bootver": 0,
 			"newbootver": 155,
 			"info": "Запись загрузчика 155"
 		},
