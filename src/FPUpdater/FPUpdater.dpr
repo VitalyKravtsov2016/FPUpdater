@@ -1,5 +1,7 @@
 program FPUpdater;
 
+{$R 'FPUpdater.res' 'FPUpdater.rc'}
+
 uses
   Vcl.Forms,
   fmuMain in 'forms\fmuMain.pas' {fmMain},

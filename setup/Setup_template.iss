@@ -150,6 +150,7 @@ en.AppUpdatesURL=http://www.torgbalance.com
 en.AppCopyright=Copyright © 2025 TorgBalance
 en.VersionHistory=Versions history
 en.HistoryFileName=History_en.txt
+en.RunApplication=Start application
 
 ; Russian
 ru.CompanyName=ТОРГОВЫЙ БАЛАНС М
@@ -170,6 +171,7 @@ ru.AppCopyright=Copyright © 2025 ТОРГОВЫЙ БАЛАНС М
 ru.VersionHistory=История версий
 ru.UninstallShortcutText=Удалить
 ru.HistoryFileName=History_ru.txt
+ru.RunApplication=Запустить приложение
 
 [Setup]
 AppName= {cm:AppName}
@@ -221,3 +223,5 @@ Name: "{group}\{cm:AppName} ${version2} ${Arch2}"; Filename: "{app}\Bin\FPUpdate
 Name: "{userdesktop}\{cm:AppName} ${version2} ${Arch2} "; Filename: "{app}\Bin\FPUpdater.exe"; Tasks: desktopicon
 [UninstallDelete]
 Type: files; Name: "{app}\Bin\*.log"
+[Run]
+Filename: "{app}\Bin\FPUpdater.exe"; Description: {cm:RunApplication}; Flags: postinstall nowait skipifsilent 

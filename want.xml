@@ -73,9 +73,6 @@ See http://www.suigeneris.org/want/ for details.
 			<include name="*.dcu"/>
 		</delete>
         <echo input="${FPUpdater}/FPUpdater.rt" file="${FPUpdater}/FPUpdater.rc" />
-        <exec executable="${brcc}">
-            <arg value="${FPUpdater}/FPUpdater.rc" />
-        </exec>        
 		<exec executable="msbuild.exe">
             <arg value="/clp:ErrorsOnly /t:Build  ${FPUpdater}/FPUpdater.dproj /p:Platform=Win32 /p:Config=Release /p:DCC_ExeOutput=${setup}/Bin/Win32" />
         </exec>
