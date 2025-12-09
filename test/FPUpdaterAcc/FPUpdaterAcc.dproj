@@ -238,7 +238,7 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="DrvFRTst.todo" Configuration="Release" Class="ProjectFile">
-                    <Platform Name="Win64">
+                    <Platform Name="Win32">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
@@ -280,7 +280,7 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="DrvFRTst.todo" Configuration="Release" Class="ProjectFile">
-                    <Platform Name="Win32">
+                    <Platform Name="Win64">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>

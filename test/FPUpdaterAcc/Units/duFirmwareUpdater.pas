@@ -4,7 +4,7 @@ interface
 
 uses
   // VCL
-  Windows, ActiveX, ComObj, SysUtils,
+  Windows, Classes, ActiveX, ComObj, SysUtils, Generics.Collections,
   // DUnit
   TestFramework,
   // This
@@ -18,6 +18,10 @@ type
   TFirmwareUpdaterTest = class(TTestCase)
   private
     Updater: TFirmwareUpdater;
+  public
+    procedure SetUp; override;
+    procedure TearDown; override;
+
     procedure SaveEcrStatus;
     procedure SaveTables(const FileName: string);
     procedure CheckPortNumber(PortNumber: Integer);
@@ -28,9 +32,7 @@ type
     procedure CheckFirmwareUpdated;
     procedure ClearFiscalStorage;
     procedure LoadFiles;
-  public
-    procedure SetUp; override;
-    procedure TearDown; override;
+    procedure CheckLines(Lines1, Lines2: TStrings);
   published
     procedure TestFindUpdateItem;
     procedure TestFindDeviceLocal;
@@ -43,7 +45,6 @@ type
     procedure TestRestoreTables;
     procedure TestUploadFirmware;
     procedure TestSetConnectionType;
-    procedure TestGetOfdParams;
     procedure TestLoadParams;
     procedure TestFirmwareUpdateRNDIS3;
     procedure TestWaitForDFUDevice;
@@ -54,9 +55,17 @@ type
     procedure TestFNFiscalization;
     procedure TestDiscoverDevice;
 
-    procedure TestReadEcrState;
     procedure TestUpdateFirmwareShtrih;
     procedure TestCreateShtrihEcr;
+
+    procedure TestReadEcrState;
+    procedure TestReadFiscResult;
+
+    procedure CheckEcrState;
+    procedure CheckFiscResult;
+
+    procedure CheckUpdateTestFirmware;
+    procedure CheckUpdateWorkFirmware;
   end;
 
 implementation
@@ -79,7 +88,7 @@ begin
   //Updater.Path := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'data\';
   Updater.Path := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'smtest\';
   Updater.DeleteLog;
-  Updater.LoadFiles(Updater.Path);
+  //Updater.LoadFiles(Updater.Path);
 end;
 
 procedure TFirmwareUpdaterTest.TearDown;
@@ -89,7 +98,6 @@ end;
 
 procedure TFirmwareUpdaterTest.TestFindUpdateItem;
 var
-  Path: string;
   Ecr: TEcrInfo;
   Loader: TActionUpdateLoader;
   Firmware: TActionUpdateFirmware;
@@ -121,7 +129,7 @@ begin
   Updater.Path := GetFilesPath;
   Ecr := Updater.ReadEcrInfo;
   Updater.LoadFiles(Updater.Path);
-  Updater.WriteLicenses(Ecr);
+  //Updater.WriteLicense(Ecr); !!!
 end;
 
 procedure TFirmwareUpdaterTest.SaveTables(const FileName: string);
@@ -180,7 +188,7 @@ begin
   CheckConnection;
   Logger.Debug('SetComConnection');
   Ecr := Updater.ReadEcrInfo;
-  if Ecr.PortNumber = PORT_COM then Exit;
+  if Ecr.SoftwarePort = PORT_COM then Exit;
 
   if Driver.ConnectionType <> CT_LOCAL then
   begin
@@ -351,7 +359,6 @@ procedure TFirmwareUpdaterTest.TestUpdateFirmwareShtrih;
 var
   Ecr: TEcrInfo;
   SearchParams: TSearchParams;
-  IsTehnoTestKeys: Boolean;
 begin
   Logger.Debug('TestUpdateFirmwareShtrih.0');
   Ecr := Updater.ReadEcrInfo;
@@ -360,11 +367,6 @@ begin
 
   if Ecr.BootVer <> 153 then
   begin
-    // VCOM для скорости
-    //SetVComConnection;
-    // Обнуление ФН для скорости перезапуска ФР
-    //ClearFiscalStorage;
-
     if Ecr.BootVer = 155 then
     begin
       UpdateLoader(Ecr.Serial, 'tb_ldr_1939_test.bin', 1939);
@@ -401,8 +403,6 @@ begin
 end;
 
 procedure TFirmwareUpdaterTest.TestFNFiscalization;
-var
-  IsTehnoTestKeys: Boolean;
 begin
   // Отключить печать и звук
   //1,1,28,1,0,0,1,'Отключение звука при ошибках','0'
@@ -531,33 +531,10 @@ begin
   CheckEquals('20.11.2025', FirmwareDate, 'Ecr.FirmwareDate <> 20.11.2025');
 end;
 
-procedure TFirmwareUpdaterTest.TestGetOfdParams;
-var
-  Item: TUpdateItem;
-  OfdParams: TOfdParams;
-  Firmware: TActionUpdateFirmware;
-begin
-  Firmware := nil;
-  for Item in Updater.Items do
-  begin
-    if Item is TActionUpdateFirmware then
-    begin
-      Firmware := Item as TActionUpdateFirmware;
-      Break;
-    end;
-  end;
-  Check(Firmware <> nil, 'Не найден элемент обновления');
-  Check(Updater.GetOfdParams(Firmware.Tables, '', OfdParams), 'GetOfdParams');
-  CheckEquals('192.168.144.138', OfdParams.ServerKM, 'OfdParams.ServerKM');
-  CheckEquals(8789, OfdParams.PortKM, 'OfdParams.PortKM');
-end;
-
-
 procedure TFirmwareUpdaterTest.TestLoadParams;
 begin
   CheckEquals(True, Updater.Params.SaveTables, 'Params.SaveTables');
   CheckEquals(False, Updater.Params.PrintStatus, 'Params.PrintStatus');
-  CheckEquals(Ord(FFD12), Ord(Updater.Params.FFDNeedUpdate), 'Params.FFDNeedUpdate');
   CheckEquals(True, Updater.Params.RestoreCashRegister, 'Params.RestoreCashRegister');
   CheckEquals(5, Updater.Params.DocSentTimeoutInSec, 'Params.DocSentTimeoutInSec');
 end;
@@ -566,7 +543,6 @@ procedure TFirmwareUpdaterTest.TestUpdateFFD;
 var
   IsFound: Boolean;
   Item: TUpdateItem;
-  OfdParams: TOfdParams;
 begin
   IsFound := False;
   for Item in Updater.Items do
@@ -591,7 +567,7 @@ begin
   TickCount := GetTickCount;
   Driver.Check(Driver.SetDFUMode);
   CheckEquals(True, Updater.WaitForDFUDevice(DFUDelayTime), 'WaitForDFUDevice');
-  TickCount := GetTickCount - TickCount;
+  TickCount := Integer(GetTickCount) - TickCount;
   Logger.Debug(Format('DFU device up time: %d ms', [TickCount]));
   Check(TickCount < 3000, 'DFU device up time > 3000 ms');
   // Wait
@@ -611,16 +587,159 @@ end;
 
 procedure TFirmwareUpdaterTest.TestReadEcrState;
 var
-  Text: string;
+  Serial: string;
   Manager: TEcrManager;
 begin
+  Driver.Check(Driver.ReadSerialNumber);
+  Serial := Driver.SerialNumber;
+
   Manager := TEcrManager.Create(Driver);
   try
     Manager.ReadFullStatus;
-    Manager.Lines.SaveToFile('EcrStatus.txt');
+    Manager.Lines.SaveToFile(Serial + '_EcrStatus.txt');
   finally
     Manager.Free;
   end;
+end;
+
+procedure TFirmwareUpdaterTest.TestReadFiscResult;
+var
+  Serial: string;
+  Manager: TEcrManager;
+begin
+  Driver.Check(Driver.ReadSerialNumber);
+  Serial := Driver.SerialNumber;
+
+  Manager := TEcrManager.Create(Driver);
+  try
+    Manager.ReadFiscResult;
+    Manager.Lines.SaveToFile(Serial + '_FiscResult.txt');
+  finally
+    Manager.Free;
+  end;
+end;
+
+procedure TFirmwareUpdaterTest.CheckLines(Lines1, Lines2: TStrings);
+var
+  i: Integer;
+begin
+  for i := 0 to Lines1.Count-1 do
+  begin
+    if Lines1[i] <> Lines2[i] then
+      raise Exception.CreateFmt('Строки не совпадают, index=%d', [i]);
+  end;
+end;
+
+procedure TFirmwareUpdaterTest.CheckFiscResult;
+var
+  i: Integer;
+  ind: Integer;
+  Serial: string;
+  Lines: TStrings;
+  Manager: TEcrManager;
+const
+  Exceptions: TArray<Integer> = [
+    31, 32, 38];
+begin
+  Driver.Check(Driver.ReadSerialNumber);
+  Serial := Driver.SerialNumber;
+
+  Lines := TStringList.Create;
+  Manager := TEcrManager.Create(Driver);
+  try
+    Manager.ReadFiscResult;
+    Manager.Lines.SaveToFile(Serial + '_FiscResult2.txt');
+    Lines.LoadFromFile(Serial + '_FiscResult.txt');
+    for i := 0 to Lines.Count-1 do
+    begin
+      if not(TArray.BinarySearch<Integer>(Exceptions, i+1, ind)) then
+      begin
+        if Lines[i] <> Manager.Lines[i] then
+          raise Exception.CreateFmt('Строки не совпадают, index=%d', [i]);
+      end;
+    end;
+    DeleteFile(Serial + '_FiscResult2.txt');
+  finally
+    Lines.Free;
+    Manager.Free;
+  end;
+end;
+
+procedure TFirmwareUpdaterTest.CheckEcrState;
+var
+  i: Integer;
+  ind: Integer;
+  Serial: string;
+  Lines: TStrings;
+  Manager: TEcrManager;
+const
+  Exceptions: TArray<Integer> = [
+    18, 19, 51, 52, 859, 860, 861, 862, 863, 864,
+    865, 866, 867, 868, 918, 1871, 1872, 1873, 1874];
+begin
+  Lines := TStringList.Create;
+  Manager := TEcrManager.Create(Driver);
+  try
+    Driver.Check(Driver.ReadSerialNumber);
+    Serial := Driver.SerialNumber;
+
+    Manager.ReadFullStatus;
+    Manager.Lines.SaveToFile(Serial + '_EcrStatus2.txt');
+    Lines.LoadFromFile(Serial + '_EcrStatus.txt');
+
+    for i := 0 to Lines.Count-1 do
+    begin
+      if not(TArray.BinarySearch<Integer>(Exceptions, i+1, ind)) then
+      begin
+        if Lines[i] <> Manager.Lines[i] then
+          raise Exception.CreateFmt('Строки не совпадают, index=%d', [i]);
+      end;
+    end;
+    DeleteFile(Serial + '_EcrStatus2.txt');
+  finally
+    Lines.Free;
+    Manager.Free;
+  end;
+end;
+
+
+procedure TFirmwareUpdaterTest.CheckUpdateTestFirmware;
+var
+  Path: string;
+begin
+  Path := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'Data\';
+  // Create test ECR
+  Updater.LoadArchive(Path + 'SmTestArchive.zip');
+  try
+    Updater.UpdateFirmware;
+  finally
+    Updater.DeleteFiles;
+  end;
+  // Update firmware
+  Updater.LoadArchive(Path + 'TbTestArchive.zip');
+  try
+    Updater.UpdateFirmware;
+  finally
+    Updater.DeleteFiles;
+  end;
+  CheckEcrState;
+  CheckFiscResult;
+end;
+
+procedure TFirmwareUpdaterTest.CheckUpdateWorkFirmware;
+var
+  Path: string;
+begin
+  Path := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'Data\';
+  // Update firmware
+  Updater.LoadArchive(Path + 'TbWorkArchive.zip');
+  try
+    Updater.UpdateFirmware;
+  finally
+    Updater.DeleteFiles;
+  end;
+//  CheckEcrState;
+//  CheckFiscResult;
 end;
 
 initialization

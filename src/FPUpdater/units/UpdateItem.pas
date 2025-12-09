@@ -227,6 +227,7 @@ procedure UpdateItemsLoadFromFile(const FileName: string; Items: TUpdateItems);
 var
   Reader: TJsonReader;
 begin
+  Items.Clear;
   Reader := TJsonReader.Create(Items);
   try
     Reader.LoadFromFile(FileName);
@@ -274,7 +275,6 @@ end;
 procedure UpdateParamsLoadFromFile(const FileName: string;
   var Params: TUpdateParams);
 var
-  i: Integer;
   JSONText: string;
   JSONObject: TJSONObject;
   JSONValue: TJSONValue;

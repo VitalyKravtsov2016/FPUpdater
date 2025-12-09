@@ -2,23 +2,21 @@ unit FirmwareUpdater;
 
 interface
 
-{DONE: Добавить запись лицензии}
+{DONE: Добавить прошивку по протоколу XModem}
 {TODO: Написать тесты для обновления ФР с любыми параметрами}
-{TODO: Добавить перерегистрацию ФН}
-{TODO: Добавить прошивку по протоколу XModem}
-{TODO: Проверить правильность лога прошивальщика}
+{TODO: Проверить правильность лога прошивальщика - сохранение состояния ФР и ФН }
 {TODO: Сделать проверку записи тестового ПО в ККМ с рабочими ключами и наоборот}
-{TODO: Сделать работу интерфейса}
-{TODO: Сделать установщик}
-{TODO: Отдать на тестирование}
-
+{TODO: Протестировать обновление ПО на возможные ошибки - прервать обновление на разных этапах}
+{TODO: Перед перерегистрацией нужно синхронизировать время ККМ и ПК }
 
 uses
   // VCL
   Windows, SysUtils, Classes, Registry, SyncObjs, ShlObj,
   System.Zip, System.IOUtils, System.Net.HttpClient,
   System.Net.HttpClientComponent, System.DateUtils,
-  ComObj, ActiveX, JvSetupApi,
+  ComObj, ActiveX,
+  // JVCL
+  JvSetupApi,
   // TurboPower
   uTPLb_Codec, uTPLb_CryptographicLibrary,
   // This
@@ -27,8 +25,6 @@ uses
 
 const
   DFUDelayTime = 5000;
-  //LoaderRebootDelay = 15000;
-  //FirmwareRebootDelay = 30000;
   LoaderRebootDelay = 3000;
   FirmwareRebootDelay = 3000;
 
@@ -116,10 +112,6 @@ type
     Port: Integer;
   end;
 
-  { TUpdateMode }
-
-  TUpdateMode = (umDFU, umXModem);
-
   { TEcrModel }
 
   TEcrModel = record
@@ -143,8 +135,14 @@ type
     BootVer: Integer;               // Версия загрузчика
     Serial: string;
     FirmwareValid: Boolean;         //
-    PortNumber: Integer;            // Тип подключения ККМ
-    UpdateMode: TUpdateMode;        // Режим обновления ПО
+    // Тип подключения ККМ, COM, VCOM, TCP (0, 1, 2)
+    SoftwarePort: Integer;
+    // Физическое подключение ККМ, COM, VCOM, TCP
+    // Например, если касса подключена по RNDIS, то после сброса параметров
+    // искать ее нужно на порту VCOM, так как физически она подключена через USB
+    HardwarePort: Integer;          // TCP -> VCOM
+    // Номер COM порта, если HardwarePort = COM, VCOM
+    ComNumber: Integer;
     SigningKey: Integer;            // Ключи для подписи
   end;
 
@@ -184,7 +182,12 @@ type
     procedure InitializeFS(Item: TActionInitFS);
     procedure RefiscalizeFS(Item: TActionRefiscalizeFS;
       const Tables: TTableItems);
+    procedure UploadFile(const Ecr: TEcrInfo; const Path, FileName: string);
+    function XModemCancelProc: Boolean;
+    function GetHardwarePort(SoftwarePort: Integer): Integer;
+    procedure SetCurrentDateTime;
   public
+    procedure DeleteFiles;
     procedure DeleteLog;
     procedure CheckStopped;
     procedure DownloadFiles;
@@ -208,10 +211,10 @@ type
     procedure PrintCashIn(Amount: Currency);
     procedure CheckLoaderUpdated(NewBootVer: Integer);
     procedure PrintUpdateCompleted;
-    procedure XModemUploadFile(ComNumber: Integer; const Path,
-      FileName: string);
+    procedure XModemUploadFile(ComNumber: Integer; const FileName: string);
     procedure WriteLicense(const FileName, Serial: string);
     procedure WaitForDevice(const Serial: string; TimeoutInMs: Integer);
+    procedure LoadArchive(const FileName: string);
 
     function Connect: Integer;
     function ReadEcrInfo: TEcrInfo;
@@ -223,7 +226,6 @@ type
     function ReadFFDVersion: Integer;
     function ReadLicense(const FileName, Serial: string;
       var License: TEcrLicense): Boolean;
-    function GetUpdateMode(PortNumber: Integer): TUpdateMode;
     function ReadCashRegister: Currency;
     function GetLogFileName: string;
     procedure DoUpdateFirmware;
@@ -266,18 +268,25 @@ type
     property OnComplete: TNotifyEvent read FOnComplete write FOnComplete;
   end;
 
-function GenerateRNM(ANumber, AINN, ASerial: AnsiString): AnsiString;
+function GenerateRNM(const ANumber, AINN, ASerial: string): string;
 
 implementation
 
-function GenerateRNM(ANumber, AINN, ASerial: AnsiString): AnsiString;
+function AddLeadingZeros(const S: string; ACount: Integer): string;
+begin
+  Result := Copy(S, 1, ACount);
+  if ACount < Length(S) then Exit;
+  Result := StringOfChar('0', ACount - Length(S)) + S;
+end;
+
+function GenerateRNM(const ANumber, AINN, ASerial: string): string;
 var
-  S: AnsiString;
+  S: string;
 begin
    S := AddLeadingZeros(ANumber, 10) +
      AddLeadingZeros(AINN, 12) + AddLeadingZeros(ASerial, 20);
    Result := AddLeadingZeros(ANumber, 10) +
-     AddLeadingZeros(IntToStr(CRCCITT16(S, $1021, $FFFF)), 6);
+     AddLeadingZeros(IntToStr(CRCCITT16(AnsiString(S), $1021, $FFFF)), 6);
 end;
 
 
@@ -345,13 +354,6 @@ const
   EcrModels: array [0..0] of TEcrModel = (
   (Id: 0; Name: 'Test')
   );
-
-function AddLeadingZeros(const S: string; ACount: Integer): string;
-begin
-  Result := Copy(S, 1, ACount);
-  if ACount < Length(S) then Exit;
-  Result := StringOfChar('0', ACount - Length(S)) + S;
-end;
 
 function SplitLine(const ALine: string; AIndex: Integer): string;
 var
@@ -633,41 +635,35 @@ var
   Loader: TActionUpdateLoader;
   Firmware: TActionUpdateFirmware;
   Tables: TTableItems;
-  ActionWriteTables: TActionWriteTables;
 begin
-  Loader := nil;
-  Firmware := nil;
   CashRegister := 0;
   SetStatusText('Обновление устройства');
   CheckStopped;
   Driver.Check(Connect);
-  EcrInfo.UpdateMode := umDFU;
-  EcrInfo := ReadEcrInfo;
-  if EcrInfo.FirmwareValid then
-  begin
-    EcrInfo.UpdateMode := GetUpdateMode(EcrInfo.PortNumber);
-    // Чтение наличных в ККМ
-    if FParams.RestoreCashRegister then
+  try
+    EcrInfo := ReadEcrInfo;
+    if EcrInfo.FirmwareValid then
     begin
-      CashRegister := ReadCashRegister;
+      // Чтение наличных в ККМ
+      if FParams.RestoreCashRegister then
+      begin
+        CashRegister := ReadCashRegister;
+      end;
+      // Чтение таблиц
+      if FParams.SaveTables then
+      begin
+        ReadTables(EcrInfo.Serial);
+      end;
+      // Проверка режима ККМ
+      if Driver.ECRMode <> MODE_CLOSED then
+      begin
+        raise Exception.Create('ККТ на связи. Однако в данном режиме перепрошивка невозможна.'#13#10+
+          'Режим: ' + Driver.ECRModeDescription);
+      end;
+      PrintUpdateStarted;
     end;
-    // Чтение таблиц
-    if FParams.SaveTables then
-    begin
-      ReadTables(EcrInfo.Serial);
-    end;
-    // Проверка режима ККМ
-    if Driver.ECRMode <> MODE_CLOSED then
-    begin
-      raise Exception.Create('ККТ на связи. Однако в данном режиме перепрошивка невозможна.'#13#10+
-        'Режим: ' + Driver.ECRModeDescription);
-    end;
-    PrintUpdateStarted;
-  end;
-  // Format SD card
-  FormatSDCard;
-  if EcrInfo.UpdateMode = umDFU then
-  begin
+    // Format SD card
+    FormatSDCard;
     //SetVComConnection;
     // Update loader
     for Item in FItems do
@@ -677,7 +673,7 @@ begin
         Loader := Item as TActionUpdateLoader;
         if ValidLoader(EcrInfo, Loader) then
         begin
-          DfuUploadFile(FPath, Loader.FileName);
+          UploadFile(EcrInfo, FPath, Loader.FileName);
           DelayInMs(LoaderRebootDelay);
           WaitForDevice(EcrInfo.Serial, LoaderRebootTimeout);
           CheckLoaderUpdated(Loader.NewBootVer);
@@ -689,13 +685,15 @@ begin
     Firmware := FindFirmware(EcrInfo);
     if Firmware <> nil then
     begin
-      DfuUploadFile(FPath, Firmware.FileName);
+      UploadFile(EcrInfo, FPath, Firmware.FileName);
       DelayInMs(FirmwareRebootDelay);
-      // Ищем устройство на порту VCOM
+
+      // Ищем устройство на порту HardwarePort
       SearchParams.Serial := EcrInfo.Serial;
       SearchParams.Timeout := FirmwareRebootTimeout;
-      SearchParams.Port := PORT_VCOM;
+      SearchParams.Port := EcrInfo.HardwarePort;
       DiscoverDevice(SearchParams);
+
       // Проверка, обновилось ли ПО
       CheckFirmwareUpdated(Firmware);
       PrintUpdateCompleted;
@@ -726,39 +724,64 @@ begin
       DelayInMs(FirmwareRebootDelay);
       WaitForDevice(EcrInfo.Serial, FirmwareRebootTimeout);
     end;
-  end else
-  begin
-    raise Exception.Create('Не реализовано');
-  end;
-  for Item in FItems do
-  begin
-    CheckStopped;
-    case Item.Action of
-      ACTION_INIT_FS:
-      begin
-        InitializeFS(Item as TActionInitFS);
-      end;
-      ACTION_FISCALIZE_FS:
-      begin
-        FiscalizeFS(Item as TActionFiscalizeFS);
-      end;
-      ACTION_WRITE_LICENSE:
-      begin
-        WriteLicense(FPath + TActionWriteLicense(Item).FileName, EcrInfo.Serial);
-      end;
-      ACTION_REFISCALIZE_FS:
-      begin
-        RefiscalizeFS(Item as TActionRefiscalizeFS, Tables);
-      end;
-    end;
-  end;
-  if EcrInfo.FirmwareValid then
-  begin
-    if FParams.RestoreCashRegister and (CashRegister <> 0) then
+    for Item in FItems do
     begin
-      PrintCashIn(CashRegister);
+      CheckStopped;
+      case Item.Action of
+        ACTION_INIT_FS:
+        begin
+          InitializeFS(Item as TActionInitFS);
+        end;
+        ACTION_FISCALIZE_FS:
+        begin
+          FiscalizeFS(Item as TActionFiscalizeFS);
+        end;
+        ACTION_WRITE_LICENSE:
+        begin
+          WriteLicense(FPath + TActionWriteLicense(Item).FileName, EcrInfo.Serial);
+        end;
+        ACTION_REFISCALIZE_FS:
+        begin
+          RefiscalizeFS(Item as TActionRefiscalizeFS, Tables);
+        end;
+      end;
     end;
+    if EcrInfo.FirmwareValid then
+    begin
+      if FParams.RestoreCashRegister and (CashRegister <> 0) then
+      begin
+        PrintCashIn(CashRegister);
+      end;
+    end;
+  finally
+    Driver.Disconnect;
   end;
+end;
+
+procedure TFirmwareUpdater.UploadFile(const Ecr: TEcrInfo; const Path, FileName: string);
+begin
+  Driver.Disconnect;
+  case Ecr.HardwarePort of
+    PORT_COM: XModemUploadFile(Ecr.ComNumber, Path + FileName);
+    PORT_VCOM: DfuUploadFile(Path, FileName);
+    PORT_TCP:
+      raise Exception.Create('Прошивка по TCP не поддерживается');
+  else
+    raise Exception.CreateFmt('Прошивка не поддерживается, PortNumber=%d',
+      [Ecr.SoftwarePort]);
+  end;
+end;
+
+procedure TFirmwareUpdater.SetCurrentDateTime;
+var
+  CurrDate: TDateTime;
+begin
+  CurrDate := Date;
+  Driver.Date := CurrDate;
+  Driver.Check(Driver.SetDate);
+  Driver.Check(Driver.ConfirmDate);
+  Driver.Time := Time;
+  Driver.Check(Driver.SetTime);
 end;
 
 procedure TFirmwareUpdater.RefiscalizeFS(Item: TActionRefiscalizeFS;
@@ -771,6 +794,7 @@ var
   OfdParams: TOfdParams;
   IsFFDChanged: Boolean;
 begin
+  SetCurrentDateTime;
   // Перерегистрация ФФД
   case Item.FfdVersion of
     0:
@@ -858,6 +882,8 @@ begin
   // Инициализировать можно только тестовый ФН
   CheckFSDebugVersion;
   SetStatusText(Item.info + '...');
+
+  SetCurrentDateTime;
   Driver.RequestType := 22;
   Driver.Check(Driver.FNResetState);
   SetStatusText(Item.info + ': OK');
@@ -868,6 +894,7 @@ var
   RegNumber: string;
 begin
   SetStatusText(Action.info + '...');
+  SetCurrentDateTime;
   // Фискализируем только тестовый ФН
   // Слишком ответственная операция для массового применения
   CheckFSDebugVersion;
@@ -922,42 +949,34 @@ begin
 end;
 
 // Проверка типа подключения
-function TFirmwareUpdater.GetUpdateMode(PortNumber: Integer): TUpdateMode;
+function TFirmwareUpdater.GetHardwarePort(SoftwarePort: Integer): Integer;
 var
   PppMode: Integer;
   RndisActive: Boolean;
 begin
-  Result := umDFU;
-  case PortNumber of
-    PORT_COM: Result := umXModem;
-    PORT_VCOM: Result := umDFU;
+  Result := SoftwarePort;
+  case SoftwarePort of
+    PORT_COM: Result := PORT_COM;
+    PORT_VCOM: Result := PORT_VCOM;
     PORT_TCP:
     begin
       PppMode := Driver.ReadTableInt(21, 1, 1); // Режим ppp
       RndisActive := Driver.ReadTableInt(21, 1, 9) = 1; // Режим Rndis
       if RndisActive then
       begin
-        Result := umDFU;
+        Result := PORT_VCOM;
       end;
       if not RndisActive then
       begin
         case PppMode of
-          PPP_NONE:
-            raise Exception.Create('Прошивка по TCP не поддерживается');
-
+          PPP_NONE: Result := PORT_TCP;
           PPP_COM_CLIENT,
-          PPP_COM_SERVER: Result := umXModem;
-
+          PPP_COM_SERVER: Result := PORT_COM;
           PPP_VCOM_CLIENT,
-          PPP_VCOM_SERVER: Result := umDFU;
-        else
-          raise Exception.CreateFmt('Неизвестный режим PPP, %d', [PppMode]);
+          PPP_VCOM_SERVER: Result := PORT_VCOM;
         end;
       end;
     end;
-  else
-    raise Exception.CreateFmt('Прошивка не поддерживается, PortNumber=%d',
-      [PortNumber]);
   end;
 end;
 
@@ -983,14 +1002,20 @@ begin
     Result.FirmwareValid := False;
     Exit;
   end;
-  Result.PortNumber := PORT_COM;
+  Result.SoftwarePort := PORT_COM;
   Result.FirmwareVersion := '';
   Result.FirmwareBuild := -1;
   Result.FirmwareDate := -1;
   Result.SigningKey := SigningKeyUnknown;
   if Driver.ResultCode = 0 then
   begin
-    Result.PortNumber := Driver.PortNumber;
+    Result.SoftwarePort := Driver.PortNumber;
+    Result.HardwarePort := GetHardwarePort(Driver.PortNumber);
+    Result.ComNumber := Driver.ComNumber;
+    // Мы не знаем к какому порту подключен ФР физически
+    if Result.SoftwarePort = PORT_TCP then
+      Result.ComNumber := 0;
+
     Result.FirmwareVersion := Driver.ECRSoftVersion;
     Result.FirmwareBuild := Driver.ECRBuild;
     Result.FirmwareDate := Driver.ECRSoftDate;
@@ -1021,10 +1046,22 @@ begin
   end;
 end;
 
+procedure TFirmwareUpdater.LoadArchive(const FileName: string);
+begin
+  FPath := GetEnvironmentVariable('TEMP')+'\'+copy(TPath.GetRandomFileName,1,8)+'\';
+  ForceDirectories(FPath);
+  UnzipArhive(FPath, FileName);
+  LoadFiles(FPath);
+end;
+
+procedure TFirmwareUpdater.DeleteFiles;
+begin
+  TDirectory.Delete(FPath, True);
+end;
+
 procedure TFirmwareUpdater.DownloadFiles;
 var
   FileName: string;
-  ArchiveDownloaded: Boolean;
 begin
   FPath := GetEnvironmentVariable('TEMP')+'\'+copy(TPath.GetRandomFileName,1,8)+'\';
   ForceDirectories(FPath);
@@ -1311,22 +1348,33 @@ begin
 end;
 
 procedure TFirmwareUpdater.XModemUploadFile(ComNumber: Integer;
-  const Path, FileName: string);
+  const FileName: string);
 var
   Modem: TXModem;
+  StartTime: TDateTime;
 begin
-  Logger.Debug('WriteFirmware ' + FileName);
+  StartTime := Now;
+  SetStatusText('XModem, запись файла ' + FileName);
   Modem := TXModem.Create;
   try
     Modem.PortNumber := ComNumber;
     Modem.Baudrate := 115200;
     Modem.Timeout := 3000;
-    //Modem.OnCancel := Cancelled;
+    Modem.LogOn := False;
+    Modem.OnCancel := XModemCancelProc;
     //Modem.OnPercent := OnPercent;
-    Modem.SendFile(Path + FileName);
+    Modem.SendFile(FileName);
   finally
     Modem.Free;
   end;
+  SetStatusText('XModem, запись выполнена успешно');
+  Logger.Debug(Format('XModem, запись выполнена за %d мс.', [
+    MilliSecondsBetween(Now, StartTime)]));
+end;
+
+function TFirmwareUpdater.XModemCancelProc: Boolean;
+begin
+  Result := FStopped;
 end;
 
 procedure TFirmwareUpdater.DelayInMs(DelayInMs: Integer);
@@ -1421,8 +1469,6 @@ begin
 end;
 
 function TFirmwareUpdater.Connect: Integer;
-var
-  CurrDate: TDateTime;
 begin
   Result := Driver.GetShortECRStatus;
   // FPTR_E_RAM_FAIL  = $74; // ошибка в ОЗУ ()
@@ -1443,12 +1489,7 @@ begin
   begin
     if Driver.ECRMode = MODE_TECH then
     begin
-      CurrDate := Date;
-      Driver.Date := CurrDate;
-      Driver.Check(Driver.SetDate);
-      Driver.Check(Driver.ConfirmDate);
-      Driver.Time := Time;
-      Driver.Check(Driver.SetTime);
+      SetCurrentDateTime;
     end;
   end;
 end;
@@ -1507,6 +1548,7 @@ begin
         Driver.ComNumber := Port.PortNumber;
         Driver.BaudRate := Port.BaudRate;
         Driver.Timeout := 1000;
+        Driver.Check(Driver.Connect);
         if Driver.BaudRate < BAUD_RATE_CODE_115200 then
         begin
           Logger.Debug('Установка скорости ККМ 115200');
@@ -1526,7 +1568,6 @@ end;
 function TFirmwareUpdater.FindDeviceLocal2(const Params: TSearchParams): Boolean;
 var
   RC: Integer;
-  CurDate: TDateTime;
 begin
   Driver.ConnectionType := CT_LOCAL;
   RC := Driver.FindDevice;
@@ -1538,13 +1579,7 @@ begin
     else
       Driver.Check(Rc);
 
-    CurDate := Date;
-    Driver.Date := CurDate;
-    Driver.Check(Driver.SetDate);
-    Driver.Date := CurDate;
-    Driver.Check(Driver.ConfirmDate);
-    Driver.Time := Time;
-    Driver.Check(Driver.SetTime);
+    SetCurrentDateTime;
   end;
   Driver.Check(RC);
   Driver.Check(Driver.ReadSerialNumber);
@@ -1879,6 +1914,7 @@ end;
 function TFirmwareUpdater.ValidFirmware(const Ecr: TEcrInfo;
   const Item: TActionUpdateFirmware): Boolean;
 begin
+  Result := False;
   if  Ecr.BootVer >= Item.CurrBootVer then
   begin
     Result := True;
@@ -1890,26 +1926,6 @@ begin
     end;
   end;
 end;
-
-(*
-function TFirmwareUpdater.FindItemIndex(const Ecr: TEcrInfo;
-  Action: Integer): Integer;
-var
-  i: Integer;
-  Item: TUpdateItem;
-begin
-  Result := -1;
-  for i := Low(FItems) to High(FItems) do
-  begin
-    Item := FItems[i];
-    if (Item.Action = Action)and ValidUpdateItem(Action, Ecr, Item) then
-    begin
-      Result := i;
-      Exit;
-    end;
-  end;
-end;
-*)
 
 function TFirmwareUpdater.FindLastLoader(Ecr: TEcrInfo): TActionUpdateLoader;
 var
@@ -1944,9 +1960,7 @@ begin
   Result := nil;
 end;
 
-
 (*
-
 procedure TFirmwareUpdater.CheckSigningKey(EcrSigningKey, FileSigningKey: Integer);
 begin
   if EcrSigningKey = SigningKeyUnknown then Exit;
@@ -1956,32 +1970,9 @@ begin
 
 end;
 
-function TFirmwareUpdater.FindUpdateItem(const Data: TEcrInfo;
-  Action: Integer; var Item: TUpdateItem): Boolean;
-var
-  Index: Integer;
-begin
-  Index := FindItemIndex(Data, Action);
-  Result := Index <> -1;
-  if Result then
-    Item := FItems[Index];
-end;
-
 
 *)
 
-
-///////////////////////////////////////////////////////////////////////////////
-// 1. Если документы не уходят, то можно перезагрузить устройство
-// или пропинговать сервер? или еще как-то возобновить сетевое подключение
-// или нужно проверить что документы ушли перед обновлением ПО
-//
-// 2. Протестировать обновление ПО на возможные ошибки - прервать обновление
-// на разных этапах.
-//
-// 3. Проверить переключение в режим VCOM до обновления ПО
-//
-///////////////////////////////////////////////////////////////////////////////
 
 
 end.

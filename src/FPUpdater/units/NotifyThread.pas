@@ -17,8 +17,6 @@ type
   public
     constructor CreateThread(AOnExecute: TNotifyEvent);
     property OnExecute: TNotifyEvent read FOnExecute write FOnExecute;
-  published
-    property Terminated;
   end;
 
 implementation

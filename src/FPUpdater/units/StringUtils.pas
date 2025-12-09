@@ -6,11 +6,11 @@ uses
   // VCL
   Windows, SysUtils, Classes;
 
-function IsDigit(Key: Char): Boolean;
+function IsDigit(Key: AnsiChar): Boolean;
 function ConvertCharCodeString(const S: WideString): WideString;
 
 type
-  TSetOfChar = set of char;
+  TSetOfChar = set of AnsiChar;
 
     TWideStringStream = class(TStream)
     private
@@ -49,27 +49,27 @@ type
     end;
 
 function Inverse(const S: AnsiString): AnsiString;
-function StrToHex(const S: AnsiString): AnsiString;
-function StrToHexText(const S: AnsiString): AnsiString;
-function HexToStr(const Data: AnsiString): AnsiString;
-function CurrencyToStr(Value: Currency): AnsiString;
-function StrToCurrency(const S: AnsiString): Currency;
+function StrToHex(const S: AnsiString): string;
+function StrToHexText(const S: AnsiString): string;
+function HexToStr(const Data: string): AnsiString;
+function CurrencyToStr(Value: Currency): string;
+function StrToCurrency(const S: string): Currency;
 function BoolToStr(Value: Boolean): AnsiString;
 
 function Str1251To866(const S: AnsiString): AnsiString;
 function Str866To1251(const S: AnsiString): AnsiString;
 
-function GetString(const S: AnsiString; K: Integer; Delimiters: TSetOfChar): AnsiString;
-function GetInteger(const Data: AnsiString; Index: Integer; Delimiters: TSetOfChar): Integer;
+function GetString(const S: string; K: Integer; Delimiters: TSetOfChar): string;
+function GetInteger(const Data: string; Index: Integer; Delimiters: TSetOfChar): Integer;
 
 function WideStringToAnsiString(CodePage: Integer; const S: WideString): AnsiString;
 function AnsiStringToWideString(CodePage: Integer; const S: AnsiString): WideString;
 
-function AddLeadingZeros(const S: AnsiString; ACount: Integer): AnsiString;
-function AddFinalSpaces(const S: AnsiString; ACount: Integer): AnsiString;
+function AddLeadingZeros(const S: string; ACount: Integer): string;
+function AddFinalSpaces(const S: string; ACount: Integer): string;
 function DecimalToString(Value: Currency): WideString;
-function AddLeadingZerobytes(const S: AnsiString; ACount: Integer): AnsiString;
-function AddFinalZeroByts(const S: AnsiString; ACount: Integer): AnsiString;
+function AddLeadingZerobytes(const S: string; ACount: Integer): string;
+function AddFinalZeroByts(const S: string; ACount: Integer): string;
 
 
 implementation
@@ -121,37 +121,37 @@ resourcestring
 
   SStringTableTooSmall = 'String table capacity too small'; 
 
-function AddLeadingZeros(const S: AnsiString; ACount: Integer): AnsiString;
+function AddLeadingZeros(const S: string; ACount: Integer): string;
 begin
   Result := Copy(S, 1, ACount);
   if ACount < Length(S) then Exit;
   Result := StringOfChar('0', ACount - Length(S)) + S;
 end;
 
-function AddLeadingZerobytes(const S: AnsiString; ACount: Integer): AnsiString;
+function AddLeadingZerobytes(const S: string; ACount: Integer): string;
 begin
   Result := Copy(S, 1, ACount);
   if ACount < Length(S) then Exit;
   Result := StringOfChar(#0, ACount - Length(S)) + S;
 end;
 
-function AddFinalSpaces(const S: AnsiString; ACount: Integer): AnsiString;
+function AddFinalSpaces(const S: string; ACount: Integer): string;
 begin
   Result := Copy(S, 1, ACount);
   if ACount < Length(S) then Exit;
   Result := S + StringOfChar(' ', ACount - Length(S));
 end;
 
-function AddFinalZeroByts(const S: AnsiString; ACount: Integer): AnsiString;
+function AddFinalZeroByts(const S: string; ACount: Integer): string;
 begin
   Result := Copy(S, 1, ACount);
   if ACount < Length(S) then Exit;
   Result := S + StringOfChar(#0, ACount - Length(S));
 end;
 
-function IsDigit(Key: Char): Boolean;
+function IsDigit(Key: AnsiChar): Boolean;
 begin
-  Result := Key in ['0'..'9', Char(VK_CLEAR), Char(VK_BACK)];
+  Result := Key in ['0'..'9', AnsiChar(VK_CLEAR), AnsiChar(VK_BACK)];
 end;
 
 // Преобразование строки для реализации возможности установки шрифтов.
@@ -195,7 +195,7 @@ begin
 end;
 
 
-function GetSubString(const S: AnsiString; var Value: AnsiString; K: Integer;
+function GetSubString(const S: string; var Value: string; K: Integer;
   Delimiters: TSetOfChar): Boolean;
 var
   LastPos: Integer;
@@ -211,7 +211,8 @@ begin
   while (CurPos <= Len) and (CurParam <= K) do
   begin
     LastPos := CurPos;
-    while (CurPos <= Len) and not (S[CurPos] in Delimiters) do Inc(CurPos);
+
+    while (CurPos <= Len) and not (CharInSet(S[CurPos], Delimiters)) do Inc(CurPos);
     if CurParam = K then
     begin
       Result := True;
@@ -223,15 +224,15 @@ begin
   end;
 end;
 
-function GetString(const S: AnsiString; K: Integer; Delimiters: TSetOfChar): AnsiString;
+function GetString(const S: string; K: Integer; Delimiters: TSetOfChar): string;
 begin
   Result := '';
   GetSubString(S, Result, K, Delimiters);
 end;
 
-function GetInteger(const Data: AnsiString; Index: Integer; Delimiters: TSetOfChar): Integer;
+function GetInteger(const Data: string; Index: Integer; Delimiters: TSetOfChar): Integer;
 var
-  S: AnsiString;
+  S: string;
 begin
   Result := 0;
   if GetSubString(Data, S, Index, Delimiters) then
@@ -247,7 +248,7 @@ begin
     Result := Result + AnsiChar(Ord(S[i]) xor $FF);
 end;
 
-function CurrencyToStr(Value: Currency): AnsiString;
+function CurrencyToStr(Value: Currency): string;
 var
   SaveDecimalSeparator: Char;
 begin
@@ -260,7 +261,7 @@ begin
   end;
 end;
 
-function StrToCurrency(const S: AnsiString): Currency;
+function StrToCurrency(const S: string): Currency;
 var
   SaveDecimalSeparator: Char;
 begin
@@ -273,7 +274,7 @@ begin
   end;
 end;
 
-function StrToHex(const S: AnsiString): AnsiString;
+function StrToHex(const S: AnsiString): string;
 var
   i: Integer;
 begin
@@ -285,7 +286,7 @@ begin
   end;
 end;
 
-function StrToHexText(const S: AnsiString): AnsiString;
+function StrToHexText(const S: AnsiString): string;
 var
   i: Integer;
 begin
@@ -296,9 +297,9 @@ begin
   end;
 end;
 
-function HexToStr(const Data: AnsiString): AnsiString;
+function HexToStr(const Data: string): AnsiString;
 var
-  S: AnsiString;
+  S: string;
   i: Integer;
   V, Code: Integer;
 begin

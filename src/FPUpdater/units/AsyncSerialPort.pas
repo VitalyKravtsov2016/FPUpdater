@@ -85,7 +85,7 @@ type
     FOnRxChar: TCommRxCharEvent;
     FOnRxFlag: TNotifyEvent;
     FOnTxEmpty: TNotifyEvent;
-    fPortName: AnsiString;
+    FPortName: string;
     function GetEnabled: Boolean;
     procedure SetEnabled(Value: Boolean);
     procedure SetBaudRate(Value: Integer);
@@ -101,15 +101,15 @@ type
     procedure EscapeComm(Flag: Integer);
     procedure InitHandshaking(var DCB: TDCB);
     procedure UpdateCommTimeouts;
-    procedure SetPortName(Value: AnsiString);
+    procedure SetPortName(Value: string);
     procedure SetSignals;
     //procedure RaiseError(const MethodName: AnsiString);
-  protected
+  public
     procedure CreateHandle;
     procedure DestroyHandle;
     procedure HandleCommEvent(Sender: TObject; Status: dword);
     procedure UpdateDataControlBlock;
-    property PortName: AnsiString read FPortName write SetPortName;
+    property PortName: string read FPortName write SetPortName;
     property ReadTimeout: Integer read FReadTimeout write FReadTimeout default 1000;
     property WriteTimeout: Integer read FWriteTimeout write FWriteTimeout default 1000;
     property ReadBufSize: Integer read FReadBufSize write FReadBufSize default 1024;
@@ -166,37 +166,13 @@ type
 
   { TAsyncSerialPort }
 
-  TAsyncSerialPort = class(TCustomComm)
-  published
-    property PortName;
-    property ReadTimeout;
-    property WriteTimeout;
-    property ReadBufSize;
-    property WriteBufSize;
-    property MonitorEvents;
-    property BaudRate;
-    property Parity;
-    property Stopbits;
-    property Databits;
-    property EventChars;
-    property Options;
-    property FlowControl;
-    property OnBreak;
-    property OnCts;
-    property OnDsr;
-    property OnRing;
-    property OnRlsd;
-    property OnError;
-    property OnRxChar;
-    property OnRxFlag;
-    property OnTxEmpty;
-  end;
+  TAsyncSerialPort = class(TCustomComm);
 
 function GetProviderSubTypeName(Id: Integer): AnsiString;
 
 implementation
 
-function StrToHex(const S: AnsiString): AnsiString;
+function StrToHex(const S: AnsiString): string;
 var
   i: Integer;
 begin
@@ -208,10 +184,10 @@ begin
   end;
 end;
 
-procedure ODS(const S: AnsiString);
+procedure ODS(const S: string);
 begin
 {$IFDEF DEBUG}
-  OutputDebugString(PChar(S));
+  //OutputDebugString(PChar(S));
 {$ENDIF}
 end;
 
@@ -409,7 +385,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TCustomComm.SetPortName(Value: AnsiString);
+procedure TCustomComm.SetPortName(Value: string);
 begin
   if Value <> PortName then
   begin
@@ -443,9 +419,9 @@ end;
 
 procedure TCustomComm.CreateHandle;
 var
-  Text: AnsiString;
-  DeviceName: string;
   i: Integer;
+  Text: string;
+  DeviceName: string;
 begin
 for i := 1 to 3 do
   begin

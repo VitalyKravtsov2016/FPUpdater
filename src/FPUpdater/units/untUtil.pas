@@ -139,8 +139,8 @@ function TimeoutToByte(Value: Integer): Byte;
 begin
   case Value of
     0..150        : Result := Value;
-    151..15000    : Result := Round2(Value/150)+149;
-    15001..105000 : Result := Round2(Value/15000)+248;
+    151..15000    : Result := Round(Value/150)+149;
+    15001..105000 : Result := Round(Value/15000)+248;
   else
     Result := Value;
   end;

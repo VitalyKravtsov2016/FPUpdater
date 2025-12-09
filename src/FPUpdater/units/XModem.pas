@@ -35,10 +35,13 @@ type
     function ReadChar: AnsiChar;
     procedure Write(const Data: AnsiString);
     procedure CheckCancelled;
+    procedure LogDebug(const Data: string);
   public
     procedure SendFile(const AFileName: string);
     constructor Create;
     destructor Destroy; override;
+
+    property LogOn: Boolean read FLogOn write FLogOn;
     property Port: TAsyncSerialPort read FPort write FPort;
     property PortNumber: Integer read FPortNumber write FPortNumber;
     property Baudrate: Integer read FBaudrate write FBaudrate;
@@ -47,6 +50,11 @@ type
     property OnPercent: TNotifyEvent read FOnPercent write FOnPercent;
     property Percent: Integer read FPercent write FPercent;
   end;
+
+function CRCCITT16(const Buffer: AnsiString; Polynom, Initial: Word): Word;
+
+implementation
+
 const
   STX = #2;
   ENQ = #5;
@@ -55,9 +63,17 @@ const
   EOT = #04;
   CAN = #$18;
 
-function CRCCITT16(const Buffer: AnsiString; Polynom, Initial: Word): Word;
-
-implementation
+function StrToHex(const S: AnsiString; ASpace: Boolean = True): string;
+var
+  i: Integer;
+begin
+  Result := '';
+  for i := 1 to Length(S) do
+  begin
+    Result := Result + IntToHex(Ord(S[i]), 2);
+    if ASpace then Result := Result + ' ';
+  end;
+end;
 
 function ReadFileData(const FileName: string): AnsiString;
 var
@@ -95,6 +111,12 @@ begin
 end;
 {$R+}
 
+procedure TXModem.LogDebug(const Data: string);
+begin
+  if FLogOn then
+    Logger.Debug(Data);
+end;
+
 procedure TXModem.CheckCancelled;
 begin
   if Assigned(FOnCancel) then
@@ -126,18 +148,6 @@ begin
   inherited;
 end;
 
-function StrToHex(const S: AnsiString; ASpace: Boolean = True): AnsiString;
-var
-  i: Integer;
-begin
-  Result := '';
-  for i := 1 to Length(S) do
-  begin
-    Result := Result + AnsiString(IntToHex(Ord(S[i]), 2));
-    if ASpace then Result := Result + ' ';
-  end;
-end;
-
 procedure TXModem.OnRxChar(Sender: TObject; Count: Integer);
 var
   i: Integer;
@@ -148,12 +158,12 @@ begin
   begin
     if Ord(S[i]) = $43 then
     begin
-      Logger.Debug('Got XModem Sync char');
+      LogDebug('Got XModem Sync char');
       FDeviceReady := True;
       Break;
     end
     else
-      Logger.Debug('Try to read sync char: ' + StrToHex(S[i]));
+      LogDebug('Try to read sync char: ' + String(StrToHex(S[i])));
   end;
 end;
 
@@ -161,9 +171,7 @@ function TXModem.Read(Count: Integer): AnsiString;
 begin
   try
     Result := Port.Read(Count);
-    if FLogOn then
-      Logger.Debug('<- ' + StrToHex(Result));
-
+    LogDebug('<- ' + StrToHex(Result));
   except
     on E: Exception do
     begin
@@ -244,9 +252,7 @@ begin
   Port.ReadTimeout := FTimeout;
   Port.Open;
   try
-    FLogOn := True;
     Reboot;
-    FLogOn := False;
     FPort.OnRxChar := OnRxChar;
     WaitForDeviceReady;
     FPort.OnRxChar := nil;
@@ -259,10 +265,11 @@ end;
 procedure TXModem.SendPacket(const AData: AnsiString);
 var
   i: Integer;
-  Packet: AnsiString;
   C: AnsiChar;
+  Packet: AnsiString;
 begin
-  Packet := #$01 + AnsiChar(FFrameNumber) + AnsiChar($FF - FFrameNumber) + AData + CRC16(AData);
+  Packet := #$01 + AnsiString(AnsiChar(FFrameNumber)) + AnsiString(AnsiChar($FF - FFrameNumber))
+   + AData + CRC16(AData);
   if FFrameNumber = $FF then
     FFrameNumber := 0
   else
@@ -290,7 +297,7 @@ var
   Number: Integer;
   Count: Integer;
 begin
-  Logger.Debug('Transmit file: ' + AFileName);
+  LogDebug('Transmit file: ' + AFileName);
   FFrameNumber := 1;
   Data := ReadFileData(AFileName);
   FPercent := 0;
@@ -301,10 +308,14 @@ begin
     SendPacket(Copy(Data, k, 128));
     Inc(k, 128);
     Inc (Number);
-    FPercent := Trunc((Number/Count) * 100);
-//    Logger.Debug(IntToStr(Number) + '/' + IntToStr(Count));
-    if Assigned(FOnPercent) then
-      FOnPercent(Self);
+    FPercent := 0;
+    if Count <> 0 then
+    begin
+      FPercent := Trunc((Number/Count) * 100);
+      LogDebug(IntToStr(Number) + '/' + IntToStr(Count));
+      if Assigned(FOnPercent) then
+        FOnPercent(Self);
+    end;
     CheckCancelled;
   until k >= Length(Data);
   Write(EOT);
@@ -325,8 +336,7 @@ end;
 
 procedure TXModem.Write(const Data: AnsiString);
 begin
-  if FLogOn then
-    Logger.Debug('-> ' + StrToHex(Data));
+  LogDebug('-> ' + StrToHex(Data));
   Port.Write(Data);
 end;
 

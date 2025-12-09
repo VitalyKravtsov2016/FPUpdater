@@ -55,7 +55,7 @@ begin
         if BytesRead = 0 then Break;
         Buffer[BytesRead] := #0;
         OemToAnsi(@Buffer[0], @Buffer[0]);
-        Output := Output + StrPas(Buffer);
+        Output := Output + String(StrPas(Buffer));
       end;
       WaitForSingleObject(PI.hProcess, INFINITE);
       GetExitCodeProcess(PI.hProcess, Result);

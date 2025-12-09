@@ -6,7 +6,7 @@ uses
   // VCL
   Windows, SysUtils,
   //This
-  LangUtils;
+  LangUtils, BinUtils;
 
 const
   /////////////////////////////////////////////////////////////////////////////
@@ -981,16 +981,6 @@ function GetLanguageName(Code: Integer): WideString;
 
 implementation
 
-procedure SetBit(var Value: Word; Bit: Byte);
-begin
-  Value := Value or (1 shl Bit);
-end;
-
-function TestBit(Value, Bit: Integer): Boolean;
-begin
-  Result := (Value and (1 shl Bit)) <> 0;
-end;
-
 function EncodePrinterFlags(Flags: TPrinterFlags): Word;
 begin
   Result := 0;
@@ -1237,22 +1227,18 @@ resourcestring
   SUnknownDeviceSubmode = 'Неизвестный подрежим устройства (%d)';
 
 function GetAdvancedModeDescription(Value: Integer): WideString;
-var
-  Res: PResStringRec;
 begin
   Result := '';
   case Value of
-    0: Res := @SPaperPresented;
-    1: Res := @SPassivePaperAbsense;
-    2: Res := @SActivePaperAbsence;
-    3: Res := @SAfterActivePaperAbsence;
-    4: Res := @SLongReportPrintingStage;
-    5: Res := @SOperationPrintingStage;
+    0: Result := GetRes(@SPaperPresented);
+    1: Result := GetRes(@SPassivePaperAbsense);
+    2: Result := GetRes(@SActivePaperAbsence);
+    3: Result := GetRes(@SAfterActivePaperAbsence);
+    4: Result := GetRes(@SLongReportPrintingStage);
+    5: Result := GetRes(@SOperationPrintingStage);
   else
     Result := Format(GetRes(@SUnknownDeviceSubmode), [Value]);
   end;
-  if Result = '' then
-    Result := GetRes(Res);
 end;
 
 
@@ -1267,23 +1253,19 @@ resourcestring
   SUnknownDeviceCode = 'Неизвестный код устройства (%d)';
 
 function GetDeviceCodeDescription(Value: Integer): WideString;
-var
-  Res: PResStringRec;
 begin
   Result := '';
   case Value of
-    1: Res := @SFMAccumulator1;
-    2: Res := @SFMAccumulator2;
-    3: Res := @SClock;
-    4: Res := @SVNRAM;
-    5: Res := @SFMProcessor;
-    6: Res := @SECRSoftMemory;
-    7: Res := @SECRRAM;
+    1: Result := GetRes(@SFMAccumulator1);
+    2: Result := GetRes(@SFMAccumulator2);
+    3: Result := GetRes(@SClock);
+    4: Result := GetRes(@SVNRAM);
+    5: Result := GetRes(@SFMProcessor);
+    6: Result := GetRes(@SECRSoftMemory);
+    7: Result := GetRes(@SECRRAM);
   else
     Result := Format(GetRes(@SUnknownDeviceCode), [Value]);
   end;
-  if Result = '' then
-    Result := GetRes(Res);
 end;
 
 resourcestring
@@ -1317,43 +1299,39 @@ resourcestring
   SUnknownMode = 'Неизвестный режим (%d)';
 
 function GetModeDescription(Value: Integer): WideString;
-var
-  Res: PResStringRec;
 begin
   Result := '';
   case Value of
-    $01: Res := @SDataDumping;
-    $02: Res := @SOpenedDayNot24hOver;
-    $03: Res := @SOpenedDay24hOver;
-    $04: Res := @SClosedDay;
-    $05: Res := @SBlockingByWrongPassword;
-    $06: Res := @SWaitingForDateConfirm;
-    $07: Res := @SPermissionToChangeDecimalPoint;
-    $08: Res := @SOpenedDocumentSale;
-    $09: Res := @STechResetPermissionMode;
-    $0A: Res := @STestPassing;
-    $0B: Res := @SFullReportPrinting;
-    $0C: Res := @SEJReportPrinting;
-    $0D: Res := @SSalesSlipOpened;
-    $0E: Res := @SWaitingForSlipCarge;
-    $0F: Res := @SSlipIsFormed;
-    $18: Res := @SOpenedDocumentBuy;
-    $1D: Res := @SOpenedBuySlip;
-    $1E: Res := @SSlipLoadingAndPositioning;
-    $28: Res := @SOpenedDocumentSaleReturn;
-    $2D: Res := @SOpenedSaleReturnSlip;
-    $2E: Res := @SSlipPositioning;
-    $38: Res := @SOpenedDocumentBuyReturn;
-    $3D: Res := @SOpenedBuyReturnSlip;
-    $3E: Res := @SSlipPrinting;
-    $4C: Res := @SSlipPrintingIsFinished;
-    $5E: Res := @SSlipEject;
-    $6E: Res := @SWaitingForSlipEject;
+    $01: Result := GetRes(@SDataDumping);
+    $02: Result := GetRes(@SOpenedDayNot24hOver);
+    $03: Result := GetRes(@SOpenedDay24hOver);
+    $04: Result := GetRes(@SClosedDay);
+    $05: Result := GetRes(@SBlockingByWrongPassword);
+    $06: Result := GetRes(@SWaitingForDateConfirm);
+    $07: Result := GetRes(@SPermissionToChangeDecimalPoint);
+    $08: Result := GetRes(@SOpenedDocumentSale);
+    $09: Result := GetRes(@STechResetPermissionMode);
+    $0A: Result := GetRes(@STestPassing);
+    $0B: Result := GetRes(@SFullReportPrinting);
+    $0C: Result := GetRes(@SEJReportPrinting);
+    $0D: Result := GetRes(@SSalesSlipOpened);
+    $0E: Result := GetRes(@SWaitingForSlipCarge);
+    $0F: Result := GetRes(@SSlipIsFormed);
+    $18: Result := GetRes(@SOpenedDocumentBuy);
+    $1D: Result := GetRes(@SOpenedBuySlip);
+    $1E: Result := GetRes(@SSlipLoadingAndPositioning);
+    $28: Result := GetRes(@SOpenedDocumentSaleReturn);
+    $2D: Result := GetRes(@SOpenedSaleReturnSlip);
+    $2E: Result := GetRes(@SSlipPositioning);
+    $38: Result := GetRes(@SOpenedDocumentBuyReturn);
+    $3D: Result := GetRes(@SOpenedBuyReturnSlip);
+    $3E: Result := GetRes(@SSlipPrinting);
+    $4C: Result := GetRes(@SSlipPrintingIsFinished);
+    $5E: Result := GetRes(@SSlipEject);
+    $6E: Result := GetRes(@SWaitingForSlipEject);
   else
     Result := Format(GetRes(@SUnknownMode), [Value]);
   end;
-  if Result = '' then
-    Result := GetRes(Res);
 end;
 
 { Get command name }

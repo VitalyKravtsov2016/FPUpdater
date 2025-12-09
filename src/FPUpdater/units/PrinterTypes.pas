@@ -2139,42 +2139,34 @@ end;
 
 
 function GetAdvancedModeDescription(Value: Integer): WideString;
-var
-  Res: PResStringRec;
 begin
   Result := '';
   case Value of
-    0: Res := @SAdvancedMode0;
-    1: Res := @SAdvancedMode1;
-    2: Res := @SAdvancedMode2;
-    3: Res := @SAdvancedMode3;
-    4: Res := @SAdvancedMode4;
-    5: Res := @SAdvancedMode5;
+    0: Result := GetRes(@SAdvancedMode0);
+    1: Result := GetRes(@SAdvancedMode1);
+    2: Result := GetRes(@SAdvancedMode2);
+    3: Result := GetRes(@SAdvancedMode3);
+    4: Result := GetRes(@SAdvancedMode4);
+    5: Result := GetRes(@SAdvancedMode5);
   else
     Result := Format(GetRes(@SAdvancedModeUnknown), [Value]);
   end;
-  if Result = '' then
-    Result := GetRes(Res);
 end;
 
 function GetDeviceCodeDescription(Value: Integer): WideString;
-var
-  Res: PResStringRec;
 begin
   Result := '';
   case Value of
-    1: Res := @SDeviceCode1;
-    2: Res := @SDeviceCode2;
-    3: Res := @SDeviceCode3;
-    4: Res := @SDeviceCode4;
-    5: Res := @SDeviceCode5;
-    6: Res := @SDeviceCode6;
-    7: Res := @SDeviceCode7;
+    1: Result := GetRes(@SDeviceCode1);
+    2: Result := GetRes(@SDeviceCode2);
+    3: Result := GetRes(@SDeviceCode3);
+    4: Result := GetRes(@SDeviceCode4);
+    5: Result := GetRes(@SDeviceCode5);
+    6: Result := GetRes(@SDeviceCode6);
+    7: Result := GetRes(@SDeviceCode7);
   else
     Result := Format(GetRes(@SDeviceCodeUnknown), [Value]);
   end;
-  if Result = '' then
-    Result := GetRes(Res);
 end;
 
 function WordToStr(Value: Word): AnsiString;
@@ -2187,46 +2179,43 @@ end;
 function GetECRModeDescription(Value: Integer): WideString;
 var
   Status: Integer;
-  Res: PResStringRec;
 begin
   Result := '';
   // Старший бит означает, что есть документ для допечатывания
   Status := Value and $7F;
   case Status of
-    $01: Res := @SDeviceMode01;
-    $02: Res := @SDeviceMode02;
-    $03: Res := @SDeviceMode03;
-    $04: Res := @SDeviceMode04;
-    $05: Res := @SDeviceMode05;
-    $06: Res := @SDeviceMode06;
-    $07: Res := @SDeviceMode07;
-    $08: Res := @SDeviceMode08;
-    $09: Res := @SDeviceMode09;
-    $0A: Res := @SDeviceMode0A;
-    $0B: Res := @SDeviceMode0B;
-    $0C: Res := @SDeviceMode0C;
-    $0D: Res := @SDeviceMode0D;
-    $0E: Res := @SDeviceMode0E;
-    $0F: Res := @SDeviceMode0F;
-    $18: Res := @SDeviceMode18;
-    $1D: Res := @SDeviceMode1D;
-    $1E: Res := @SDeviceMode1E;
-    $28: Res := @SDeviceMode28;
-    $2D: Res := @SDeviceMode2D;
-    $2E: Res := @SDeviceMode2E;
-    $38: Res := @SDeviceMode38;
-    $48: Res := @SDeviceMode48;
-    $3D: Res := @SDeviceMode3D;
-    $3E: Res := @SDeviceMode3E;
-    $4C: Res := @SDeviceMode4C;
-  	$4E: Res := @SDeviceMode4E;
-    $5E: Res := @SDeviceMode5E;
-    $6E: Res := @SDeviceMode6E;
+    $01: Result := GetRes(@SDeviceMode01);
+    $02: Result := GetRes(@SDeviceMode02);
+    $03: Result := GetRes(@SDeviceMode03);
+    $04: Result := GetRes(@SDeviceMode04);
+    $05: Result := GetRes(@SDeviceMode05);
+    $06: Result := GetRes(@SDeviceMode06);
+    $07: Result := GetRes(@SDeviceMode07);
+    $08: Result := GetRes(@SDeviceMode08);
+    $09: Result := GetRes(@SDeviceMode09);
+    $0A: Result := GetRes(@SDeviceMode0A);
+    $0B: Result := GetRes(@SDeviceMode0B);
+    $0C: Result := GetRes(@SDeviceMode0C);
+    $0D: Result := GetRes(@SDeviceMode0D);
+    $0E: Result := GetRes(@SDeviceMode0E);
+    $0F: Result := GetRes(@SDeviceMode0F);
+    $18: Result := GetRes(@SDeviceMode18);
+    $1D: Result := GetRes(@SDeviceMode1D);
+    $1E: Result := GetRes(@SDeviceMode1E);
+    $28: Result := GetRes(@SDeviceMode28);
+    $2D: Result := GetRes(@SDeviceMode2D);
+    $2E: Result := GetRes(@SDeviceMode2E);
+    $38: Result := GetRes(@SDeviceMode38);
+    $48: Result := GetRes(@SDeviceMode48);
+    $3D: Result := GetRes(@SDeviceMode3D);
+    $3E: Result := GetRes(@SDeviceMode3E);
+    $4C: Result := GetRes(@SDeviceMode4C);
+  	$4E: Result := GetRes(@SDeviceMode4E);
+    $5E: Result := GetRes(@SDeviceMode5E);
+    $6E: Result := GetRes(@SDeviceMode6E);
   else
     Result := Format(GetRes(@SDeviceModeUnknown), [Value]);
   end;
-  if Result = '' then
-    Result := GetRes(Res);
   if TestBit(Value, 7) then
     Result := Result + GetRes(@SCorrectionReceipt);
 end;

@@ -19,6 +19,7 @@ type
     FMaxFileSize: Integer;
     FMaxFileCount: Integer;
     FLock: TCriticalSection;
+    FEncoding: TEncoding;
 
     procedure Lock;
     procedure Unlock;
@@ -69,7 +70,6 @@ function GlobalLogger: TLogFile;
 implementation
 
 const
-  StrLen        = 20; // Максимальная длина строки данных
   S_SEPARATOR   = '------------------------------------------------------------';
 
   TagInfo         = '[ INFO] ';
@@ -146,12 +146,14 @@ begin
   inherited Create;
   FLock := TCriticalSection.Create;
   FHandle := INVALID_HANDLE_VALUE;
+  FEncoding := TUTF8Encoding.Create;
 end;
 
 destructor TLogFile.Destroy;
 begin
   CloseFile;
   FLock.Free;
+  FEncoding.Free;
   inherited Destroy;
 end;
 
@@ -241,7 +243,34 @@ end;
 
 procedure TLogFile.Write(const Data: string);
 var
-  S: Ansistring;
+  Count: DWORD;
+  Buffer: TBytes;
+begin
+  ODS(Data);
+
+  Buffer := FEncoding.GetBytes(Data);
+
+  Lock;
+  try
+    if not Enabled then Exit;
+    OpenFile;
+    if Opened then
+    begin
+      WriteFile(FHandle, Buffer[0], Length(Buffer), Count, nil);
+      if (FMaxFileSize > 0)and(GetFileSize > FMaxFileSize*1024*1024) then
+      begin
+        RollOver;
+      end;
+    end;
+  finally
+    Unlock;
+  end;
+end;
+
+(*
+procedure TLogFile.Write(const Data: string);
+var
+  S: AnsiString;
   Count: DWORD;
 begin
   ODS(Data);
@@ -263,6 +292,7 @@ begin
     Unlock;
   end;
 end;
+*)
 
 procedure TLogFile.RollOver;
 var
