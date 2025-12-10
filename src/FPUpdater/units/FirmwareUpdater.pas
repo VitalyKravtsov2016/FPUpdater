@@ -1936,9 +1936,9 @@ begin
   begin
     if Item is TActionUpdateLoader then
     begin
-      Result := Item as TActionUpdateLoader;
-      if ValidLoader(Ecr, Result) then
+      if ValidLoader(Ecr, Item as TActionUpdateLoader) then
       begin
+        Result := Item as TActionUpdateLoader;
         Ecr.BootVer := Result.NewBootVer;
       end;
     end;

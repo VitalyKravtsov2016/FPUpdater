@@ -373,7 +373,7 @@ begin
     Item.FNewBootVer := JsonGetInteger(Json, 'newbootver');
 
   Item.FForce := false;
-  if Json.FindValue('force')<>nil then
+  if Json.FindValue('force') <> nil then
     Item.FForce := JsonGetBoolean(Json, 'force');
 
   Item.FSigningKey := SigningKeyUnknown;
