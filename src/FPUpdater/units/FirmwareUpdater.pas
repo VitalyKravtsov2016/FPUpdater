@@ -829,7 +829,7 @@ begin
   else
     raise Exception.CreateFmt('Неверное значение формата ФФД, %d', [Item.FfdVersion]);
   end;
-  //CheckDocSent; !!!
+  CheckDocSent;
   if FParams.PrintStatus then
   begin
     Feed(2);
