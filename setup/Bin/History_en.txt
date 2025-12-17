@@ -8,6 +8,17 @@
 
 *******************************************************************
 
+  FPUpdater_1.0_23.exe
+  17 december 2025 12:50
+  
+  [+] Waiting for documents to be sent to the fiscal data operator (OFD) 
+      is done before updating the fiscal data operator (FDO) software.
+      This is necessary to ensure the cash register remains operational.
+	  If you update the FDO software without updating the fiscal data 
+	  operator (FDO), it will not function.
+  
+*******************************************************************
+
   FPUpdater_1.0_22.exe
   10 december 2025 18:20
   

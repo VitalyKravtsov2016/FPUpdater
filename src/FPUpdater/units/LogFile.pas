@@ -4,7 +4,8 @@ interface
 
 uses
   // VCL
-  Windows, Classes, SysUtils, SyncObjs, SysConst, Variants, DateUtils;
+  Windows, Classes, SysUtils, SyncObjs, SysConst, Variants, DateUtils,
+  AnsiStrings;
 
 type
   TVariantArray = array of Variant;
@@ -125,7 +126,7 @@ begin
         vtExtended: Result[i] := VExtended^;
         vtString: Result[i] := VString^;
         vtPointer: Result[i] := Integer(VPointer);
-        vtPChar: Result[i] := StrPas(VPChar);
+        vtPChar: Result[i] := AnsiStrings.StrPas(VPChar);
         vtObject: Result[i]:= Integer(VObject);
         vtAnsiString: Result[i] := String(VAnsiString);
         vtCurrency: Result[i] := VCurrency^;

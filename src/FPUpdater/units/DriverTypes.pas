@@ -411,7 +411,7 @@ begin
   ShlObj.SHGetSpecialFolderPath(0, @Result[1], CSIDL_APPDATA, false);
   SetLength(Result, Pos(#0, Result) - 1);
 
-  Result := IncludeTrailingBackSlash(Result) + CompanyName;
+  Result := IncludeTrailingPathDelimiter(Result) + CompanyName;
   if not DirectoryExists(Result) then
     CreateDir(Result);
   Result := Result + '\DrvFR';
@@ -425,7 +425,7 @@ begin
   ShlObj.SHGetSpecialFolderPath(0, @Result[1], CSIDL_COMMON_APPDATA, false);
   SetLength(Result, Pos(#0, Result) - 1);
 
-  Result := IncludeTrailingBackSlash(Result) + CompanyName;
+  Result := IncludeTrailingPathDelimiter(Result) + CompanyName;
   if not DirectoryExists(Result) then
     CreateDir(Result);
   Result := Result + '\DrvFR';
@@ -439,7 +439,7 @@ begin
   ShlObj.SHGetSpecialFolderPath(0, @Result[1], CSIDL_COMMON_APPDATA, false);
   SetLength(Result, Pos(#0, Result) - 1);
 
-  Result := IncludeTrailingBackSlash(Result) + CompanyName;
+  Result := IncludeTrailingPathDelimiter(Result) + CompanyName;
   if not DirectoryExists(Result) then
     CreateDir(Result);
   Result := Result + '\DrvFR';
@@ -453,7 +453,7 @@ begin
   ShlObj.SHGetSpecialFolderPath(0, @Result[1], CSIDL_APPDATA, false);
   SetLength(Result, Pos(#0, Result) - 1);
 
-  Result := IncludeTrailingBackSlash(Result) + CompanyName;
+  Result := IncludeTrailingPathDelimiter(Result) + CompanyName;
   if not DirectoryExists(Result) then
     CreateDir(Result);
 end;
@@ -462,7 +462,7 @@ function GetDefaultLogFileName: string;
 var
   DllFileName: string;
 begin
-  Result := IncludeTrailingBackslash(GetCommonShtrihPath) + 'Logs\';
+  Result := IncludeTrailingPathDelimiter(GetCommonShtrihPath) + 'Logs\';
   if not DirectoryExists(Result) then
     CreateDir(Result);
   Result := Result + ChangeFileExt(ExtractFileName(DllFileName), '.log');
@@ -470,7 +470,7 @@ end;
 
 function GetBackupTablesPath: string;
 begin
-  Result := IncludeTrailingBackslash(GetUserShtrihPath) + 'Tables';
+  Result := IncludeTrailingPathDelimiter(GetUserShtrihPath) + 'Tables';
 end;
 
 

@@ -478,10 +478,10 @@ end;
 procedure TCustomComm.SetSignals;
 begin
   if not EscapeCommFunction(FHandle, SETDTR) then
-    RaiseLastWin32Error;
+    RaiseLastOSError;
 
   if not EscapeCommFunction(FHandle, CLRRTS) then
-    RaiseLastWin32Error;
+    RaiseLastOSError;
 end;
 
 procedure TCustomComm.Close;
@@ -510,7 +510,7 @@ begin
     Overlapped.hEvent := FWriteEvent.Handle;
     if not WriteFile(FHandle, Data[1], Length(Data), DWORD(Count), @Overlapped) then
     begin
-      if GetLastError <> ERROR_IO_PENDING then RaiseLastWin32Error;
+      if GetLastError <> ERROR_IO_PENDING then RaiseLastOSError;
       FWriteEvent.WaitFor(INFINITE);
     end;
   finally
@@ -533,10 +533,10 @@ begin
     Overlapped.hEvent := FReadEvent.Handle;
     if not ReadFile(FHandle, Result[1], Count, DWORD(ReadCount),
       @Overlapped) and (GetLastError <> ERROR_IO_PENDING) then
-      RaiseLastWin32Error;
+      RaiseLastOSError;
 
     if FReadEvent.WaitFor(FReadTimeout) <> wrSignaled then
-      RaiseLastWin32Error;
+      RaiseLastOSError;
 
     GetOverlappedResult(Handle, Overlapped, DWORD(ReadCount), False);
     SetLength(Result, ReadCount);
@@ -738,7 +738,7 @@ begin
     FDCB.Flags := 1;
 
     if not SetCommState(FHandle, FDCB) then
-      RaiseLastWin32Error;
+      RaiseLastOSError;
   end;
 end;
 
@@ -748,7 +748,7 @@ begin
   if Enabled then
   begin
     if not EscapeCommFunction(FHandle, Flag) then
-      RaiseLastWin32Error;
+      RaiseLastOSError;
   end;
 end;
 
@@ -794,7 +794,7 @@ begin
   CommTimeOuts.WriteTotalTimeoutMultiplier := 3000;
   CommTimeOuts.WriteTotalTimeoutConstant := 3000;
   if not SetCommTimeOuts(FHandle, CommTimeOuts) then
-    RaiseLastWin32Error;
+    RaiseLastOSError;
 end;
 
 procedure TCustomComm.InitHandshaking(var DCB: TDCB);

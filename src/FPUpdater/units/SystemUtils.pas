@@ -4,7 +4,7 @@ interface
 
 uses
   // VCL
-  System.SysUtils, WinAPI.Windows;
+  System.SysUtils, WinAPI.Windows, AnsiStrings;
 
 
 function ExecuteProcess(const ExeName: string; const Parameters: string;
@@ -55,7 +55,7 @@ begin
         if BytesRead = 0 then Break;
         Buffer[BytesRead] := #0;
         OemToAnsi(@Buffer[0], @Buffer[0]);
-        Output := Output + String(StrPas(Buffer));
+        Output := Output + String(AnsiStrings.StrPas(Buffer));
       end;
       WaitForSingleObject(PI.hProcess, INFINITE);
       GetExitCodeProcess(PI.hProcess, Result);

@@ -27,7 +27,7 @@ const
 
 function GetLanguageParamsFileName: string;
 begin
-  Result := IncludeTrailingBackslash(GetUserShtrihPath) + LangParamsFileName;
+  Result := IncludeTrailingPathDelimiter(GetUserShtrihPath) + LangParamsFileName;
 end;
 
 function GetRes(Value: PResStringRec): WideString;

@@ -279,7 +279,7 @@ uses
 {$IFDEF dx_has_WideStrings}
   WideStrings,
 {$ENDIF dx_has_WideStrings}
-  Types, Classes, StrUtils, SysUtils, TypInfo;
+  Types, Classes, StrUtils, SysUtils, TypInfo, AnsiStrings;
 (*****************************************************************************)
 (*                                                                           *)
 (*  MAIN API                                                                 *)
@@ -779,7 +779,7 @@ begin
   Assert (sLinebreak=ansistring(#13#10));
   i:=1;
   while i<=length(s) do begin
-    if (s[i]=#10) and (MidStr(s,i-1,1)<>#13) then begin
+    if (s[i]=#10) and (AnsiStrings.MidStr(s,i-1,1)<>#13) then begin
       insert (#13,s,i);
       inc (i,2);
     end else

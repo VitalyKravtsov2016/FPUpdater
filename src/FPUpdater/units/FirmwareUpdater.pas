@@ -186,6 +186,7 @@ type
     function XModemCancelProc: Boolean;
     function GetHardwarePort(SoftwarePort: Integer): Integer;
     procedure SetCurrentDateTime;
+    function IsRefiscalizationNeeded: Boolean;
   public
     procedure DeleteFiles;
     procedure DeleteLog;
@@ -644,6 +645,17 @@ begin
     EcrInfo := ReadEcrInfo;
     if EcrInfo.FirmwareValid then
     begin
+      // Проверка режима ККМ
+      if Driver.ECRMode <> MODE_CLOSED then
+      begin
+        raise Exception.Create('ККТ на связи. Однако в данном режиме перепрошивка невозможна.'#13#10+
+          'Режим: ' + Driver.ECRModeDescription);
+      end;
+      // Проверка отправленных документов, если нужна перерегистрация
+      if IsRefiscalizationNeeded then
+      begin
+        CheckDocSent;
+      end;
       // Чтение наличных в ККМ
       if FParams.RestoreCashRegister then
       begin
@@ -653,12 +665,6 @@ begin
       if FParams.SaveTables then
       begin
         ReadTables(EcrInfo.Serial);
-      end;
-      // Проверка режима ККМ
-      if Driver.ECRMode <> MODE_CLOSED then
-      begin
-        raise Exception.Create('ККТ на связи. Однако в данном режиме перепрошивка невозможна.'#13#10+
-          'Режим: ' + Driver.ECRModeDescription);
       end;
       PrintUpdateStarted;
     end;
@@ -758,6 +764,22 @@ begin
   end;
 end;
 
+function TFirmwareUpdater.IsRefiscalizationNeeded: Boolean;
+var
+  Item: TUpdateItem;
+  Action: TActionRefiscalizeFS;
+begin
+  Result := False;
+  for Item in FItems do
+  begin
+    if Item.Action = ACTION_REFISCALIZE_FS then
+    begin
+      Action := Item as TActionRefiscalizeFS;
+      Result := Action.FfdVersion in [2, 4];
+    end;
+  end;
+end;
+
 procedure TFirmwareUpdater.UploadFile(const Ecr: TEcrInfo; const Path, FileName: string);
 begin
   Driver.Disconnect;
@@ -807,7 +829,7 @@ begin
   else
     raise Exception.CreateFmt('Неверное значение формата ФФД, %d', [Item.FfdVersion]);
   end;
-  CheckDocSent;
+  //CheckDocSent; !!!
   if FParams.PrintStatus then
   begin
     Feed(2);
