@@ -48,10 +48,11 @@ type
   { TUpdateParams }
 
   TUpdateParams = record
-    SaveTables: Boolean;                // Восстанавливать значения таблиц
-    PrintStatus: Boolean;               // Печатать на чековой ленте
-    DocSentTimeoutInSec: Integer;       // Таймаут отправки документов в ОФД
-    RestoreCashRegister: Boolean;       // Восстанавливать регистр наличных
+    SaveTables: Boolean;          // Восстанавливать значения таблиц
+    PrintStatus: Boolean;         // Печатать на чековой ленте
+    DocSentTimeoutInSec: Integer; // Таймаут отправки документов в ОФД
+    RestoreCashRegister: Boolean; // Восстанавливать регистр наличных
+    ArchiveURL: string;           // Ссылка на архив в сети интернет
   end;
 
 
@@ -289,6 +290,7 @@ begin
       Params.PrintStatus := JsonGetBoolean(JSONValue, 'PrintStatus');
       Params.DocSentTimeoutInSec := JsonGetInteger(JSONValue, 'DocSentTimeoutInSec');
       Params.RestoreCashRegister := JsonGetBoolean(JSONValue, 'RestoreCashRegister');
+      Params.ArchiveURL := JsonGetString(JSONValue, 'ArchiveURL');
     end;
   finally
     JSONObject.Free;

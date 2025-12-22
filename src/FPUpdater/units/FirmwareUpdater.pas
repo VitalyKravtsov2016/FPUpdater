@@ -219,10 +219,9 @@ type
 
     function Connect: Integer;
     function ReadEcrInfo: TEcrInfo;
-    function DownloadArchive: Boolean;
+    function DownloadArchive(const ArchiveURL: string): Boolean;
     function GetStatus: TUpdateStatus;
     function ReadSerialNumber: string;
-    function CheckUpdateAvailable: Boolean;
     function EcrUpdateable(const Serial: string): Boolean;
     function ReadFFDVersion: Integer;
     function ReadLicense(const FileName, Serial: string;
@@ -816,6 +815,13 @@ var
   OfdParams: TOfdParams;
   IsFFDChanged: Boolean;
 begin
+  IsFFDChanged := Driver.ReadTableInt(17, 1, 17) <> Item.FfdVersion;
+  if not IsFFDChanged then
+  begin
+    Logger.Debug('Версия ФФД не меняется. Перерегистрация не требуется');
+    Exit;
+  end;
+
   SetCurrentDateTime;
   // Перерегистрация ФФД
   case Item.FfdVersion of
@@ -846,9 +852,9 @@ begin
 
   Text := Format('Перерегистрация ККТ на %s', [FFDToStr(Item.FfdVersion)]);
   SetStatusText(Text + '...');
-  IsFFDChanged := Driver.ReadTableInt(17, 1, 17) <> Item.FfdVersion;
   Driver.WriteTableInt(17, 1, 17, Item.FfdVersion);
   OfdInn := Driver.ReadTableStr(18, 1, 12);
+
   if GetOfdParams(Tables, OfdInn, OfdParams) then
   begin
     if OfdParams.ServerKM <> '' then
@@ -1059,7 +1065,6 @@ procedure TFirmwareUpdater.LoadParameters;
 begin
   try
     DownloadFiles;
-    LoadFiles(FPath);
   except
     on E: Exception do
     begin
@@ -1088,15 +1093,19 @@ begin
   FPath := GetEnvironmentVariable('TEMP')+'\'+copy(TPath.GetRandomFileName,1,8)+'\';
   ForceDirectories(FPath);
   // Если обновления есть - скачиваем архив
-  if DownloadArchive then
+  FileName := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'archive.zip';
+  if FileExists(FileName) then
   begin
-    UnzipArhive(Path, Path + 'arhive.zip');
-  end else
+    UnzipArhive(FPath, FileName);
+    LoadFiles(FPath);
+  end;
+  if FParams.ArchiveURL <> '' then
   begin
-    FileName := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'archive.zip';
-    if FileExists(FileName) then
+    TDirectory.Delete(FPath, True);
+    if DownloadArchive(FParams.ArchiveURL) then
     begin
-      UnzipArhive(FPath, FileName);
+      UnzipArhive(Path, Path + 'arhive.zip');
+      LoadFiles(FPath);
     end;
   end;
 end;
@@ -1127,31 +1136,11 @@ begin
   SetStatusText('Чтение таблиц: OK');
 end;
 
-const
-  ArhiveURL = 'http://cb.litepass.ru:8080/techno/arhive_beeline.zip';
-
-//Проверяем обновления на сервере
-function TFirmwareUpdater.CheckUpdateAvailable: Boolean;
-var
-  ServerDate: TDateTime;
+function TFirmwareUpdater.DownloadArchive(const ArchiveURL: string): Boolean;
 begin
   Result := False;
   try
-    ServerDate := GetHttpFileLastModified(ArhiveURL);
-    Result := ServerDate > 100;
-  except
-    on E: Exception do
-    begin
-      Logger.Error(E.Message);
-    end;
-  end;
-end;
-
-function TFirmwareUpdater.DownloadArchive: Boolean;
-begin
-  Result := False;
-  try
-    Result := DownloadFile(ArhiveURL, FPath + 'arhive.zip');
+    Result := DownloadFile(ArchiveURL, FPath + 'arhive.zip');
   except
     on E: Exception do
     begin

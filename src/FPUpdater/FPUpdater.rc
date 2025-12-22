@@ -1,6 +1,6 @@
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 1,0,0,23
-PRODUCTVERSION 1,0,0,23 
+FILEVERSION 1,0,0,24
+PRODUCTVERSION 1,0,0,24 
 FILEFLAGSMASK 0x3fL
 FILEFLAGS 0x0L
 FILEOS 0x4L
@@ -13,7 +13,7 @@ BEGIN
     BEGIN
       VALUE "CompanyName", "TorgBalance\0"
       VALUE "FileDescription", "Fiscal printer updater\0"
-      VALUE "FileVersion", "1.0.0.23\0"
+      VALUE "FileVersion", "1.0.0.24\0"
       VALUE "InternalName", "Fiscal printer updater\0"
       VALUE "LegalCopyright", "Copyright \251 2021, TorgBalance\0"
       VALUE "OriginalFilename", "FPUpdater.exe\0"
