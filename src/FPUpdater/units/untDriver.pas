@@ -99,10 +99,6 @@ type
     function GetPrintStringWidth(AFont: Integer = 0): Integer;
   end;
 
-procedure FreeDriver;
-function Driver: TDriver;
-function DriverExists: Boolean;
-
 implementation
 
 uses

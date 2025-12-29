@@ -15,6 +15,7 @@ object fmMain: TfmMain
   Font.Style = []
   OldCreateOrder = False
   OnCreate = FormCreate
+  OnShow = FormShow
   DesignSize = (
     568
     264)

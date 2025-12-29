@@ -188,6 +188,7 @@ type
     procedure SetCurrentDateTime;
     function IsRefiscalizationNeeded: Boolean;
   public
+    procedure ShowProperties;
     procedure DeleteFiles;
     procedure DeleteLog;
     procedure CheckStopped;
@@ -589,6 +590,8 @@ begin
     try
       DoUpdateFirmware;
     finally
+      FDriver.Free;
+      FDriver := nil;
       CoUninitialize;
     end;
 
@@ -1971,19 +1974,12 @@ begin
   Result := nil;
 end;
 
-(*
-procedure TFirmwareUpdater.CheckSigningKey(EcrSigningKey, FileSigningKey: Integer);
+procedure TFirmwareUpdater.ShowProperties;
 begin
-  if EcrSigningKey = SigningKeyUnknown then Exit;
-  if FileSigningKey = SigningKeyUnknown then Exit;
-
-  if EcrSigningKey then
-
+  Driver.ShowProperties;
+  Driver.SaveParams;
+  Driver.Disconnect;
 end;
-
-
-*)
-
 
 
 end.
