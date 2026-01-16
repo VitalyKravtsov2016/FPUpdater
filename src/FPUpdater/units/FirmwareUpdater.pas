@@ -170,6 +170,7 @@ type
     FItems: TUpdateItems;
     FParams: TUpdateParams;
     FOnComplete: TNotifyEvent;
+    FFilesDownloaded: Boolean;
 
     function GetDriver: TDriver;
     procedure SetStatus(const Value: TUpdateStatus);
@@ -636,10 +637,15 @@ var
   Firmware: TActionUpdateFirmware;
   Tables: TTableItems;
 begin
+  DownloadFiles;
+
   CashRegister := 0;
   SetStatusText('Обновление устройства');
   CheckStopped;
   Driver.Check(Connect);
+  if not CheckEcrUpdateable then
+    raise Exception.Create('Нельзя обновить ККМ');
+
   try
     EcrInfo := ReadEcrInfo;
     if EcrInfo.FirmwareValid then
@@ -1090,15 +1096,18 @@ procedure TFirmwareUpdater.DownloadFiles;
 var
   FileName: string;
 begin
+  if FFilesDownloaded then Exit;
+
   FPath := GetEnvironmentVariable('TEMP')+'\'+copy(TPath.GetRandomFileName,1,8)+'\';
   ForceDirectories(FPath);
   // Если обновления есть - скачиваем архив
   FileName := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'archive.zip';
-  if FileExists(FileName) then
-  begin
-    UnzipArhive(FPath, FileName);
-    LoadFiles(FPath);
-  end;
+  if not FileExists(FileName) then
+    raise Exception.CreateFmt('Файл архива не найден, %s', [FileName]);
+
+  UnzipArhive(FPath, FileName);
+  LoadFiles(FPath);
+
   if FParams.ArchiveURL <> '' then
   begin
     TDirectory.Delete(FPath, True);
@@ -1108,6 +1117,7 @@ begin
       LoadFiles(FPath);
     end;
   end;
+  FFilesDownloaded := True;
 end;
 
 procedure TFirmwareUpdater.LoadFiles(const InPath: string);
@@ -1553,7 +1563,7 @@ begin
       if ((Port.SerialNumber = Params.Serial) or (Params.Serial = ''))and
         (Params.Port = Port.DevicePort) then
       begin
-        Logger.Debug('Устройство найдено');
+        //Logger.Debug('Устройство найдено');
         Driver.ConnectionType := CT_LOCAL;
         Driver.ProtocolType := 0; // Standard
         Driver.ComNumber := Port.PortNumber;
@@ -1562,7 +1572,7 @@ begin
         Driver.Check(Driver.Connect);
         if Driver.BaudRate < BAUD_RATE_CODE_115200 then
         begin
-          Logger.Debug('Установка скорости ККМ 115200');
+          //Logger.Debug('Установка скорости ККМ 115200');
           Driver.BaudRate := BAUD_RATE_CODE_115200;
           Driver.Check(Driver.SetExchangeParam);
           Driver.Disconnect;

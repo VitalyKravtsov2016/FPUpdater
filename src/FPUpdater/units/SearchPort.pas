@@ -453,7 +453,7 @@ begin
       if ResultCode <> E_NOHARDWARE then
       begin
         Text := Format('%d: %s', [ResultCode, Driver.ResultCodeDescription]);
-        Logger.Debug('Устройство не найдено, ' + Text);
+        //Logger.Debug('Устройство не найдено, ' + Text);
         Break;
       end;
     end;

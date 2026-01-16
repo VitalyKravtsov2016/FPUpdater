@@ -6,8 +6,8 @@
     <Transaction>1899.12.30 00:00:00.000.393,C:\Projects\src\drvfr\fwupdater\forms\fmuUnsupported.dfm=C:\Projects\src\drvfr\fwupdater\forms\msgformunit.dfm</Transaction>
     <Transaction>1899.12.30 00:00:00.000.361,C:\Projects\src\FPUpdater\src\FPUpdater\units\TextEncoding.pas=</Transaction>
     <Transaction>1899.12.30 00:00:00.000.097,=C:\Projects\src\fwupdater2\src\fwupdater2\units\LangUtils.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.827,=C:\Projects\src\fwupdater2\src\fwupdater2\units\NotifyThread.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.648,=C:\Projects\src\fwupdater2\src\fwupdater2\units\DriverTypes.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.827,=C:\Projects\src\fwupdater2\src\fwupdater2\units\NotifyThread.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.057,=C:\Projects\src\fwupdater2\src\fwupdater2\units\StringUtils.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.819,C:\Projects\src\fwupdater2\src\fwupdater2\units\UpdatePolicy.pas=C:\Projects\src\fwupdater2\src\fwupdater2\units\UpdateItem.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.356,C:\Projects\src\drvfr\fwupdater\Unit1.pas=C:\Projects\src\drvfr\fwupdater\units\FirmwareUpdater.pas</Transaction>
@@ -28,11 +28,11 @@
     <Transaction>1899.12.30 00:00:00.000.762,C:\Projects\src\FPUpdater\src\FPUpdater\units\RNDISAdapter.pas=</Transaction>
     <Transaction>1899.12.30 00:00:00.000.248,=C:\Projects\src\fwupdater2\src\fwupdater2\units\FileUtils.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.744,=C:\Projects\src\fwupdater2\src\fwupdater2\units\AsyncSerialPort.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.159,=C:\Projects\src\drvfr\fwupdater\units\untVInfo.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.661,=C:\Projects\src\fwupdater2\src\fwupdater2\units\SearchPort.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.990,=C:\Projects\src\fwupdater2\src\fwupdater2\units\DeviceSearch.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.782,=C:\Projects\src\fwupdater2\src\fwupdater2\units\TextEncoding.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.429,C:\Projects\src\fwupdater2\src\fwupdater2\units\fwrules.pas=C:\Projects\src\fwupdater2\src\fwupdater2\units\UpdatePolicy.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.661,=C:\Projects\src\fwupdater2\src\fwupdater2\units\SearchPort.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.159,=C:\Projects\src\drvfr\fwupdater\units\untVInfo.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.399,=C:\Projects\src\fwupdater2\src\fwupdater2\units\gnugettext.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.393,C:\Projects\src\drvfr\fwupdater\forms\fmuUnsupported.pas=C:\Projects\src\drvfr\fwupdater\forms\msgformunit.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.574,=C:\Projects\src\fwupdater2\src\fwupdater2\units\untUtil.pas</Transaction>

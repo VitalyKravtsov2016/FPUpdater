@@ -211,6 +211,7 @@ Source: "Bin\History_ru.txt"; DestDir: "{app}"; DestName: "History.txt"; Languag
 Source: "Bin\History_en.txt"; DestDir: "{app}"; DestName: "History.txt"; Languages: en; Flags: ${Archbit}; 
 ; Application
 Source: "Bin\${Arch}\FPUpdater.exe"; DestDir: "{app}\Bin"; Flags: ignoreversion ${Archbit}; 
+Source: "Bin\${Arch}\FPUpdaterCli.exe"; DestDir: "{app}\Bin"; Flags: ignoreversion ${Archbit}; 
 Source: "Bin\Archive.zip"; DestDir: "{app}\Bin"; Flags: ignoreversion ${Archbit}; 
 ; DFU drivers
 Source: "Bin\DFU\Driver\*"; DestDir: "{app}\Bin\DFU\Driver"; Flags: recursesubdirs createallsubdirs; AfterInstall: InstallDrivers

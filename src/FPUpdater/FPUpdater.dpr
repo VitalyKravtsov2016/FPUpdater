@@ -3,6 +3,7 @@ program FPUpdater;
 {$R 'FPUpdater.res' 'FPUpdater.rc'}
 
 uses
+  SysUtils,
   Vcl.Forms,
   fmuMain in 'forms\fmuMain.pas' {fmMain},
   fmuUnsupported in 'forms\fmuUnsupported.pas' {fmUnsupported},
@@ -32,12 +33,34 @@ uses
 
 {$R *.res}
 
+procedure AutoUpdadeEcr;
+var
+  Updater: TFirmwareUpdater;
 begin
-  Application.Initialize;
-  Application.MainFormOnTaskbar := True;
-  Application.Title := 'Прошивальщик ' + GetFileVersionInfoStr;
-  Application.CreateForm(TfmMain, fmMain);
-  Application.CreateForm(TfmUnsupported, fmUnsupported);
-  fmMain.Position := poDesktopCenter;
-  Application.Run;
+  Updater := TFirmwareUpdater.Create;
+  try
+    Updater.UpdateFirmware;
+  except
+    on E: Exception do
+    begin
+      //
+    end;
+  end;
+  Updater.Free;
+end;
+
+begin
+  if FindCmdLineSwitch('SILENT', ['-', '/'], False) then
+  begin
+    AutoUpdadeEcr;
+  end else
+  begin
+    Application.Initialize;
+    Application.MainFormOnTaskbar := True;
+    Application.Title := 'Прошивальщик ' + GetFileVersionInfoStr;
+    Application.CreateForm(TfmMain, fmMain);
+    Application.CreateForm(TfmUnsupported, fmUnsupported);
+    fmMain.Position := poDesktopCenter;
+    Application.Run;
+  end;
 end.

@@ -164,7 +164,7 @@ begin
           if PortRec.ComNumber >= 0 then
           begin
             Ports.Add(PortRec);
-            GlobalLogger.Debug('  ' + PortRec.Name);
+            //GlobalLogger.Debug('  ' + PortRec.Name);
           end;
           Inc(MemberIndex);
         until False;

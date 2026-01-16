@@ -1,6 +1,6 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <ProjectGuid>{C96AFDA6-437F-4A62-817D-53156C9106E2}</ProjectGuid>
+    <ProjectGuid>{697B3101-B4F2-43B5-9915-58B711FE0897}</ProjectGuid>
     <ProjectVersion>19.2</ProjectVersion>
     <FrameworkType>VCL</FrameworkType>
     <Base>True</Base>
@@ -8,7 +8,7 @@
     <Platform Condition="'$(Platform)'==''">Win32</Platform>
     <TargetedPlatforms>3</TargetedPlatforms>
     <AppType>Application</AppType>
-    <MainSource>FPUpdater.dpr</MainSource>
+    <MainSource>FPUpdaterCli.dpr</MainSource>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
     <Base>true</Base>
@@ -59,7 +59,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Base)'!=''">
     <DCC_DcuOutput>.\$(Platform)\$(Config)</DCC_DcuOutput>
-    <DCC_ExeOutput>..\Bin</DCC_ExeOutput>
+    <DCC_ExeOutput>.\$(Platform)\$(Config)</DCC_ExeOutput>
     <DCC_E>false</DCC_E>
     <DCC_N>false</DCC_N>
     <DCC_S>false</DCC_S>
@@ -69,7 +69,7 @@
     <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
     <UWP_DelphiLogo44>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_44.png</UWP_DelphiLogo44>
     <UWP_DelphiLogo150>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_150.png</UWP_DelphiLogo150>
-    <SanitizedProjectName>FPUpdater</SanitizedProjectName>
+    <SanitizedProjectName>FPUpdaterCli</SanitizedProjectName>
     <VerInfo_Locale>1049</VerInfo_Locale>
     <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.1.8;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.1.0;Comments=</VerInfo_Keys>
   </PropertyGroup>
@@ -111,6 +111,9 @@
     <DCC_ExeOutput>..\Bin</DCC_ExeOutput>
     <DCC_DcuOutput>DCU</DCC_DcuOutput>
     <DCC_IOChecking>false</DCC_IOChecking>
+    <Debugger_RunParams>/SILENT</Debugger_RunParams>
+    <DCC_ConsoleTarget>true</DCC_ConsoleTarget>
+    <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
     <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
@@ -126,9 +129,9 @@
     <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
     <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     <VerInfo_Release>1</VerInfo_Release>
-    <VerInfo_Build>111</VerInfo_Build>
+    <VerInfo_Build>109</VerInfo_Build>
     <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
-    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.111;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.1.0;Comments=</VerInfo_Keys>
+    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.109;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.1.0;Comments=</VerInfo_Keys>
     <VerInfo_Locale>1033</VerInfo_Locale>
     <Icon_MainIcon>MAINICON.ico</Icon_MainIcon>
     <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
@@ -142,52 +145,43 @@ $(PreBuildEvent)]]></PreBuildEvent>
     <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
     <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     <VerInfo_Locale>1033</VerInfo_Locale>
-    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.80;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.79;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     <Icon_MainIcon>MAINICON.ico</Icon_MainIcon>
     <PostBuildEvent><![CDATA[copy /Y "$(OutputPath)" fwupdater64.exe
 $(PostBuildEvent)]]></PostBuildEvent>
     <PreBuildEvent><![CDATA[del .\$(Platform)\$(Config)\fwupdater64.exe
 $(PreBuildEvent)]]></PreBuildEvent>
     <VerInfo_Release>1</VerInfo_Release>
-    <VerInfo_Build>80</VerInfo_Build>
+    <VerInfo_Build>79</VerInfo_Build>
     <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
   </PropertyGroup>
   <ItemGroup>
     <DelphiCompile Include="$(MainSource)">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
-    <RcCompile Include="FPUpdater.rc">
-      <Form>FPUpdater.res</Form>
-    </RcCompile>
-    <DCCReference Include="forms\fmuMain.pas">
-      <Form>fmMain</Form>
-    </DCCReference>
-    <DCCReference Include="forms\fmuUnsupported.pas">
-      <Form>fmUnsupported</Form>
-    </DCCReference>
-    <DCCReference Include="units\untDriver.pas" />
-    <DCCReference Include="units\DrvFRLib_TLB.pas" />
-    <DCCReference Include="units\DriverError.pas" />
-    <DCCReference Include="units\LogFile.pas" />
-    <DCCReference Include="units\SystemUtils.pas" />
-    <DCCReference Include="units\FirmwareUpdater.pas" />
-    <DCCReference Include="units\untVInfo.pas" />
-    <DCCReference Include="units\NotifyThread.pas" />
-    <DCCReference Include="units\UpdateItem.pas" />
-    <DCCReference Include="units\StringUtils.pas" />
-    <DCCReference Include="units\BinUtils.pas" />
-    <DCCReference Include="units\FptrTypes.pas" />
-    <DCCReference Include="units\LangUtils.pas" />
-    <DCCReference Include="units\DriverTypes.pas" />
-    <DCCReference Include="units\GlobalConst.pas" />
-    <DCCReference Include="units\XModem.pas" />
-    <DCCReference Include="units\AsyncSerialPort.pas" />
-    <DCCReference Include="units\gnugettext.pas" />
-    <DCCReference Include="units\DeviceSearch.pas" />
-    <DCCReference Include="units\SearchPort.pas" />
-    <DCCReference Include="units\PrinterTypes.pas" />
-    <DCCReference Include="units\untUtil.pas" />
-    <DCCReference Include="units\ComportUtils.pas" />
+    <DCCReference Include="..\FPUpdater\units\untDriver.pas" />
+    <DCCReference Include="..\FPUpdater\units\DrvFRLib_TLB.pas" />
+    <DCCReference Include="..\FPUpdater\units\DriverError.pas" />
+    <DCCReference Include="..\FPUpdater\units\LogFile.pas" />
+    <DCCReference Include="..\FPUpdater\units\SystemUtils.pas" />
+    <DCCReference Include="..\FPUpdater\units\FirmwareUpdater.pas" />
+    <DCCReference Include="..\FPUpdater\units\untVInfo.pas" />
+    <DCCReference Include="..\FPUpdater\units\NotifyThread.pas" />
+    <DCCReference Include="..\FPUpdater\units\UpdateItem.pas" />
+    <DCCReference Include="..\FPUpdater\units\StringUtils.pas" />
+    <DCCReference Include="..\FPUpdater\units\BinUtils.pas" />
+    <DCCReference Include="..\FPUpdater\units\FptrTypes.pas" />
+    <DCCReference Include="..\FPUpdater\units\LangUtils.pas" />
+    <DCCReference Include="..\FPUpdater\units\DriverTypes.pas" />
+    <DCCReference Include="..\FPUpdater\units\GlobalConst.pas" />
+    <DCCReference Include="..\FPUpdater\units\XModem.pas" />
+    <DCCReference Include="..\FPUpdater\units\AsyncSerialPort.pas" />
+    <DCCReference Include="..\FPUpdater\units\gnugettext.pas" />
+    <DCCReference Include="..\FPUpdater\units\DeviceSearch.pas" />
+    <DCCReference Include="..\FPUpdater\units\SearchPort.pas" />
+    <DCCReference Include="..\FPUpdater\units\PrinterTypes.pas" />
+    <DCCReference Include="..\FPUpdater\units\untUtil.pas" />
+    <DCCReference Include="..\FPUpdater\units\ComportUtils.pas" />
     <BuildConfiguration Include="Release">
       <Key>Cfg_2</Key>
       <CfgParent>Base</CfgParent>
@@ -206,7 +200,7 @@ $(PreBuildEvent)]]></PreBuildEvent>
     <BorlandProject>
       <Delphi.Personality>
         <Source>
-          <Source Name="MainSource">FPUpdater.dpr</Source>
+          <Source Name="MainSource">FPUpdaterCli.dpr</Source>
         </Source>
         <Excluded_Packages>
           <Excluded_Packages Name="$(BDSBIN)\dcloffice2k270.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
@@ -214,6 +208,12 @@ $(PreBuildEvent)]]></PreBuildEvent>
         </Excluded_Packages>
       </Delphi.Personality>
       <Deployment Version="3">
+        <DeployFile LocalName="..\Bin\FPUpdaterCli.exe" Configuration="Debug" Class="ProjectOutput">
+          <Platform Name="Win32">
+            <RemoteName>FPUpdaterCli.exe</RemoteName>
+            <Overwrite>true</Overwrite>
+          </Platform>
+        </DeployFile>
         <DeployFile LocalName="$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_150.png" Configuration="Release" Class="UWP_DelphiLogo150">
           <Platform Name="Win32">
             <RemoteDir>Assets\</RemoteDir>
@@ -221,15 +221,15 @@ $(PreBuildEvent)]]></PreBuildEvent>
             <Overwrite>true</Overwrite>
           </Platform>
         </DeployFile>
-        <DeployFile LocalName="Win64\Release\FPUpdater.exe" Configuration="Release" Class="ProjectOutput">
+        <DeployFile LocalName="Win64\Release\FPUpdaterCli.exe" Configuration="Release" Class="ProjectOutput">
           <Platform Name="Win64">
-            <RemoteName>FPUpdater.exe</RemoteName>
+            <RemoteName>FPUpdaterCli.exe</RemoteName>
             <Overwrite>true</Overwrite>
           </Platform>
         </DeployFile>
-        <DeployFile LocalName="Win32\Release\FPUpdater.exe" Configuration="Release" Class="ProjectOutput">
+        <DeployFile LocalName="Win32\Release\FPUpdaterCli.exe" Configuration="Release" Class="ProjectOutput">
           <Platform Name="Win32">
-            <RemoteName>FPUpdater.exe</RemoteName>
+            <RemoteName>FPUpdaterCli.exe</RemoteName>
             <Overwrite>true</Overwrite>
           </Platform>
         </DeployFile>
@@ -237,12 +237,6 @@ $(PreBuildEvent)]]></PreBuildEvent>
           <Platform Name="Win32">
             <RemoteDir>Assets\</RemoteDir>
             <RemoteName>Logo44x44.png</RemoteName>
-            <Overwrite>true</Overwrite>
-          </Platform>
-        </DeployFile>
-        <DeployFile LocalName="..\Bin\FPUpdater.exe" Configuration="Debug" Class="ProjectOutput">
-          <Platform Name="Win32">
-            <RemoteName>FPUpdater.exe</RemoteName>
             <Overwrite>true</Overwrite>
           </Platform>
         </DeployFile>

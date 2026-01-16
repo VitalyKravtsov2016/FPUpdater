@@ -21,6 +21,7 @@ type
     FMaxFileCount: Integer;
     FLock: TCriticalSection;
     FEncoding: TEncoding;
+    FWriteConsole: Boolean;
 
     procedure Lock;
     procedure Unlock;
@@ -63,6 +64,7 @@ type
     property FileName: string read FFileName write SetFileName;
     property MaxFileSize: Integer read FMaxFileSize write FMaxFileSize;
     property MaxFileCount: Integer read FMaxFileCount write FMaxFileCount;
+    property WriteConsole: Boolean read FWriteConsole write FWriteConsole;
   end;
 
 function Logger: TLogFile;
@@ -329,6 +331,9 @@ end;
 
 procedure TLogFile.AddLine(const Data: string);
 begin
+  if WriteConsole then
+    WriteLn(Data);
+
   Write(GetLineHeader + Data + #13#10);
 end;
 

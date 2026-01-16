@@ -41,6 +41,7 @@ See http://www.suigeneris.org/want/ for details.
 	<property name="setup" value="${basepath}/setup"/>
 	<property name="brcc" value="${setup}/util/brcc32.exe"/>
 	<property name="FPUpdater" value="${src}/FPUpdater"/>
+	<property name="FPUpdaterCli" value="${src}/FPUpdaterCli"/>
 	<target name="prepare">
 		<echo message="version=${version}"/>
 		<echo message="build=${build}"/>
@@ -81,6 +82,20 @@ See http://www.suigeneris.org/want/ for details.
 			<arg value="/clp:ErrorsOnly /t:Build  ${FPUpdater}/FPUpdater.dproj /p:Platform=Win64 /p:Config=Release /p:DCC_ExeOutput=${setup}/Bin/Win64"/>
 		</exec>
 	</target>
+	
+	<!-- ***** Compile FPUpdater ***** -->
+	<target name="Compile-FPUpdaterCli" depends="prepare">
+		<delete dir="${dcu}">
+			<include name="*.dcu"/>
+		</delete>
+		<exec executable="msbuild.exe">
+			<arg value="/clp:ErrorsOnly /t:Build  ${FPUpdaterCli}/FPUpdaterCli.dproj /p:Platform=Win32 /p:Config=Release /p:DCC_ExeOutput=${setup}/Bin/Win32"/>
+		</exec>
+		<exec executable="msbuild.exe">
+			<arg value="/clp:ErrorsOnly /t:Build  ${FPUpdaterCli}/FPUpdaterCli.dproj /p:Platform=Win64 /p:Config=Release /p:DCC_ExeOutput=${setup}/Bin/Win64"/>
+		</exec>
+	</target>
+	
 	<target name="setup32">
 		<property name="Architecture" value=""/>
 		<property name="Arch" value="Win32"/>
@@ -117,6 +132,6 @@ See http://www.suigeneris.org/want/ for details.
 			<write section="releases" key="last_date" value="${date.tag}"/>
 		</ini>
 	</target>
-	<target name="compile" depends="Compile-FPUpdater"/>
+	<target name="compile" depends="Compile-FPUpdater,Compile-FPUpdaterCli"/>
 	<target name="release" depends="clean,prepare,compile,setup32,setup64,clean"/>
 </project>

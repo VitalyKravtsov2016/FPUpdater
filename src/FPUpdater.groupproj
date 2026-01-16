@@ -6,6 +6,9 @@
         <Projects Include="FPUpdater\FPUpdater.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="FPUpdaterCli\FPUpdaterCli.dproj">
+            <Dependencies/>
+        </Projects>
         <Projects Include="..\test\FPUpdaterAcc\FPUpdaterAcc.dproj">
             <Dependencies/>
         </Projects>
@@ -29,6 +32,15 @@
     <Target Name="FPUpdater:Make">
         <MSBuild Projects="FPUpdater\FPUpdater.dproj" Targets="Make"/>
     </Target>
+    <Target Name="FPUpdaterCli">
+        <MSBuild Projects="FPUpdaterCli\FPUpdaterCli.dproj"/>
+    </Target>
+    <Target Name="FPUpdaterCli:Clean">
+        <MSBuild Projects="FPUpdaterCli\FPUpdaterCli.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FPUpdaterCli:Make">
+        <MSBuild Projects="FPUpdaterCli\FPUpdaterCli.dproj" Targets="Make"/>
+    </Target>
     <Target Name="FPUpdaterAcc">
         <MSBuild Projects="..\test\FPUpdaterAcc\FPUpdaterAcc.dproj"/>
     </Target>
@@ -48,13 +60,13 @@
         <MSBuild Projects="..\test\FPUpdaterTst\FPUpdaterTst.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="FPUpdater;FPUpdaterAcc;FPUpdaterTst"/>
+        <CallTarget Targets="FPUpdater;FPUpdaterCli;FPUpdaterAcc;FPUpdaterTst"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="FPUpdater:Clean;FPUpdaterAcc:Clean;FPUpdaterTst:Clean"/>
+        <CallTarget Targets="FPUpdater:Clean;FPUpdaterCli:Clean;FPUpdaterAcc:Clean;FPUpdaterTst:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="FPUpdater:Make;FPUpdaterAcc:Make;FPUpdaterTst:Make"/>
+        <CallTarget Targets="FPUpdater:Make;FPUpdaterCli:Make;FPUpdaterAcc:Make;FPUpdaterTst:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
