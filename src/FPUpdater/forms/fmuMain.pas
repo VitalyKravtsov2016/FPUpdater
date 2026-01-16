@@ -29,6 +29,7 @@ type
     procedure TimerTimer(Sender: TObject);
     procedure btnCloseClick(Sender: TObject);
     procedure btnStopClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     FUpdateAvailable: Boolean;
     FUpdater: TFirmwareUpdater;
@@ -39,6 +40,7 @@ type
 
     function GetUpdater: TFirmwareUpdater;
     function GetInfoText(EcrInfo: TEcrInfo): string;
+    procedure StartUpdate;
 
     property Updater: TFirmwareUpdater read GetUpdater;
   public
@@ -59,7 +61,6 @@ destructor TfmMain.Destroy;
 begin
   Timer.Enabled := False;
   FUpdater.Free;
-  FreeDriver;
   inherited Destroy;
 end;
 
@@ -107,17 +108,23 @@ end;
 
 procedure TfmMain.btnPropertiesClick(Sender: TObject);
 begin
-  Driver.ShowProperties;
-  Driver.SaveParams;
-  Driver.Disconnect;
+  Updater.ShowProperties;
 end;
 
 procedure TfmMain.FormCreate(Sender: TObject);
 begin
   Caption := Application.Title;
   Updater.LoadParameters;
+end;
+
+procedure TfmMain.FormShow(Sender: TObject);
+begin
   UpdateEcrInfo;
   UpdatePage;
+  if Updater.Params.AutoStart then
+  begin
+    StartUpdate;
+  end;
 end;
 
 function TfmMain.GetInfoText(EcrInfo: TEcrInfo): string;
@@ -182,13 +189,18 @@ end;
 
 procedure TfmMain.btnStartClick(Sender: TObject);
 begin
+  StartUpdate;
+end;
+
+procedure TfmMain.StartUpdate;
+begin
   btnStart.Enabled := False;
   btnStop.Enabled := True;
   try
     if not Updater.CheckEcrUpdateable then
     begin
       fmUnsupported.ShowModal;
-      Exit;
+      Abort;
     end;
     Updater.OnComplete := UpdateCompleted;
     Updater.Start;

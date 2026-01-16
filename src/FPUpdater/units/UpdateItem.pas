@@ -48,6 +48,7 @@ type
   { TUpdateParams }
 
   TUpdateParams = record
+    AutoStart: Boolean;           // Автоматически запускать обновление
     SaveTables: Boolean;          // Восстанавливать значения таблиц
     PrintStatus: Boolean;         // Печатать на чековой ленте
     DocSentTimeoutInSec: Integer; // Таймаут отправки документов в ОФД
@@ -286,6 +287,7 @@ begin
     JSONValue := JSONObject.FindValue('Params');
     if JSONValue <> nil then
     begin
+      Params.AutoStart := JsonGetBoolean(JSONValue, 'AutoStart');
       Params.SaveTables := JsonGetBoolean(JSONValue, 'SaveTables');
       Params.PrintStatus := JsonGetBoolean(JSONValue, 'PrintStatus');
       Params.DocSentTimeoutInSec := JsonGetInteger(JSONValue, 'DocSentTimeoutInSec');

@@ -126,9 +126,9 @@
     <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
     <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     <VerInfo_Release>1</VerInfo_Release>
-    <VerInfo_Build>111</VerInfo_Build>
+    <VerInfo_Build>112</VerInfo_Build>
     <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
-    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.111;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.1.0;Comments=</VerInfo_Keys>
+    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.112;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.1.0;Comments=</VerInfo_Keys>
     <VerInfo_Locale>1033</VerInfo_Locale>
     <Icon_MainIcon>MAINICON.ico</Icon_MainIcon>
     <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
@@ -142,14 +142,14 @@ $(PreBuildEvent)]]></PreBuildEvent>
     <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
     <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     <VerInfo_Locale>1033</VerInfo_Locale>
-    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.80;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.81;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     <Icon_MainIcon>MAINICON.ico</Icon_MainIcon>
     <PostBuildEvent><![CDATA[copy /Y "$(OutputPath)" fwupdater64.exe
 $(PostBuildEvent)]]></PostBuildEvent>
     <PreBuildEvent><![CDATA[del .\$(Platform)\$(Config)\fwupdater64.exe
 $(PreBuildEvent)]]></PreBuildEvent>
     <VerInfo_Release>1</VerInfo_Release>
-    <VerInfo_Build>80</VerInfo_Build>
+    <VerInfo_Build>81</VerInfo_Build>
     <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
   </PropertyGroup>
   <ItemGroup>
