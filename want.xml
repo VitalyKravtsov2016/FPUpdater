@@ -106,8 +106,14 @@ See http://www.suigeneris.org/want/ for details.
 			<arg value="${setup}/Setup.iss"/>
 			<arg value="/Q"/>
 		</exec>
-		<move tofile="${basepath}/FPUpdater_${version2}_${build}_x32.exe">
+		<move tofile="${basepath}/dist/FPUpdater_${version2}_${build}_x32.exe">
 			<include name="${setup}/setup.exe"/>
+		</move>
+		<move tofile="${basepath}/dist/FPUpdater_x32.exe">
+			<include name="${setup}/Bin/Win32/FPUpdater.exe"/>
+		</move>
+		<move tofile="${basepath}/dist/FPUpdaterCli_x32.exe">
+			<include name="${setup}/Bin/Win32/FPUpdaterCli.exe"/>
 		</move>
 		<delete file="${setup}/setup.iss"/>
 	</target>
@@ -121,10 +127,16 @@ See http://www.suigeneris.org/want/ for details.
 			<arg value="Setup.iss"/>
 			<arg value="/Q"/>
 		</exec>
-		<move tofile="${basepath}/FPUpdater_${version2}_${build}_x64.exe">
+		<move tofile="${basepath}/dist/FPUpdater_${version2}_${build}_x64.exe">
 			<include name="${setup}/setup.exe"/>
 		</move>
 		<delete file="${setup}/setup.iss"/>
+		<move tofile="${basepath}/dist/FPUpdater_x64.exe">
+			<include name="${setup}/Bin/Win64/FPUpdater.exe"/>
+		</move>
+		<move tofile="${basepath}/dist/FPUpdaterCli_x64.exe">
+			<include name="${setup}/Bin/Win64/FPUpdaterCli.exe"/>
+		</move>
 	</target>
 	<target name="build">
 		<ini file="release.ini">

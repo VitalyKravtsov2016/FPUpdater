@@ -5,7 +5,7 @@
     <FrameworkType>VCL</FrameworkType>
     <Base>True</Base>
     <Config Condition="'$(Config)'==''">Release</Config>
-    <Platform Condition="'$(Platform)'==''">Win32</Platform>
+    <Platform Condition="'$(Platform)'==''">Win64</Platform>
     <TargetedPlatforms>3</TargetedPlatforms>
     <AppType>Application</AppType>
     <MainSource>FPUpdater.dpr</MainSource>
@@ -58,8 +58,8 @@
     <Base>true</Base>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Base)'!=''">
-    <DCC_DcuOutput>.\$(Platform)\$(Config)</DCC_DcuOutput>
-    <DCC_ExeOutput>..\Bin</DCC_ExeOutput>
+    <DCC_DcuOutput>.\DCU\$(Platform)\$(Config)</DCC_DcuOutput>
+    <DCC_ExeOutput>.\Bin\$(Platform)\$(Config)</DCC_ExeOutput>
     <DCC_E>false</DCC_E>
     <DCC_N>false</DCC_N>
     <DCC_S>false</DCC_S>
@@ -91,7 +91,6 @@
     <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     <VerInfo_Locale>1033</VerInfo_Locale>
     <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
-    <DCC_UnitSearchPath>D:\projects\components\OpenAPIGen\Dist;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Cfg_1)'!=''">
     <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
@@ -108,13 +107,17 @@
     <VerInfo_Locale>1033</VerInfo_Locale>
     <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     <Icon_MainIcon>MAINICON.ico</Icon_MainIcon>
-    <DCC_ExeOutput>..\Bin</DCC_ExeOutput>
-    <DCC_DcuOutput>DCU</DCC_DcuOutput>
+    <DCC_ExeOutput>.\Bin\$(Platform)\$(Config)</DCC_ExeOutput>
     <DCC_IOChecking>false</DCC_IOChecking>
+    <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
     <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
     <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
+    <DCC_ExeOutput>.\Bin\$(Platform)\$(Config)</DCC_ExeOutput>
+    <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+    <VerInfo_Locale>1033</VerInfo_Locale>
+    <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Cfg_2)'!=''">
     <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
@@ -126,31 +129,29 @@
     <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
     <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     <VerInfo_Release>1</VerInfo_Release>
-    <VerInfo_Build>112</VerInfo_Build>
+    <VerInfo_Build>117</VerInfo_Build>
     <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
-    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.112;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.1.0;Comments=</VerInfo_Keys>
+    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.117;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.1.0;Comments=</VerInfo_Keys>
     <VerInfo_Locale>1033</VerInfo_Locale>
     <Icon_MainIcon>MAINICON.ico</Icon_MainIcon>
     <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
-    <PostBuildEvent><![CDATA[copy /Y "$(OutputPath)" fwupdater32.exe
-$(PostBuildEvent)]]></PostBuildEvent>
-    <PreBuildEvent><![CDATA[del .\$(Platform)\$(Config)\fwupdater32.exe
-$(PreBuildEvent)]]></PreBuildEvent>
+    <DCC_ExeOutput>..\Bin</DCC_ExeOutput>
+    <PostBuildEventCancelOnError>false</PostBuildEventCancelOnError>
+    <PreBuildEventCancelOnError>false</PreBuildEventCancelOnError>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
     <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
     <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
     <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     <VerInfo_Locale>1033</VerInfo_Locale>
-    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.81;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.86;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     <Icon_MainIcon>MAINICON.ico</Icon_MainIcon>
-    <PostBuildEvent><![CDATA[copy /Y "$(OutputPath)" fwupdater64.exe
-$(PostBuildEvent)]]></PostBuildEvent>
-    <PreBuildEvent><![CDATA[del .\$(Platform)\$(Config)\fwupdater64.exe
-$(PreBuildEvent)]]></PreBuildEvent>
     <VerInfo_Release>1</VerInfo_Release>
-    <VerInfo_Build>81</VerInfo_Build>
+    <VerInfo_Build>86</VerInfo_Build>
     <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
+    <DCC_ExeOutput>..\Bin</DCC_ExeOutput>
+    <PostBuildEventCancelOnError>false</PostBuildEventCancelOnError>
+    <PreBuildEventCancelOnError>false</PreBuildEventCancelOnError>
   </PropertyGroup>
   <ItemGroup>
     <DelphiCompile Include="$(MainSource)">
@@ -227,6 +228,12 @@ $(PreBuildEvent)]]></PreBuildEvent>
             <Overwrite>true</Overwrite>
           </Platform>
         </DeployFile>
+        <DeployFile LocalName="..\Bin\FPUpdater.exe" Configuration="Debug" Class="ProjectOutput">
+          <Platform Name="Win32">
+            <RemoteName>FPUpdater.exe</RemoteName>
+            <Overwrite>true</Overwrite>
+          </Platform>
+        </DeployFile>
         <DeployFile LocalName="Win32\Release\FPUpdater.exe" Configuration="Release" Class="ProjectOutput">
           <Platform Name="Win32">
             <RemoteName>FPUpdater.exe</RemoteName>
@@ -237,12 +244,6 @@ $(PreBuildEvent)]]></PreBuildEvent>
           <Platform Name="Win32">
             <RemoteDir>Assets\</RemoteDir>
             <RemoteName>Logo44x44.png</RemoteName>
-            <Overwrite>true</Overwrite>
-          </Platform>
-        </DeployFile>
-        <DeployFile LocalName="..\Bin\FPUpdater.exe" Configuration="Debug" Class="ProjectOutput">
-          <Platform Name="Win32">
-            <RemoteName>FPUpdater.exe</RemoteName>
             <Overwrite>true</Overwrite>
           </Platform>
         </DeployFile>
@@ -1027,20 +1028,4 @@ $(PreBuildEvent)]]></PreBuildEvent>
   <Import Project="$(BDS)\Bin\CodeGear.Delphi.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Delphi.Targets')" />
   <Import Project="$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj" Condition="Exists('$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj')" />
   <Import Project="$(MSBuildProjectName).deployproj" Condition="Exists('$(MSBuildProjectName).deployproj')" />
-  <PropertyGroup Condition="'$(Config)'=='Release' And '$(Platform)'=='Win32'">
-    <PreBuildEvent>del .\$(Platform)\$(Config)\fwupdater32.exe</PreBuildEvent>
-    <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
-    <PreLinkEvent />
-    <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
-    <PostBuildEvent>copy /Y "$(OutputPath)" fwupdater32.exe</PostBuildEvent>
-    <PostBuildEventIgnoreExitCode>False</PostBuildEventIgnoreExitCode>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Config)'=='Release' And '$(Platform)'=='Win64'">
-    <PreBuildEvent>del .\$(Platform)\$(Config)\fwupdater64.exe</PreBuildEvent>
-    <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
-    <PreLinkEvent />
-    <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
-    <PostBuildEvent>copy /Y "$(OutputPath)" fwupdater64.exe</PostBuildEvent>
-    <PostBuildEventIgnoreExitCode>False</PostBuildEventIgnoreExitCode>
-  </PropertyGroup>
 </Project>
