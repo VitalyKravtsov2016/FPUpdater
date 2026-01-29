@@ -1,4 +1,4 @@
-unit LangUtils;
+﻿unit LangUtils;
 
 interface
 

@@ -1,4 +1,4 @@
-unit XModem;
+п»їunit XModem;
 
 interface
 uses
@@ -175,7 +175,7 @@ begin
   except
     on E: Exception do
     begin
-      raise Exception.Create('Нет связи');
+      raise Exception.Create('РќРµС‚ СЃРІСЏР·Рё');
     end;
   end;
 end;
@@ -195,7 +195,7 @@ begin
     if (s[1] = ACK) or (s[1] = NAK) or (s[1] = ENQ) then
       Exit;
  until abs(GetTickCount - T) >= 25000;
- raise Exception.Create('Нет связи');
+ raise Exception.Create('РќРµС‚ СЃРІСЏР·Рё');
 end;
 
 
@@ -205,7 +205,7 @@ var
 begin
   S := Read(1);
   if Length(S) = 0 then
-    raise Exception.Create('Нет связи');
+    raise Exception.Create('РќРµС‚ СЃРІСЏР·Рё');
   Result := S[1];
 end;
 
@@ -227,7 +227,7 @@ begin
      if i = 5 then raise
    end;
    if i = 5 then
-     raise Exception.Create('Нет связи');
+     raise Exception.Create('РќРµС‚ СЃРІСЏР·Рё');
   end;
   Write(#$02#$06#$FE#$F3#$00#$00#$00#$00#$0B);
   ReadChar;
@@ -284,9 +284,9 @@ begin
     else if C = NAK then
       Continue
     else
-      raise Exception.Create('Нет связи');
+      raise Exception.Create('РќРµС‚ СЃРІСЏР·Рё');
     if i = 5 then
-      raise Exception.Create('Нет связи');
+      raise Exception.Create('РќРµС‚ СЃРІСЏР·Рё');
   end;
 end;
 
@@ -329,7 +329,7 @@ begin
   repeat
     CheckCancelled;
     if abs(GetTickCount - T) >= 30000 then
-      raise Exception.Create('Не удается установить связь по XModem');
+      raise Exception.Create('РќРµ СѓРґР°РµС‚СЃСЏ СѓСЃС‚Р°РЅРѕРІРёС‚СЊ СЃРІСЏР·СЊ РїРѕ XModem');
     Sleep(1);
   until FDeviceReady;
 end;

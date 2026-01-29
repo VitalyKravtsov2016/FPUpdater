@@ -1,4 +1,4 @@
-unit DeviceSearch;
+﻿unit DeviceSearch;
 
 interface
 

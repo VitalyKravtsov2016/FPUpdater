@@ -1,4 +1,4 @@
-unit fmuMain;
+п»їunit fmuMain;
 
 interface
 
@@ -82,7 +82,7 @@ begin
   if Status.IsStarted then
   begin
     ElapsedSeconds := SecondsBetween(Now, Status.StartTime);
-    TimeText := Format('Время начала: %s, прошло секунд, %d', [
+    TimeText := Format('Р’СЂРµРјСЏ РЅР°С‡Р°Р»Р°: %s, РїСЂРѕС€Р»Рѕ СЃРµРєСѓРЅРґ, %d', [
       TimeToStr(Status.StartTime), ElapsedSeconds]);
   end;
   lblTime.Caption := TimeText;
@@ -95,7 +95,7 @@ procedure TfmMain.CheckStarted;
 begin
   if Updater.Status.IsStarted then
   begin
-    if MessageBox(Handle, 'Идет обновление прошивки. Прервать?', 'Внимание',
+    if MessageBox(Handle, 'РРґРµС‚ РѕР±РЅРѕРІР»РµРЅРёРµ РїСЂРѕС€РёРІРєРё. РџСЂРµСЂРІР°С‚СЊ?', 'Р’РЅРёРјР°РЅРёРµ',
       MB_YESNO or MB_ICONEXCLAMATION) = ID_NO then Abort;
   end;
 end;
@@ -138,8 +138,8 @@ var
 begin
   Lines := TStringList.Create;
   try
-    Lines.Add(Format('Версия загрузчика ККМ: %d', [EcrInfo.BootVer]));
-    Lines.Add(Format('Версия ПО ККМ: %s, сборка %d от %s', [
+    Lines.Add(Format('Р’РµСЂСЃРёСЏ Р·Р°РіСЂСѓР·С‡РёРєР° РљРљРњ: %d', [EcrInfo.BootVer]));
+    Lines.Add(Format('Р’РµСЂСЃРёСЏ РџРћ РљРљРњ: %s, СЃР±РѕСЂРєР° %d РѕС‚ %s', [
       EcrInfo.FirmwareVersion,
       EcrInfo.FirmwareBuild,
       DateToStr(EcrInfo.FirmwareDate)]));
@@ -151,19 +151,19 @@ begin
     Loader := Updater.FindLastLoader(EcrInfo);
     if Loader <> nil then
     begin
-      LoaderLine := Format('Обновление загрузчика до версии %d', [Loader.NewBootVer]);
+      LoaderLine := Format('РћР±РЅРѕРІР»РµРЅРёРµ Р·Р°РіСЂСѓР·С‡РёРєР° РґРѕ РІРµСЂСЃРёРё %d', [Loader.NewBootVer]);
       EcrInfo.BootVer := Loader.NewBootVer;
     end;
     Firmware := Updater.FindFirmware(EcrInfo);
     if Firmware <> nil then
     begin
-      FirmwareLine := Format('Обновление ПО ККМ до версии %s, сборка: %d от %s',
+      FirmwareLine := Format('РћР±РЅРѕРІР»РµРЅРёРµ РџРћ РљРљРњ РґРѕ РІРµСЂСЃРёРё %s, СЃР±РѕСЂРєР°: %d РѕС‚ %s',
           [Firmware.Version, Firmware.Build, DateToStr(Firmware.Date)]);
     end;
 
     if FUpdateAvailable then
     begin
-      Lines.Add('Программа выполнит:');
+      Lines.Add('РџСЂРѕРіСЂР°РјРјР° РІС‹РїРѕР»РЅРёС‚:');
       if (LoaderLine <> '')or(FirmwareLine <> '') then
       begin
         if LoaderLine <> '' then Lines.Add(LoaderLine);
@@ -176,10 +176,10 @@ begin
           Lines.Add(Item.Info);
       end;
       Lines.Add('');
-      Lines.Add('Для начала нажмите кнопку "Обновить"');
+      Lines.Add('Р”Р»СЏ РЅР°С‡Р°Р»Р° РЅР°Р¶РјРёС‚Рµ РєРЅРѕРїРєСѓ "РћР±РЅРѕРІРёС‚СЊ"');
     end else
     begin
-      Lines.Add('Обновления не найдены');
+      Lines.Add('РћР±РЅРѕРІР»РµРЅРёСЏ РЅРµ РЅР°Р№РґРµРЅС‹');
     end;
     Result := Lines.Text;
   finally
@@ -238,7 +238,7 @@ begin
   except
     on E: Exception do
     begin
-      MemoInfo.Text := 'Ошибка: ' + E.Message;
+      MemoInfo.Text := 'РћС€РёР±РєР°: ' + E.Message;
     end;
   end;
 end;

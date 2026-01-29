@@ -1,4 +1,4 @@
-unit BinUtils;
+п»їunit BinUtils;
 
 interface
 
@@ -68,7 +68,7 @@ begin
       S := '';
     end;
   end;
-  // последний символ
+  // РїРѕСЃР»РµРґРЅРёР№ СЃРёРјРІРѕР»
   if Length(S) <> 0 then
   begin
     Val('$' + S, V, Code);

@@ -1,4 +1,4 @@
-program FPUpdaterCli;
+п»їprogram FPUpdaterCli;
 
 uses
   SysUtils,
@@ -46,6 +46,6 @@ end;
 
 begin
   Logger.WriteConsole := True;
-  WriteLn('FPUpdaterCli 1.0_26, утилита для обновления ФР, ООО «Торговый Баланс М», 2026');
+  WriteLn('FPUpdaterCli 1.0_26, СѓС‚РёР»РёС‚Р° РґР»СЏ РѕР±РЅРѕРІР»РµРЅРёСЏ Р¤Р , РћРћРћ В«РўРѕСЂРіРѕРІС‹Р№ Р‘Р°Р»Р°РЅСЃ РњВ», 2026');
   AutoUpdadeEcr;
 end.

@@ -1,4 +1,4 @@
-unit LogFile;
+п»їunit LogFile;
 
 interface
 
@@ -398,7 +398,7 @@ begin
   Trace(Data + ParamsToStr(Params));
 end;
 
-{ Преобразование строки в текст, чтобы увидеть все символы }
+{ РџСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёРµ СЃС‚СЂРѕРєРё РІ С‚РµРєСЃС‚, С‡С‚РѕР±С‹ СѓРІРёРґРµС‚СЊ РІСЃРµ СЃРёРјРІРѕР»С‹ }
 
 class function TLogFile.StrToText(const Text: string): string;
 var

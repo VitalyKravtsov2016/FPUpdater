@@ -1,4 +1,4 @@
-unit ComportUtils;
+﻿unit ComportUtils;
 
 interface
 

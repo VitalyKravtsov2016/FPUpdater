@@ -1,4 +1,4 @@
-unit NotifyThread;
+﻿unit NotifyThread;
 
 interface
 

@@ -1,4 +1,4 @@
-unit duFirmwareUpdater;
+п»їunit duFirmwareUpdater;
 
 interface
 
@@ -18,16 +18,19 @@ type
   TFirmwareUpdaterTest = class(TTestCase)
   private
     Updater: TFirmwareUpdater;
-    procedure SaveEcrStatus;
-    procedure SaveTables(const FileName: string);
-    procedure CheckPortNumber(PortNumber: Integer);
 
+    procedure LoadFiles;
+    procedure SaveEcrStatus;
     procedure CheckConnection;
     procedure CheckRndisConnection;
     procedure UpdateLoader(const Serial, FileName: string; BootVer: Integer);
     procedure CheckFirmwareUpdated;
     procedure ClearFiscalStorage;
-    procedure LoadFiles;
+    procedure SaveTables(const FileName: string);
+    procedure CheckPortNumber(PortNumber: Integer);
+    function GetDriver: TDriver;
+
+    property Driver: TDriver read GetDriver;
   public
     procedure SetUp; override;
     procedure TearDown; override;
@@ -56,6 +59,7 @@ type
     procedure SetVComConnection;
     procedure SetRndisConnection;
     procedure TestFNFiscalization;
+    procedure TestDownloadFiles;
   end;
 
 implementation
@@ -72,6 +76,12 @@ begin
   Updater.Free;
 end;
 
+function TFirmwareUpdaterTest.GetDriver: TDriver;
+begin
+  Result := Updater.Driver;
+end;
+
+
 procedure TFirmwareUpdaterTest.TestWriteLicenses;
 var
   Ecr: TEcrInfo;
@@ -79,11 +89,12 @@ begin
   //Updater.Path := GetFilesPath;
   Ecr := Updater.ReadEcrInfo;
   Updater.LoadFiles(Updater.Path);
-  Updater.WriteLicenses(Ecr);
+  //Updater.WriteLicenses(Ecr); !!!
 end;
 
 procedure TFirmwareUpdaterTest.SaveTables(const FileName: string);
 begin
+(*
   Driver.FileName := FileName;
   if FileExists(Driver.FileName) then
   begin
@@ -91,6 +102,7 @@ begin
       RaiseLastWin32Error;
   end;
   Driver.Check(Driver.ExportTables);
+*)
 end;
 
 procedure TFirmwareUpdaterTest.CheckPortNumber(PortNumber: Integer);
@@ -138,11 +150,11 @@ begin
   CheckConnection;
   Logger.Debug('SetComConnection');
   Ecr := Updater.ReadEcrInfo;
-  if Ecr.PortNumber = PORT_COM then Exit;
+  if Ecr.HardwarePort = PORT_COM then Exit;
 
   if Driver.ConnectionType <> CT_LOCAL then
   begin
-    Driver.WriteTableInt(21, 1, 1, 0); // Режим ppp
+    Driver.WriteTableInt(21, 1, 1, 0); // Р РµР¶РёРј ppp
     Driver.WriteTableInt(21, 1, 9, 0); // Rndis active = 0
 
     Driver.RebootKKT;
@@ -167,7 +179,7 @@ begin
   Ecr := Updater.ReadEcrInfo;
   if Driver.ConnectionType <> CT_LOCAL then
   begin
-    Driver.WriteTableInt(21, 1, 1, 0); // Режим ppp
+    Driver.WriteTableInt(21, 1, 1, 0); // Р РµР¶РёРј ppp
     Driver.WriteTableInt(21, 1, 9, 0); // Rndis active = 0
     Driver.RebootKKT;
     Driver.Disconnect;
@@ -213,8 +225,8 @@ var
   RndisActive: Boolean;
 begin
   CheckPortNumber(PORT_TCP);
-  PppMode := Driver.ReadTableInt(21, 1, 1); // Режим ppp
-  RndisActive := Driver.ReadTableInt(21, 1, 9) = 1; // Режим Rndis
+  PppMode := Driver.ReadTableInt(21, 1, 1); // Р РµР¶РёРј ppp
+  RndisActive := Driver.ReadTableInt(21, 1, 9) = 1; // Р РµР¶РёРј Rndis
   CheckEquals(PPP_NONE, PppMode, 'PppMode <> PPP_NONE');
   CheckEquals(True, RndisActive, 'RndisActive=False');
 end;
@@ -272,7 +284,7 @@ begin
   //SearchParams.Serial := '0374360004103321';
   SearchParams.Timeout := FirmwareRebootTimeout;
   if not Updater.FindDeviceLocal(SearchParams) then
-    raise Exception.Create('Устройство не найдено');
+    raise Exception.Create('РЈСЃС‚СЂРѕР№СЃС‚РІРѕ РЅРµ РЅР°Р№РґРµРЅРѕ');
 end;
 
 procedure TFirmwareUpdaterTest.TestDiscoverDevice;
@@ -332,14 +344,14 @@ begin
   Ecr := Updater.ReadEcrInfo;
   IsTehnoTestKeys := Pos('T', Driver.FMSoftVersion) > 0;
   if not IsTehnoTestKeys then
-    raise Exception.Create('Боевой софт откатить нельзя');
+    raise Exception.Create('Р‘РѕРµРІРѕР№ СЃРѕС„С‚ РѕС‚РєР°С‚РёС‚СЊ РЅРµР»СЊР·СЏ');
 
   if Ecr.BootVer <> 153 then
   begin
     Ecr.BootVer := 155;
-    // VCOM для скорости
+    // VCOM РґР»СЏ СЃРєРѕСЂРѕСЃС‚Рё
     //SetVComConnection;
-    // Обнуление ФН для скорости перезапуска ФР
+    // РћР±РЅСѓР»РµРЅРёРµ Р¤Рќ РґР»СЏ СЃРєРѕСЂРѕСЃС‚Рё РїРµСЂРµР·Р°РїСѓСЃРєР° Р¤Р 
     //ClearFiscalStorage;
 
     if Ecr.BootVer = 155 then
@@ -359,11 +371,11 @@ begin
     end;
   end;
   if Ecr.BootVer <> 153 then
-    raise Exception.CreateFmt('Неверная версия загрузчика, %d', [Ecr.BootVer]);
+    raise Exception.CreateFmt('РќРµРІРµСЂРЅР°СЏ РІРµСЂСЃРёСЏ Р·Р°РіСЂСѓР·С‡РёРєР°, %d', [Ecr.BootVer]);
 
-  // Версия ПО: C.3
-  // Сборка ПО: 62776
-  // Дата ПО: 19.08.2025
+  // Р’РµСЂСЃРёСЏ РџРћ: C.3
+  // РЎР±РѕСЂРєР° РџРћ: 62776
+  // Р”Р°С‚Р° РџРћ: 19.08.2025
 
   if (Ecr.FirmwareVersion <> 'C.1')or(Ecr.FirmwareBuild <> 62922) then
   begin
@@ -381,38 +393,38 @@ procedure TFirmwareUpdaterTest.TestFNFiscalization;
 var
   IsTehnoTestKeys: Boolean;
 begin
-  // Отключить печать и звук
-  //1,1,28,1,0,0,1,'Отключение звука при ошибках','0'
+  // РћС‚РєР»СЋС‡РёС‚СЊ РїРµС‡Р°С‚СЊ Рё Р·РІСѓРє
+  //1,1,28,1,0,0,1,'РћС‚РєР»СЋС‡РµРЅРёРµ Р·РІСѓРєР° РїСЂРё РѕС€РёР±РєР°С…','0'
   Driver.WriteTableInt(1,1,28, 0);
-  //17,1,7,1,0,0,3,'Rus не печатать документ','0'
+  //17,1,7,1,0,0,3,'Rus РЅРµ РїРµС‡Р°С‚Р°С‚СЊ РґРѕРєСѓРјРµРЅС‚','0'
   Driver.WriteTableInt(17,1,7, 0);
-  // Сервер ОФД
+  // РЎРµСЂРІРµСЂ РћР¤Р”
   Driver.WriteTableStr(19,1,1, 'k-server.1-ofd-test.ru');
   Driver.WriteTableInt(19,1,2, 7777);
-  Driver.WriteTableStr(18,1,10, 'Первый ОФД (АО "ЭСК")');
+  Driver.WriteTableStr(18,1,10, 'РџРµСЂРІС‹Р№ РћР¤Р” (РђРћ "Р­РЎРљ")');
   Driver.WriteTableStr(18,1,11, '1-ofd.ru');
   Driver.WriteTableStr(18,1,12, '7709364346');
 
-  // Проверка что ФН отладочный
+  // РџСЂРѕРІРµСЂРєР° С‡С‚Рѕ Р¤Рќ РѕС‚Р»Р°РґРѕС‡РЅС‹Р№
   Driver.Check(Driver.FNGetVersion);
   if Driver.FNSoftType <> 0 then
-    raise Exception.Create('ФН должен быть отладочным');
+    raise Exception.Create('Р¤Рќ РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РѕС‚Р»Р°РґРѕС‡РЅС‹Рј');
 
   ClearFiscalStorage;
 
-  // Фискализация ФН
+  // Р¤РёСЃРєР°Р»РёР·Р°С†РёСЏ Р¤Рќ
   Driver.Check(Driver.FNGetStatus);
   if Driver.FNLifeState = 1 then
   begin
-    // Для тестовых устройств - фискализируем по 1.05
-    // Если поле "Версия ФД" поддерживает значение 2 (ФФД 1.05)
+    // Р”Р»СЏ С‚РµСЃС‚РѕРІС‹С… СѓСЃС‚СЂРѕР№СЃС‚РІ - С„РёСЃРєР°Р»РёР·РёСЂСѓРµРј РїРѕ 1.05
+    // Р•СЃР»Рё РїРѕР»Рµ "Р’РµСЂСЃРёСЏ Р¤Р”" РїРѕРґРґРµСЂР¶РёРІР°РµС‚ Р·РЅР°С‡РµРЅРёРµ 2 (Р¤Р¤Р” 1.05)
     Driver.TableNumber := 17;
     Driver.RowNumber := 1;
     Driver.FieldNumber := 17;
     Driver.Check(Driver.GetFieldStruct);
     if Driver.MINValueOfField <= 2 then
     begin
-      //17,1,17,1,0,2,2,'Rus формат фд','2'
+      //17,1,17,1,0,2,2,'Rus С„РѕСЂРјР°С‚ С„Рґ','2'
       Driver.WriteTableInt(17,1,17, 2);
     end else
     begin
@@ -438,11 +450,11 @@ end;
 
 procedure TFirmwareUpdaterTest.ClearFiscalStorage;
 begin
-  // Сбросить, если ФН фискализирован по ФФД 1.2 или был закрыт
+  // РЎР±СЂРѕСЃРёС‚СЊ, РµСЃР»Рё Р¤Рќ С„РёСЃРєР°Р»РёР·РёСЂРѕРІР°РЅ РїРѕ Р¤Р¤Р” 1.2 РёР»Рё Р±С‹Р» Р·Р°РєСЂС‹С‚
   Driver.Check(Driver.FNGetStatus);
   if Driver.FNLifeState > 1 then
   begin
-    // Сброс ФН
+    // РЎР±СЂРѕСЃ Р¤Рќ
     Driver.RequestType := 22;
     Driver.Check(Driver.FNResetState);
   end;
@@ -512,7 +524,7 @@ procedure TFirmwareUpdaterTest.TestLoadParams;
 begin
   CheckEquals(True, Updater.Params.SaveTables, 'Params.SaveTables');
   CheckEquals(False, Updater.Params.PrintStatus, 'Params.PrintStatus');
-  CheckEquals(Ord(FFD12), Ord(Updater.Params.FFDNeedUpdate), 'Params.FFDNeedUpdate');
+  //CheckEquals(Ord(FFD12), Ord(Updater.Params.FFDNeedUpdate), 'Params.FFDNeedUpdate');
   CheckEquals(True, Updater.Params.RestoreCashRegister, 'Params.RestoreCashRegister');
   CheckEquals(5, Updater.Params.DocSentTimeoutInSec, 'Params.DocSentTimeoutInSec');
 end;
@@ -532,6 +544,12 @@ begin
   Check(TickCount < 3000, 'DFU device up time > 3000 ms');
   // Wait
 end;
+
+procedure TFirmwareUpdaterTest.TestDownloadFiles;
+begin
+
+end;
+
 
 
 

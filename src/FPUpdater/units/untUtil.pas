@@ -1,4 +1,4 @@
-unit untUtil;
+п»їunit untUtil;
 
 interface
 
@@ -116,7 +116,7 @@ end;
 
 {*****************************************************************************}
 {
-{       Преобразование времени в строку в формате hh:nn:ss
+{       РџСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёРµ РІСЂРµРјРµРЅРё РІ СЃС‚СЂРѕРєСѓ РІ С„РѕСЂРјР°С‚Рµ hh:nn:ss
 {
 {*****************************************************************************}
 
@@ -162,39 +162,39 @@ begin
   end;
 end;
 
-// Получение нмоера модели
+// РџРѕР»СѓС‡РµРЅРёРµ РЅРјРѕРµСЂР° РјРѕРґРµР»Рё
 
 function ModelToMetrics(Model: TDeviceModel): Integer;
 begin
   case Model of
-    dmUnknown: Result := 0; 					  // Неизвестная модель
-    dmShtrihFRF3: Result := 0;				  // ШТРИХ-ФР-Ф (версия 3)
-    dmShtrihFRF4: Result := 0;				  // ШТРИХ-ФР-Ф (версия 4)
-    dmShtrihFRFKaz: Result := 1;   	    // ШТРИХ-ФР-Ф (Казахстан)
-    dmElvesMiniFRF: Result := 2;			  // ЭЛВЕС-МИНИ-ФР-Ф
-    dmFelixRF: Result := 3; 					  // ФЕЛИКС-Р Ф
-    dmShtrihFRK: Result := 4;				    // ШТРИХ-ФР-К
-    dmShtrih950K: Result := 5;				  // ШТРИХ-950К версия 1
-    dmShtrih950Kv2: Result := 11;			  // Штрих950K версия 2
-    dmElvesFRK: Result := 6; 				    // ЭЛВЕС-ФР-К
-    dmShtrihMiniFRK: Result := 7; 		  // ШТРИХ-МИНИ-ФР-К
-    dmShtrihMiniFRK2: Result := 14; 	  // ШТРИХ-МИНИ-ФР-К 2
-    dmShtrihFRFBel: Result := 8; 		    // ШТРИХ-ФР-Ф (Белоруссия)
-    dmShtrihComboFRKv1: Result := 9;    // ШТРИХ-КОМБО-ФР-К версии 1
-    dmShtrihComboFRKv2: Result := 12;   // ШТРИХ-КОМБО-ФР-К версии 2
-    dmShtrihPOSF: Result := 10;				  // Фискальный блок Штрих-POS-Ф
-    dmShtrih500: Result := 0;					  // ШТРИХ-500
-    dmShtrihMFRK: Result := 250;        // ШТРИХ-М-ФР-К
-    dmShtrihLightFRK: Result := 252;   // ШТРИХ-LIGHT-ФР-К
-    dmYARUS01K: Result := 249;          // ЯРУС-01К
-    dmYARUS02K: Result := 248;          // ЯРУС-02К
-    dmYARUSM2100K: Result := 20;        // ЯРУС М2100К
+    dmUnknown: Result := 0; 					  // РќРµРёР·РІРµСЃС‚РЅР°СЏ РјРѕРґРµР»СЊ
+    dmShtrihFRF3: Result := 0;				  // РЁРўР РРҐ-Р¤Р -Р¤ (РІРµСЂСЃРёСЏ 3)
+    dmShtrihFRF4: Result := 0;				  // РЁРўР РРҐ-Р¤Р -Р¤ (РІРµСЂСЃРёСЏ 4)
+    dmShtrihFRFKaz: Result := 1;   	    // РЁРўР РРҐ-Р¤Р -Р¤ (РљР°Р·Р°С…СЃС‚Р°РЅ)
+    dmElvesMiniFRF: Result := 2;			  // Р­Р›Р’Р•РЎ-РњРРќР-Р¤Р -Р¤
+    dmFelixRF: Result := 3; 					  // Р¤Р•Р›РРљРЎ-Р  Р¤
+    dmShtrihFRK: Result := 4;				    // РЁРўР РРҐ-Р¤Р -Рљ
+    dmShtrih950K: Result := 5;				  // РЁРўР РРҐ-950Рљ РІРµСЂСЃРёСЏ 1
+    dmShtrih950Kv2: Result := 11;			  // РЁС‚СЂРёС…950K РІРµСЂСЃРёСЏ 2
+    dmElvesFRK: Result := 6; 				    // Р­Р›Р’Р•РЎ-Р¤Р -Рљ
+    dmShtrihMiniFRK: Result := 7; 		  // РЁРўР РРҐ-РњРРќР-Р¤Р -Рљ
+    dmShtrihMiniFRK2: Result := 14; 	  // РЁРўР РРҐ-РњРРќР-Р¤Р -Рљ 2
+    dmShtrihFRFBel: Result := 8; 		    // РЁРўР РРҐ-Р¤Р -Р¤ (Р‘РµР»РѕСЂСѓСЃСЃРёСЏ)
+    dmShtrihComboFRKv1: Result := 9;    // РЁРўР РРҐ-РљРћРњР‘Рћ-Р¤Р -Рљ РІРµСЂСЃРёРё 1
+    dmShtrihComboFRKv2: Result := 12;   // РЁРўР РРҐ-РљРћРњР‘Рћ-Р¤Р -Рљ РІРµСЂСЃРёРё 2
+    dmShtrihPOSF: Result := 10;				  // Р¤РёСЃРєР°Р»СЊРЅС‹Р№ Р±Р»РѕРє РЁС‚СЂРёС…-POS-Р¤
+    dmShtrih500: Result := 0;					  // РЁРўР РРҐ-500
+    dmShtrihMFRK: Result := 250;        // РЁРўР РРҐ-Рњ-Р¤Р -Рљ
+    dmShtrihLightFRK: Result := 252;   // РЁРўР РРҐ-LIGHT-Р¤Р -Рљ
+    dmYARUS01K: Result := 249;          // РЇР РЈРЎ-01Рљ
+    dmYARUS02K: Result := 248;          // РЇР РЈРЎ-02Рљ
+    dmYARUSM2100K: Result := 20;        // РЇР РЈРЎ Рњ2100Рљ
   else
     Result := 0;
   end;
 end;
 
-{ Получение модели по параметрам устройства }
+{ РџРѕР»СѓС‡РµРЅРёРµ РјРѕРґРµР»Рё РїРѕ РїР°СЂР°РјРµС‚СЂР°Рј СѓСЃС‚СЂРѕР№СЃС‚РІР° }
 
 function MetricsToModel(UModel, UMajorType, UMinorType,
   UMajorProtocolVersion, UMinorProtocolVersion: Integer): TDeviceModel;
@@ -223,30 +223,30 @@ begin
             end;
           end;
            1: Result := dmShtrihFRFKaz;
-           2: Result := dmElvesMiniFRF;	     // ЭЛВЕС-МИНИ-ФР-Ф
-           3: Result := dmFelixRF; 	         // ФЕЛИКС-Р Ф
-           4: Result := dmShtrihFRK;	       // ШТРИХ-ФР-К
-           5: Result := dmShtrih950K;	       // ШТРИХ-950К
-           6: Result := dmElvesFRK; 	       // ЭЛВЕС-ФР-К
-           7: Result := dmShtrihMiniFRK;     // ШТРИХ-МИНИ-ФР-К
-           8: Result := dmShtrihFRFBel;      // ШТРИХ-ФР-Ф (Белоруссия)
-           9: Result := dmShtrihComboFRKv1;  // ШТРИХ-КОМБО-ФР-К версии 1
-          10: Result := dmShtrihPOSF;	       // Фискальный блок Штрих-POS-Ф
-          11: Result := dmShtrih950Kv2;	     // Штрих950K версия 2
-          12: Result := dmShtrihComboFRKv2;  // ШТРИХ-КОМБО-ФР-К версии 2
-          14: Result := dmShtrihMiniFRK2;    // ШТРИХ-МИНИ-ФР-К 2
-          20: Result := dmYARUSM2100K;       // ЯРУС М2100К
-          250: Result := dmShtrihMFRK;       // ШТРИХ-М-ФР-К
-          252: Result := dmShtrihLightFRK;   // ШТРИХ-LIGHT-ФР-К
-          249: Result := dmYARUS01K;         // ЯРУС-01К
-          248: Result := dmYARUS02K;         // ЯРУС-02К
-          19: Result := dmShtrihMobilePTK; //"ШТРИХ-MOBILE-ПТК"
-          21: Result := dmYarusTK; //- "YARUS-ТК" | "АСПД YARUS C21"
-          22: Result := dmRetail01K; //- "Retail-01К"
-          23: Result := dmRR02K; //- "RR-02К"
-          24: Result := dmRR01K; //- "RR-01К"
-          25: Result := dmRR04K; //- "RR-04К"
-          26: Result := dmRR03K; //- "RR-03К"
+           2: Result := dmElvesMiniFRF;	     // Р­Р›Р’Р•РЎ-РњРРќР-Р¤Р -Р¤
+           3: Result := dmFelixRF; 	         // Р¤Р•Р›РРљРЎ-Р  Р¤
+           4: Result := dmShtrihFRK;	       // РЁРўР РРҐ-Р¤Р -Рљ
+           5: Result := dmShtrih950K;	       // РЁРўР РРҐ-950Рљ
+           6: Result := dmElvesFRK; 	       // Р­Р›Р’Р•РЎ-Р¤Р -Рљ
+           7: Result := dmShtrihMiniFRK;     // РЁРўР РРҐ-РњРРќР-Р¤Р -Рљ
+           8: Result := dmShtrihFRFBel;      // РЁРўР РРҐ-Р¤Р -Р¤ (Р‘РµР»РѕСЂСѓСЃСЃРёСЏ)
+           9: Result := dmShtrihComboFRKv1;  // РЁРўР РРҐ-РљРћРњР‘Рћ-Р¤Р -Рљ РІРµСЂСЃРёРё 1
+          10: Result := dmShtrihPOSF;	       // Р¤РёСЃРєР°Р»СЊРЅС‹Р№ Р±Р»РѕРє РЁС‚СЂРёС…-POS-Р¤
+          11: Result := dmShtrih950Kv2;	     // РЁС‚СЂРёС…950K РІРµСЂСЃРёСЏ 2
+          12: Result := dmShtrihComboFRKv2;  // РЁРўР РРҐ-РљРћРњР‘Рћ-Р¤Р -Рљ РІРµСЂСЃРёРё 2
+          14: Result := dmShtrihMiniFRK2;    // РЁРўР РРҐ-РњРРќР-Р¤Р -Рљ 2
+          20: Result := dmYARUSM2100K;       // РЇР РЈРЎ Рњ2100Рљ
+          250: Result := dmShtrihMFRK;       // РЁРўР РРҐ-Рњ-Р¤Р -Рљ
+          252: Result := dmShtrihLightFRK;   // РЁРўР РРҐ-LIGHT-Р¤Р -Рљ
+          249: Result := dmYARUS01K;         // РЇР РЈРЎ-01Рљ
+          248: Result := dmYARUS02K;         // РЇР РЈРЎ-02Рљ
+          19: Result := dmShtrihMobilePTK; //"РЁРўР РРҐ-MOBILE-РџРўРљ"
+          21: Result := dmYarusTK; //- "YARUS-РўРљ" | "РђРЎРџР” YARUS C21"
+          22: Result := dmRetail01K; //- "Retail-01Рљ"
+          23: Result := dmRR02K; //- "RR-02Рљ"
+          24: Result := dmRR01K; //- "RR-01Рљ"
+          25: Result := dmRR04K; //- "RR-04Рљ"
+          26: Result := dmRR03K; //- "RR-03Рљ"
         end;
       end;
     end;
@@ -260,35 +260,35 @@ begin
   end;
 end;
 
-// Получение ширины печати
+// РџРѕР»СѓС‡РµРЅРёРµ С€РёСЂРёРЅС‹ РїРµС‡Р°С‚Рё
 
 function ModelToDataSize(Value: TDeviceModel): Integer;
 begin
   case Value of
-    dmShtrihFRF3        : Result := 36;   // ШТРИХ-ФР-Ф (версия 3)
-    dmShtrihFRF4        : Result := 36;	  // ШТРИХ-ФР-Ф (версия 4)
-    dmShtrihFRFKaz      : Result := 36;	  // ШТРИХ-ФР-Ф (Казахская версия)
-    dmElvesMiniFRF      : Result := 24;	  // ЭЛВЕС-МИНИ-ФР-Ф
-    dmFelixRF           : Result := 20;   // ФЕЛИКС-Р Ф
-    dmShtrihFRK         : Result := 36;	  // ШТРИХ-ФР-К
-    dmShtrih950K        : Result := 40;	  // ШТРИХ-950К
-    dmElvesFRK          : Result := 32;   // ЭЛВЕС-ФР-К
-    dmShtrihMiniFRK     : Result := 50;   // ШТРИХ-МИНИ-ФР-К
-    dmShtrihFRFBel      : Result := 36;   // ШТРИХ-ФР-Ф (Белоруссия)
-    dmShtrihComboFRKv1  : Result := 48;   // ШТРИХ-КОМБО-ФР-К версии 1
-    dmShtrihPOSF        : Result := 40;	  // Фискальный блок Штрих-POS-Ф
-    dmShtrih950Kv2      : Result := 40;	  // Штрих950K версия 2
-    dmShtrihComboFRKv2  : Result := 40;   // ШТРИХ-КОМБО-ФР-К версии 2
-    dmShtrihMiniFRK2    : Result := 50;   // ШТРИХ-МИНИ-ФР-К 2
-    dmShtrihMFRK        : Result := 48;   // ШТРИХ-М-ФР-К
-    dmShtrihLightFRK    : Result := 32;   // ШТРИХ-LIGHT-ФР-К
-    dmShtrihMobilePTK: Result := 19;  //"ШТРИХ-MOBILE-ПТК"
-    dmYarusTK: Result := 21;  //- "YARUS-ТК" | "АСПД YARUS C21"
-    dmRetail01K: Result := 22;  //- "Retail-01К"
-    dmRR02K: Result := 23;  //- "RR-02К"
-    dmRR01K: Result := 24;  //- "RR-01К"
-    dmRR04K: Result := 25;  //- "RR-04К"
-    dmRR03K: Result := 26;  //- "RR-03К"
+    dmShtrihFRF3        : Result := 36;   // РЁРўР РРҐ-Р¤Р -Р¤ (РІРµСЂСЃРёСЏ 3)
+    dmShtrihFRF4        : Result := 36;	  // РЁРўР РРҐ-Р¤Р -Р¤ (РІРµСЂСЃРёСЏ 4)
+    dmShtrihFRFKaz      : Result := 36;	  // РЁРўР РРҐ-Р¤Р -Р¤ (РљР°Р·Р°С…СЃРєР°СЏ РІРµСЂСЃРёСЏ)
+    dmElvesMiniFRF      : Result := 24;	  // Р­Р›Р’Р•РЎ-РњРРќР-Р¤Р -Р¤
+    dmFelixRF           : Result := 20;   // Р¤Р•Р›РРљРЎ-Р  Р¤
+    dmShtrihFRK         : Result := 36;	  // РЁРўР РРҐ-Р¤Р -Рљ
+    dmShtrih950K        : Result := 40;	  // РЁРўР РРҐ-950Рљ
+    dmElvesFRK          : Result := 32;   // Р­Р›Р’Р•РЎ-Р¤Р -Рљ
+    dmShtrihMiniFRK     : Result := 50;   // РЁРўР РРҐ-РњРРќР-Р¤Р -Рљ
+    dmShtrihFRFBel      : Result := 36;   // РЁРўР РРҐ-Р¤Р -Р¤ (Р‘РµР»РѕСЂСѓСЃСЃРёСЏ)
+    dmShtrihComboFRKv1  : Result := 48;   // РЁРўР РРҐ-РљРћРњР‘Рћ-Р¤Р -Рљ РІРµСЂСЃРёРё 1
+    dmShtrihPOSF        : Result := 40;	  // Р¤РёСЃРєР°Р»СЊРЅС‹Р№ Р±Р»РѕРє РЁС‚СЂРёС…-POS-Р¤
+    dmShtrih950Kv2      : Result := 40;	  // РЁС‚СЂРёС…950K РІРµСЂСЃРёСЏ 2
+    dmShtrihComboFRKv2  : Result := 40;   // РЁРўР РРҐ-РљРћРњР‘Рћ-Р¤Р -Рљ РІРµСЂСЃРёРё 2
+    dmShtrihMiniFRK2    : Result := 50;   // РЁРўР РРҐ-РњРРќР-Р¤Р -Рљ 2
+    dmShtrihMFRK        : Result := 48;   // РЁРўР РРҐ-Рњ-Р¤Р -Рљ
+    dmShtrihLightFRK    : Result := 32;   // РЁРўР РРҐ-LIGHT-Р¤Р -Рљ
+    dmShtrihMobilePTK: Result := 19;  //"РЁРўР РРҐ-MOBILE-РџРўРљ"
+    dmYarusTK: Result := 21;  //- "YARUS-РўРљ" | "РђРЎРџР” YARUS C21"
+    dmRetail01K: Result := 22;  //- "Retail-01Рљ"
+    dmRR02K: Result := 23;  //- "RR-02Рљ"
+    dmRR01K: Result := 24;  //- "RR-01Рљ"
+    dmRR04K: Result := 25;  //- "RR-04Рљ"
+    dmRR03K: Result := 26;  //- "RR-03Рљ"
 
   else
     Result := 40;
@@ -304,12 +304,12 @@ end;
 
 procedure InvalidProp(const PropName: WideString);
 resourcestring
-  SInvalidPropValue = 'Неверное значение свойства %s.';
+  SInvalidPropValue = 'РќРµРІРµСЂРЅРѕРµ Р·РЅР°С‡РµРЅРёРµ СЃРІРѕР№СЃС‚РІР° %s.';
 begin
   RaiseError(E_INVALIDPARAM, Format(GetRes(@SInvalidPropValue), [PropName]));
 end;
 
-// Чтение размеров и положения формы таблицы из реестра
+// Р§С‚РµРЅРёРµ СЂР°Р·РјРµСЂРѕРІ Рё РїРѕР»РѕР¶РµРЅРёСЏ С„РѕСЂРјС‹ С‚Р°Р±Р»РёС†С‹ РёР· СЂРµРµСЃС‚СЂР°
 procedure ReadTableWindowParams(ATableNumber: Integer; AForm: TForm; RootKey: HKEY);
 var
   Reg: TRegistry;
@@ -355,7 +355,7 @@ begin
   AForm.Height := H;
 end;
 
-// Запись размеров и положения формы таблицы из реестра
+// Р—Р°РїРёСЃСЊ СЂР°Р·РјРµСЂРѕРІ Рё РїРѕР»РѕР¶РµРЅРёСЏ С„РѕСЂРјС‹ С‚Р°Р±Р»РёС†С‹ РёР· СЂРµРµСЃС‚СЂР°
 procedure SaveTableWindowParams(ATableNumber: Integer; AForm: TForm; RootKey: HKEY);
 var
   Reg: TRegistry;
@@ -383,7 +383,7 @@ begin
   Reg.Free;
 end;
 
-// Протокол КЯ
+// РџСЂРѕС‚РѕРєРѕР» РљРЇ
 function DecodeTCPPort(ACode: Byte): Integer;
 var
   LoValue: Byte;
@@ -394,7 +394,7 @@ begin
   Result := MakeWord(LoValue, HiValue);
 end;
 
-// Протокол КЯ
+// РџСЂРѕС‚РѕРєРѕР» РљРЇ
 function EncodeTCPPort(ATCPPort: Word): Byte;
 begin
   Result := ((ATCPPort and $F000) shr 12) shl 4 or (ATCPPort and $000F);

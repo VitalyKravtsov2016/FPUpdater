@@ -1,4 +1,4 @@
-unit SearchPort;
+п»їunit SearchPort;
 
 {$J+}
 
@@ -110,7 +110,7 @@ type
     property DefSysPassword: Integer read FDefSysPassword write FDefSysPassword;
     property SerialNumber: string read FSerialNumber write FSerialNumber;
     property DoTechReset: Boolean read FDoTechReset write FDoTechReset;
-    property ShortSearch: Boolean read FShortSearch write FShortSearch; // поиск на 115200 и 4800
+    property ShortSearch: Boolean read FShortSearch write FShortSearch; // РїРѕРёСЃРє РЅР° 115200 Рё 4800
     property ConnectionType: Integer read FConnectionType write FConnectionType;
     property NoBaudrate: Boolean read FNoBaudrate write FNoBaudrate;
     property DevicePort: Integer read FDevicePort;
@@ -119,8 +119,8 @@ type
 implementation
 
 resourcestring
-  SDeviceNotFound = 'не найдено';
-  SSearchIsInProgress = 'идет поиск...';
+  SDeviceNotFound = 'РЅРµ РЅР°Р№РґРµРЅРѕ';
+  SSearchIsInProgress = 'РёРґРµС‚ РїРѕРёСЃРє...';
 
 { TSearchPorts }
 
@@ -404,7 +404,7 @@ begin
       SerialNumber := '';
       if FDoTechReset then
       begin
-        Logger.Debug('Разрешено техобнуление: ' + BoolToStr[DoTechReset]);
+        Logger.Debug('Р Р°Р·СЂРµС€РµРЅРѕ С‚РµС…РѕР±РЅСѓР»РµРЅРёРµ: ' + BoolToStr[DoTechReset]);
         try
           Driver.Timeout := 5000;
           Res := Driver.ReadSerialNumber;
@@ -436,7 +436,7 @@ begin
         except
           on E: Exception do
           begin
-            Logger.Error('Ошибка: ' + E.Message);
+            Logger.Error('РћС€РёР±РєР°: ' + E.Message);
           end;
         end;
       end;
@@ -445,7 +445,7 @@ begin
       Driver.ReadModelParamValue;
       Text := Driver.UDescription; //TrimRight(Driver.UDescription);
       FDefSysPassword := Driver.ModelParamValue;
-      Logger.Debug('Устройство найдено, ' + Text);
+      Logger.Debug('РЈСЃС‚СЂРѕР№СЃС‚РІРѕ РЅР°Р№РґРµРЅРѕ, ' + Text);
       Break;
     end
     else
@@ -453,7 +453,7 @@ begin
       if ResultCode <> E_NOHARDWARE then
       begin
         Text := Format('%d: %s', [ResultCode, Driver.ResultCodeDescription]);
-        //Logger.Debug('Устройство не найдено, ' + Text);
+        //Logger.Debug('РЈСЃС‚СЂРѕР№СЃС‚РІРѕ РЅРµ РЅР°Р№РґРµРЅРѕ, ' + Text);
         Break;
       end;
     end;
@@ -483,7 +483,7 @@ begin
   except
     on E: Exception do
     begin
-      Logger.Error('Ошибка: ' + E.Message);
+      Logger.Error('РћС€РёР±РєР°: ' + E.Message);
       Text := E.Message;
     end;
   end;

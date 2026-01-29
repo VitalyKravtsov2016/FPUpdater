@@ -1,4 +1,4 @@
-unit UpdateItem;
+п»їunit UpdateItem;
 
 interface
 
@@ -13,34 +13,34 @@ const
   /////////////////////////////////////////////////////////////////////////////
   /// SigningKey values
   ///
-  SigningKeyUnknown         = 0; // инфраструктура неизвестна
-  SigningKeyTehnoTest       = 1; // инфраструктура tehno test
-  SigningKeyTehnoWork       = 2; // инфраструктура tehno work
-  SigningKeyShtrihWork      = 3; // инфраструктура shtrih
-  SigningKeyShtrihInter     = 4; // инфраструктура shtrih промежуточная
+  SigningKeyUnknown         = 0; // РёРЅС„СЂР°СЃС‚СЂСѓРєС‚СѓСЂР° РЅРµРёР·РІРµСЃС‚РЅР°
+  SigningKeyTehnoTest       = 1; // РёРЅС„СЂР°СЃС‚СЂСѓРєС‚СѓСЂР° tehno test
+  SigningKeyTehnoWork       = 2; // РёРЅС„СЂР°СЃС‚СЂСѓРєС‚СѓСЂР° tehno work
+  SigningKeyShtrihWork      = 3; // РёРЅС„СЂР°СЃС‚СЂСѓРєС‚СѓСЂР° shtrih
+  SigningKeyShtrihInter     = 4; // РёРЅС„СЂР°СЃС‚СЂСѓРєС‚СѓСЂР° shtrih РїСЂРѕРјРµР¶СѓС‚РѕС‡РЅР°СЏ
 
   /////////////////////////////////////////////////////////////////////////////
-  /// Виды операций
+  /// Р’РёРґС‹ РѕРїРµСЂР°С†РёР№
   ///
-  // Обновление загрузчика
+  // РћР±РЅРѕРІР»РµРЅРёРµ Р·Р°РіСЂСѓР·С‡РёРєР°
   ACTION_UPDATE_LOADER    = 1;
 
-  // Обновление программы
+  // РћР±РЅРѕРІР»РµРЅРёРµ РїСЂРѕРіСЂР°РјРјС‹
   ACTION_UPDATE_FIRMWARE  = 2;
 
-  // Запись лицензий
+  // Р—Р°РїРёСЃСЊ Р»РёС†РµРЅР·РёР№
   ACTION_WRITE_LICENSE    = 3;
 
-  // Инициализация тестового ФН
+  // РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ С‚РµСЃС‚РѕРІРѕРіРѕ Р¤Рќ
   ACTION_INIT_FS          = 4;
 
-  // Фискализация ФН
+  // Р¤РёСЃРєР°Р»РёР·Р°С†РёСЏ Р¤Рќ
   ACTION_FISCALIZE_FS     = 5;
 
-  // Запись таблиц
+  // Р—Р°РїРёСЃСЊ С‚Р°Р±Р»РёС†
   ACTION_WRITE_TABLES     = 6;
 
-  // Перерегистрация ФН
+  // РџРµСЂРµСЂРµРіРёСЃС‚СЂР°С†РёСЏ Р¤Рќ
   ACTION_REFISCALIZE_FS   = 7;
 
 
@@ -48,12 +48,12 @@ type
   { TUpdateParams }
 
   TUpdateParams = record
-    AutoStart: Boolean;           // Автоматически запускать обновление
-    SaveTables: Boolean;          // Восстанавливать значения таблиц
-    PrintStatus: Boolean;         // Печатать на чековой ленте
-    DocSentTimeoutInSec: Integer; // Таймаут отправки документов в ОФД
-    RestoreCashRegister: Boolean; // Восстанавливать регистр наличных
-    ArchiveURL: string;           // Ссылка на архив в сети интернет
+    AutoStart: Boolean;           // РђРІС‚РѕРјР°С‚РёС‡РµСЃРєРё Р·Р°РїСѓСЃРєР°С‚СЊ РѕР±РЅРѕРІР»РµРЅРёРµ
+    SaveTables: Boolean;          // Р’РѕСЃСЃС‚Р°РЅР°РІР»РёРІР°С‚СЊ Р·РЅР°С‡РµРЅРёСЏ С‚Р°Р±Р»РёС†
+    PrintStatus: Boolean;         // РџРµС‡Р°С‚Р°С‚СЊ РЅР° С‡РµРєРѕРІРѕР№ Р»РµРЅС‚Рµ
+    DocSentTimeoutInSec: Integer; // РўР°Р№РјР°СѓС‚ РѕС‚РїСЂР°РІРєРё РґРѕРєСѓРјРµРЅС‚РѕРІ РІ РћР¤Р”
+    RestoreCashRegister: Boolean; // Р’РѕСЃСЃС‚Р°РЅР°РІР»РёРІР°С‚СЊ СЂРµРіРёСЃС‚СЂ РЅР°Р»РёС‡РЅС‹С…
+    ArchiveURL: string;           // РЎСЃС‹Р»РєР° РЅР° Р°СЂС…РёРІ РІ СЃРµС‚Рё РёРЅС‚РµСЂРЅРµС‚
   end;
 
 
@@ -93,11 +93,11 @@ type
 
   TActionUpdateLoader = class(TUpdateItem)
   private
-    FFileName: string;     // Имя файла
-    FCurrBootVer: Integer; // Версия загрузчика устройства
-    FNewBootVer: Integer;  // Версия загрузчика в файле
-    FForce: Boolean;       // Загружать если равны версии
-    FSigningKey: Integer;  // Тип ключей для подписи
+    FFileName: string;     // РРјСЏ С„Р°Р№Р»Р°
+    FCurrBootVer: Integer; // Р’РµСЂСЃРёСЏ Р·Р°РіСЂСѓР·С‡РёРєР° СѓСЃС‚СЂРѕР№СЃС‚РІР°
+    FNewBootVer: Integer;  // Р’РµСЂСЃРёСЏ Р·Р°РіСЂСѓР·С‡РёРєР° РІ С„Р°Р№Р»Рµ
+    FForce: Boolean;       // Р—Р°РіСЂСѓР¶Р°С‚СЊ РµСЃР»Рё СЂР°РІРЅС‹ РІРµСЂСЃРёРё
+    FSigningKey: Integer;  // РўРёРї РєР»СЋС‡РµР№ РґР»СЏ РїРѕРґРїРёСЃРё
   public
     procedure CheckFileExists(const Path: string); override;
     property FileName: string read FFileName;
@@ -111,16 +111,16 @@ type
 
   TActionUpdateFirmware = class(TUpdateItem)
   private
-    FInfo: string;            // Описание операции
-    FFileName: string;        // Имя файла
-    FCurrBootVer: Integer;    // Версия загрузчика устройства
-    FNewBootVer: Integer;     // Версия загрузчика в файле
-    FForce: Boolean;          // Загружать если равны версии
-    FSigningKey: Integer;     // Тип ключей для подписи
-    FVersion: string;         // Версия ПО ФР, например 'T.3'
-    FBuild: Integer;          // Сборка ПО ФР, например '7052'
-    FDate: TDate;             // Дата ПО ФР, например '2025-10-31'
-    FRestoreTables: Boolean;  // Нужно ли восстановить значения таблиц
+    FInfo: string;            // РћРїРёСЃР°РЅРёРµ РѕРїРµСЂР°С†РёРё
+    FFileName: string;        // РРјСЏ С„Р°Р№Р»Р°
+    FCurrBootVer: Integer;    // Р’РµСЂСЃРёСЏ Р·Р°РіСЂСѓР·С‡РёРєР° СѓСЃС‚СЂРѕР№СЃС‚РІР°
+    FNewBootVer: Integer;     // Р’РµСЂСЃРёСЏ Р·Р°РіСЂСѓР·С‡РёРєР° РІ С„Р°Р№Р»Рµ
+    FForce: Boolean;          // Р—Р°РіСЂСѓР¶Р°С‚СЊ РµСЃР»Рё СЂР°РІРЅС‹ РІРµСЂСЃРёРё
+    FSigningKey: Integer;     // РўРёРї РєР»СЋС‡РµР№ РґР»СЏ РїРѕРґРїРёСЃРё
+    FVersion: string;         // Р’РµСЂСЃРёСЏ РџРћ Р¤Р , РЅР°РїСЂРёРјРµСЂ 'T.3'
+    FBuild: Integer;          // РЎР±РѕСЂРєР° РџРћ Р¤Р , РЅР°РїСЂРёРјРµСЂ '7052'
+    FDate: TDate;             // Р”Р°С‚Р° РџРћ Р¤Р , РЅР°РїСЂРёРјРµСЂ '2025-10-31'
+    FRestoreTables: Boolean;  // РќСѓР¶РЅРѕ Р»Рё РІРѕСЃСЃС‚Р°РЅРѕРІРёС‚СЊ Р·РЅР°С‡РµРЅРёСЏ С‚Р°Р±Р»РёС†
   public
     procedure CheckFileExists(const Path: string); override;
     property Info: string read FInfo;
@@ -144,12 +144,12 @@ type
 
   TActionFiscalizeFS = class(TUpdateItem)
   private
-    FInn: string;           // ИНН
-    FTaxType: Integer;      // Тип налогообложения
-    FWorkMode: Integer;     // Режим работы
-    FWorkModeEx: Integer;   // Расширенный режим работы
-    FRegNumber: string;     // Регистрационный номер
-    FFfdVersion: Integer;     // Версия ФФД, на которую фискализировать
+    FInn: string;           // РРќРќ
+    FTaxType: Integer;      // РўРёРї РЅР°Р»РѕРіРѕРѕР±Р»РѕР¶РµРЅРёСЏ
+    FWorkMode: Integer;     // Р РµР¶РёРј СЂР°Р±РѕС‚С‹
+    FWorkModeEx: Integer;   // Р Р°СЃС€РёСЂРµРЅРЅС‹Р№ СЂРµР¶РёРј СЂР°Р±РѕС‚С‹
+    FRegNumber: string;     // Р РµРіРёСЃС‚СЂР°С†РёРѕРЅРЅС‹Р№ РЅРѕРјРµСЂ
+    FFfdVersion: Integer;     // Р’РµСЂСЃРёСЏ Р¤Р¤Р”, РЅР° РєРѕС‚РѕСЂСѓСЋ С„РёСЃРєР°Р»РёР·РёСЂРѕРІР°С‚СЊ
   public
     property Inn: string read FInn;
     property TaxType: Integer read FTaxType;
@@ -163,14 +163,14 @@ type
 
   TActionRefiscalizeFS = class(TUpdateItem)
   private
-    FInn: string;             // ИНН
-    FTaxType: Integer;        // Тип налогообложения
-    FWorkMode: Integer;       // Режим работы
-    FWorkModeEx: Integer;     // Расширенный режим работы
-    FRegNumber: string;       // Регистрационный номер
-    FFfdVersion: Integer;     // Версия ФФД, на которую перерегистрировать
-    FRegReasonCode: Integer;  // Код причины перерегистрации
-    FRegReasonCodeEx: Integer; // Расширеный код причины перерегистрации
+    FInn: string;             // РРќРќ
+    FTaxType: Integer;        // РўРёРї РЅР°Р»РѕРіРѕРѕР±Р»РѕР¶РµРЅРёСЏ
+    FWorkMode: Integer;       // Р РµР¶РёРј СЂР°Р±РѕС‚С‹
+    FWorkModeEx: Integer;     // Р Р°СЃС€РёСЂРµРЅРЅС‹Р№ СЂРµР¶РёРј СЂР°Р±РѕС‚С‹
+    FRegNumber: string;       // Р РµРіРёСЃС‚СЂР°С†РёРѕРЅРЅС‹Р№ РЅРѕРјРµСЂ
+    FFfdVersion: Integer;     // Р’РµСЂСЃРёСЏ Р¤Р¤Р”, РЅР° РєРѕС‚РѕСЂСѓСЋ РїРµСЂРµСЂРµРіРёСЃС‚СЂРёСЂРѕРІР°С‚СЊ
+    FRegReasonCode: Integer;  // РљРѕРґ РїСЂРёС‡РёРЅС‹ РїРµСЂРµСЂРµРіРёСЃС‚СЂР°С†РёРё
+    FRegReasonCodeEx: Integer; // Р Р°СЃС€РёСЂРµРЅС‹Р№ РєРѕРґ РїСЂРёС‡РёРЅС‹ РїРµСЂРµСЂРµРіРёСЃС‚СЂР°С†РёРё
   public
     property Inn: string read FInn;
     property TaxType: Integer read FTaxType;
@@ -186,7 +186,7 @@ type
 
   TActionWriteTables = class(TUpdateItem)
   private
-    FTables: TTableItems;    // Значения таблиц
+    FTables: TTableItems;    // Р—РЅР°С‡РµРЅРёСЏ С‚Р°Р±Р»РёС†
   public
     property Tables: TTableItems read FTables;
   end;
@@ -222,7 +222,7 @@ implementation
 procedure CheckFile(const FileName: string);
 begin
   if not FileExists(FileName) then
-    raise Exception.CreateFmt('Файл не найден, "%s"', [FileName]);
+    raise Exception.CreateFmt('Р¤Р°Р№Р» РЅРµ РЅР°Р№РґРµРЅ, "%s"', [FileName]);
 end;
 
 procedure UpdateItemsLoadFromFile(const FileName: string; Items: TUpdateItems);
@@ -245,9 +245,16 @@ begin
     Result := Value.GetValue<String>(APath);
 end;
 
-function JsonGetBoolean(Value: TJSONValue; const APath: string): Boolean;
+function JsonGetBoolean(Value: TJSONValue; const APath: string): Boolean; overload;
 begin
   Result := Value.GetValue<Boolean>(APath);
+end;
+
+function JsonGetBoolean(Value: TJSONValue; const APath: string; DefValue: Boolean): Boolean; overload;
+begin
+  Result := DefValue;
+  if Value.FindValue(APath) <> nil then
+    Result := Value.GetValue<Boolean>(APath);
 end;
 
 function JsonGetInteger(Value: TJSONValue; const APath: string): Integer; overload;
@@ -273,7 +280,7 @@ begin
   Result := StrToDate(DateStr, FormatSettings);
 end;
 
-// Чтение файла json
+// Р§С‚РµРЅРёРµ С„Р°Р№Р»Р° json
 procedure UpdateParamsLoadFromFile(const FileName: string;
   var Params: TUpdateParams);
 var
@@ -287,9 +294,9 @@ begin
     JSONValue := JSONObject.FindValue('Params');
     if JSONValue <> nil then
     begin
-      Params.AutoStart := JsonGetBoolean(JSONValue, 'AutoStart');
-      Params.SaveTables := JsonGetBoolean(JSONValue, 'SaveTables');
-      Params.PrintStatus := JsonGetBoolean(JSONValue, 'PrintStatus');
+      Params.AutoStart := JsonGetBoolean(JSONValue, 'AutoStart', False);
+      Params.SaveTables := JsonGetBoolean(JSONValue, 'SaveTables', False);
+      Params.PrintStatus := JsonGetBoolean(JSONValue, 'PrintStatus', False);
       Params.DocSentTimeoutInSec := JsonGetInteger(JSONValue, 'DocSentTimeoutInSec');
       Params.RestoreCashRegister := JsonGetBoolean(JSONValue, 'RestoreCashRegister');
       Params.ArchiveURL := JsonGetString(JSONValue, 'ArchiveURL');
@@ -409,7 +416,7 @@ begin
   if Json.FindValue('SigningKey')<>nil then
     Item.FSigningKey := JsonGetInteger(Json, 'SigningKey');
 
-  // Затем необязательные
+  // Р—Р°С‚РµРј РЅРµРѕР±СЏР·Р°С‚РµР»СЊРЅС‹Рµ
   Item.FRestoreTables := False;
   if Json.FindValue('savesetting') <> nil then
     Item.FRestoreTables := JsonGetBoolean(Json, 'savesetting');
@@ -418,7 +425,7 @@ begin
   if Json.FindValue('date') <> nil then
     Item.FDate := JsonStrToDate(Json.GetValue<String>('date'));
 
-  Item.FVersion := 'неизвестно';
+  Item.FVersion := 'РЅРµРёР·РІРµСЃС‚РЅРѕ';
   if Json.FindValue('fwver')<>nil then
     Item.FVersion := JsonGetString(Json, 'fwver');
 
@@ -562,8 +569,8 @@ end;
 
 (*
 
-    TaxType: Integer;                   // Тип налогообложения
-    WorkMode: Integer;                  // Режим работы
+    TaxType: Integer;                   // РўРёРї РЅР°Р»РѕРіРѕРѕР±Р»РѕР¶РµРЅРёСЏ
+    WorkMode: Integer;                  // Р РµР¶РёРј СЂР°Р±РѕС‚С‹
     WorkModeEx: Integer;
 
       Params.FFDNeedUpdate := TFFDNeedUpdate(JsonGetInteger(JSONValue, 'FFDNeedUpdate'));

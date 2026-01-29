@@ -1,4 +1,4 @@
-program FPUpdater;
+п»їprogram FPUpdater;
 
 {$R 'FPUpdater.res' 'FPUpdater.rc'}
 
@@ -57,7 +57,7 @@ begin
   begin
     Application.Initialize;
     Application.MainFormOnTaskbar := True;
-    Application.Title := 'Прошивальщик ' + GetFileVersionInfoStr;
+    Application.Title := 'РџСЂРѕС€РёРІР°Р»СЊС‰РёРє ' + GetFileVersionInfoStr;
     Application.CreateForm(TfmMain, fmMain);
   Application.CreateForm(TfmUnsupported, fmUnsupported);
   fmMain.Position := poDesktopCenter;

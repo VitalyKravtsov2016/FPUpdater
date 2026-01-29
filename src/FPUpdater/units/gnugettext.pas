@@ -1,4 +1,4 @@
-{*------------------------------------------------------------------------------
+﻿{*------------------------------------------------------------------------------
   GNU gettext translation system for Delphi, Kylix, C++ Builder and others.
   All parts of the translation system are kept in this unit.
   @author Lars B. Dybdahl and others

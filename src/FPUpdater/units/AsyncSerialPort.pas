@@ -1,4 +1,4 @@
-unit AsyncSerialPort;
+п»їunit AsyncSerialPort;
 
 interface
 
@@ -435,7 +435,7 @@ for i := 1 to 3 do
       Text := SysErrorMessage(GetLastError);
       DestroyHandle;
       if i = 3 then
-        raise Exception.CreateFmt('Ошибка открытия порта %s. %s', [PortName, Text])
+        raise Exception.CreateFmt('РћС€РёР±РєР° РѕС‚РєСЂС‹С‚РёСЏ РїРѕСЂС‚Р° %s. %s', [PortName, Text])
       else
         Sleep(100);
     end

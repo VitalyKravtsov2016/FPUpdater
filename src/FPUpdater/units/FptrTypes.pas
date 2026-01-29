@@ -1,4 +1,4 @@
-unit FptrTypes;
+п»їunit FptrTypes;
 
 interface
 
@@ -13,109 +13,109 @@ const
   // Error codes constants
   /////////////////////////////////////////////////////////////////////////////
 
-  FPTR_E_INVALID_PARAM                           = $33; // неверный параметр
-  FPTR_E_INVALID_PARAM_SETUP                     = $35; // неверный параметр при данных настройках
-  FPTR_E_INVALID_PARAM_REAL                      = $36; // неверный параметр при данной реализации
+  FPTR_E_INVALID_PARAM                           = $33; // РЅРµРІРµСЂРЅС‹Р№ РїР°СЂР°РјРµС‚СЂ
+  FPTR_E_INVALID_PARAM_SETUP                     = $35; // РЅРµРІРµСЂРЅС‹Р№ РїР°СЂР°РјРµС‚СЂ РїСЂРё РґР°РЅРЅС‹С… РЅР°СЃС‚СЂРѕР№РєР°С…
+  FPTR_E_INVALID_PARAM_REAL                      = $36; // РЅРµРІРµСЂРЅС‹Р№ РїР°СЂР°РјРµС‚СЂ РїСЂРё РґР°РЅРЅРѕР№ СЂРµР°Р»РёР·Р°С†РёРё
   FPTR_E_CMD_NOT_SUPPORT                         = $37; //
-  FPTR_E_ROM_FAIL                                = $38; // ошибка в ПЗУ
-  FPTR_E_INTERNAL_FR_SOFT                        = $39; // внутренняя ошибка программного обеспечения ФР
-  FPTR_E_SMENA_SUMM_CHARGE                       = $3A; // переполнение накопления по надбавкам в смене (новая)
-  FPTR_E_EKLZ_INVALID_REG_NUM                    = $3c; // ЭКЛЗ c неверным регистрационным номером
-  FPTR_E_SMENA_SUMM_DEP_OVF                      = $3e; // переполнение накопления по секциям в смене (новая)
-  FPTR_E_SMENA_SUMM_DISCOUNT_OVF                 = $3f; // переполнение накопления по скидкам в смене (новая)
-  FPTR_E_DISCOUNT_PARAM_OVF                      = $40; // переполнение диапазона скидок (новая)
-  FPTR_E_SUMM_PARAM_OVF                          = $41; // переполнение диапазона наличных (новая)
-  FPTR_E_SUMM_2_PARAM_OVF                        = $42; // переполнение диапазона тип 1 (новая)
-  FPTR_E_SUMM_3_PARAM_OVF                        = $43; // переполнение диапазона тип 2 (новая)
-  FPTR_E_SUMM_4_PARAM_OVF                        = $44; // переполнение диапазона тип 3 (новая)
-  FPTR_E_ALLSUMM_LESS_ITOG                       = $45; // сумма типов оплаты меньше итого чека(новая)
-  FPTR_E_SMENA_CASH_MINUS                        = $46; // нехватает наличности в кассе
-  FPTR_E_SMENA_TAX_OVF                           = $47; // переполнение накопления по налогам в смене
-  FPTR_E_CHECK_OVF                               = $48; // переполнение итога чека в +
-  FPTR_E_CHECK_OPEN_OPERATE_NOT_POSSIBLY         = $4a; // чек открыт, операция невозможна
-  FPTR_E_CHECK_BUFFER_OVF                        = $4b; // пепеполнение буфера чека
-  FPTR_E_SMENA_ALLTAX_OVF                        = $4c; // переполнение накопления по обороту налогов в смене
-  FPTR_E_BEZNAL_MORE_CHECK_SUMM                  = $4d; // сумма безналичной оплаты больше итога чека
-  FPTR_E_SMENA_MORE_24                           = $4e; // смена превысила 24 часа
-  FPTR_E_INVALID_PASSWORD                        = $4f; // неверный пароль
-  FPTR_E_PRINT_PREVIOS_CMD                       = $50; // идет печать предыдущей команды
-  FPTR_E_SMENA_SUMM_OVF                          = $51; // переполнение накоплений наличными в смене
-  FPTR_E_SMENA_SUMM_2_OVF                        = $52; // переполнение накоплений по типу оплаты 2 в смене
-  FPTR_E_SMENA_SUMM_3_OVF                        = $53; // переполнение накоплений по типу оплаты 3 в смене
-  FPTR_E_SMENA_SUMM_4_OVF                        = $54; // переполнение накоплений по типу оплаты 4 в смене
-  FPTR_E_NOT_REPEAT_DOC                          = $56; // нет документа для повтора
-  FPTR_E_EKLZ_SMENA_NOT_EQU                      = $57; // ЭКЛЗ количество закрытых смен не совпадает с ФП
+  FPTR_E_ROM_FAIL                                = $38; // РѕС€РёР±РєР° РІ РџР—РЈ
+  FPTR_E_INTERNAL_FR_SOFT                        = $39; // РІРЅСѓС‚СЂРµРЅРЅСЏСЏ РѕС€РёР±РєР° РїСЂРѕРіСЂР°РјРјРЅРѕРіРѕ РѕР±РµСЃРїРµС‡РµРЅРёСЏ Р¤Р 
+  FPTR_E_SMENA_SUMM_CHARGE                       = $3A; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РЅР°РєРѕРїР»РµРЅРёСЏ РїРѕ РЅР°РґР±Р°РІРєР°Рј РІ СЃРјРµРЅРµ (РЅРѕРІР°СЏ)
+  FPTR_E_EKLZ_INVALID_REG_NUM                    = $3c; // Р­РљР›Р— c РЅРµРІРµСЂРЅС‹Рј СЂРµРіРёСЃС‚СЂР°С†РёРѕРЅРЅС‹Рј РЅРѕРјРµСЂРѕРј
+  FPTR_E_SMENA_SUMM_DEP_OVF                      = $3e; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РЅР°РєРѕРїР»РµРЅРёСЏ РїРѕ СЃРµРєС†РёСЏРј РІ СЃРјРµРЅРµ (РЅРѕРІР°СЏ)
+  FPTR_E_SMENA_SUMM_DISCOUNT_OVF                 = $3f; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РЅР°РєРѕРїР»РµРЅРёСЏ РїРѕ СЃРєРёРґРєР°Рј РІ СЃРјРµРЅРµ (РЅРѕРІР°СЏ)
+  FPTR_E_DISCOUNT_PARAM_OVF                      = $40; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РґРёР°РїР°Р·РѕРЅР° СЃРєРёРґРѕРє (РЅРѕРІР°СЏ)
+  FPTR_E_SUMM_PARAM_OVF                          = $41; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РґРёР°РїР°Р·РѕРЅР° РЅР°Р»РёС‡РЅС‹С… (РЅРѕРІР°СЏ)
+  FPTR_E_SUMM_2_PARAM_OVF                        = $42; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РґРёР°РїР°Р·РѕРЅР° С‚РёРї 1 (РЅРѕРІР°СЏ)
+  FPTR_E_SUMM_3_PARAM_OVF                        = $43; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РґРёР°РїР°Р·РѕРЅР° С‚РёРї 2 (РЅРѕРІР°СЏ)
+  FPTR_E_SUMM_4_PARAM_OVF                        = $44; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РґРёР°РїР°Р·РѕРЅР° С‚РёРї 3 (РЅРѕРІР°СЏ)
+  FPTR_E_ALLSUMM_LESS_ITOG                       = $45; // СЃСѓРјРјР° С‚РёРїРѕРІ РѕРїР»Р°С‚С‹ РјРµРЅСЊС€Рµ РёС‚РѕРіРѕ С‡РµРєР°(РЅРѕРІР°СЏ)
+  FPTR_E_SMENA_CASH_MINUS                        = $46; // РЅРµС…РІР°С‚Р°РµС‚ РЅР°Р»РёС‡РЅРѕСЃС‚Рё РІ РєР°СЃСЃРµ
+  FPTR_E_SMENA_TAX_OVF                           = $47; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РЅР°РєРѕРїР»РµРЅРёСЏ РїРѕ РЅР°Р»РѕРіР°Рј РІ СЃРјРµРЅРµ
+  FPTR_E_CHECK_OVF                               = $48; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РёС‚РѕРіР° С‡РµРєР° РІ +
+  FPTR_E_CHECK_OPEN_OPERATE_NOT_POSSIBLY         = $4a; // С‡РµРє РѕС‚РєСЂС‹С‚, РѕРїРµСЂР°С†РёСЏ РЅРµРІРѕР·РјРѕР¶РЅР°
+  FPTR_E_CHECK_BUFFER_OVF                        = $4b; // РїРµРїРµРїРѕР»РЅРµРЅРёРµ Р±СѓС„РµСЂР° С‡РµРєР°
+  FPTR_E_SMENA_ALLTAX_OVF                        = $4c; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РЅР°РєРѕРїР»РµРЅРёСЏ РїРѕ РѕР±РѕСЂРѕС‚Сѓ РЅР°Р»РѕРіРѕРІ РІ СЃРјРµРЅРµ
+  FPTR_E_BEZNAL_MORE_CHECK_SUMM                  = $4d; // СЃСѓРјРјР° Р±РµР·РЅР°Р»РёС‡РЅРѕР№ РѕРїР»Р°С‚С‹ Р±РѕР»СЊС€Рµ РёС‚РѕРіР° С‡РµРєР°
+  FPTR_E_SMENA_MORE_24                           = $4e; // СЃРјРµРЅР° РїСЂРµРІС‹СЃРёР»Р° 24 С‡Р°СЃР°
+  FPTR_E_INVALID_PASSWORD                        = $4f; // РЅРµРІРµСЂРЅС‹Р№ РїР°СЂРѕР»СЊ
+  FPTR_E_PRINT_PREVIOS_CMD                       = $50; // РёРґРµС‚ РїРµС‡Р°С‚СЊ РїСЂРµРґС‹РґСѓС‰РµР№ РєРѕРјР°РЅРґС‹
+  FPTR_E_SMENA_SUMM_OVF                          = $51; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РЅР°РєРѕРїР»РµРЅРёР№ РЅР°Р»РёС‡РЅС‹РјРё РІ СЃРјРµРЅРµ
+  FPTR_E_SMENA_SUMM_2_OVF                        = $52; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РЅР°РєРѕРїР»РµРЅРёР№ РїРѕ С‚РёРїСѓ РѕРїР»Р°С‚С‹ 2 РІ СЃРјРµРЅРµ
+  FPTR_E_SMENA_SUMM_3_OVF                        = $53; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РЅР°РєРѕРїР»РµРЅРёР№ РїРѕ С‚РёРїСѓ РѕРїР»Р°С‚С‹ 3 РІ СЃРјРµРЅРµ
+  FPTR_E_SMENA_SUMM_4_OVF                        = $54; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РЅР°РєРѕРїР»РµРЅРёР№ РїРѕ С‚РёРїСѓ РѕРїР»Р°С‚С‹ 4 РІ СЃРјРµРЅРµ
+  FPTR_E_NOT_REPEAT_DOC                          = $56; // РЅРµС‚ РґРѕРєСѓРјРµРЅС‚Р° РґР»СЏ РїРѕРІС‚РѕСЂР°
+  FPTR_E_EKLZ_SMENA_NOT_EQU                      = $57; // Р­РљР›Р— РєРѕР»РёС‡РµСЃС‚РІРѕ Р·Р°РєСЂС‹С‚С‹С… СЃРјРµРЅ РЅРµ СЃРѕРІРїР°РґР°РµС‚ СЃ Р¤Рџ
   FPTR_E_WAIT_CMD_REPEAT                         = $58;
-  FPTR_E_DOC_OPEN_ANOTHER_USER                   = $59; // документ открыт другим оператором
-  FPTR_E_CARGE_PARAM_OVF                         = $5B; // переполнение диапазона надбавок
-  FPTR_E_24_LOW                                  = $5c; // понижено напряжение 24 В
-  FPTR_E_TABLE_NOT_DEFINE                        = $5d; // таблица неопределена
-  FPTR_E_INVALID_OPERATE                         = $5e; // некорректная операция  (новая)
-  FPTR_E_CHECK_ITOG_MINUS                        = $5f; // отрицательный итог чека(новая)
-  FPTR_E_MUL_OVF                                 = $60; // переполнение при умножении(новая)
-  FPTR_E_PRICE_PARAM_OVF                         = $61; // переполнение диапазона цены(новая)
-  FPTR_E_QUANTITY_PARAM_OVF                      = $62; // переполнение диапазона количества(новая)
-  FPTR_E_PLACE_PARAM_OVF                         = $63; // переполнение диапазона отдела (новая)
-  FPTR_E_FP_ABSENT                               = $64; // отсутствует ФП
-  FPTR_E_PLACE_CASH_MINUS                        = $65; // нехватает денег в секции (новая)
-  FPTR_E_PLACE_CASH_OVF                          = $66; // переполнение денег в секции (новая)
-  FPTR_E_FP_CONNECT_ERROR                        = $67; // ошибка связи с ФП
-  FPTR_E_ALLTAX_CASH_MINUS                       = $68; // нехватает денег по обороту налогов (новая)
-  FPTR_E_ALLTAX_CASH_OVF                         = $69; // переполнение денег по обороту налогов (новая)
-  FPTR_E_I2C_ANSWER_POWER_FAIL                   = $6a; // ошибка питания в момент ответа по I2c
+  FPTR_E_DOC_OPEN_ANOTHER_USER                   = $59; // РґРѕРєСѓРјРµРЅС‚ РѕС‚РєСЂС‹С‚ РґСЂСѓРіРёРј РѕРїРµСЂР°С‚РѕСЂРѕРј
+  FPTR_E_CARGE_PARAM_OVF                         = $5B; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РґРёР°РїР°Р·РѕРЅР° РЅР°РґР±Р°РІРѕРє
+  FPTR_E_24_LOW                                  = $5c; // РїРѕРЅРёР¶РµРЅРѕ РЅР°РїСЂСЏР¶РµРЅРёРµ 24 Р’
+  FPTR_E_TABLE_NOT_DEFINE                        = $5d; // С‚Р°Р±Р»РёС†Р° РЅРµРѕРїСЂРµРґРµР»РµРЅР°
+  FPTR_E_INVALID_OPERATE                         = $5e; // РЅРµРєРѕСЂСЂРµРєС‚РЅР°СЏ РѕРїРµСЂР°С†РёСЏ  (РЅРѕРІР°СЏ)
+  FPTR_E_CHECK_ITOG_MINUS                        = $5f; // РѕС‚СЂРёС†Р°С‚РµР»СЊРЅС‹Р№ РёС‚РѕРі С‡РµРєР°(РЅРѕРІР°СЏ)
+  FPTR_E_MUL_OVF                                 = $60; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РїСЂРё СѓРјРЅРѕР¶РµРЅРёРё(РЅРѕРІР°СЏ)
+  FPTR_E_PRICE_PARAM_OVF                         = $61; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РґРёР°РїР°Р·РѕРЅР° С†РµРЅС‹(РЅРѕРІР°СЏ)
+  FPTR_E_QUANTITY_PARAM_OVF                      = $62; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РґРёР°РїР°Р·РѕРЅР° РєРѕР»РёС‡РµСЃС‚РІР°(РЅРѕРІР°СЏ)
+  FPTR_E_PLACE_PARAM_OVF                         = $63; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РґРёР°РїР°Р·РѕРЅР° РѕС‚РґРµР»Р° (РЅРѕРІР°СЏ)
+  FPTR_E_FP_ABSENT                               = $64; // РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚ Р¤Рџ
+  FPTR_E_PLACE_CASH_MINUS                        = $65; // РЅРµС…РІР°С‚Р°РµС‚ РґРµРЅРµРі РІ СЃРµРєС†РёРё (РЅРѕРІР°СЏ)
+  FPTR_E_PLACE_CASH_OVF                          = $66; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РґРµРЅРµРі РІ СЃРµРєС†РёРё (РЅРѕРІР°СЏ)
+  FPTR_E_FP_CONNECT_ERROR                        = $67; // РѕС€РёР±РєР° СЃРІСЏР·Рё СЃ Р¤Рџ
+  FPTR_E_ALLTAX_CASH_MINUS                       = $68; // РЅРµС…РІР°С‚Р°РµС‚ РґРµРЅРµРі РїРѕ РѕР±РѕСЂРѕС‚Сѓ РЅР°Р»РѕРіРѕРІ (РЅРѕРІР°СЏ)
+  FPTR_E_ALLTAX_CASH_OVF                         = $69; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РґРµРЅРµРі РїРѕ РѕР±РѕСЂРѕС‚Сѓ РЅР°Р»РѕРіРѕРІ (РЅРѕРІР°СЏ)
+  FPTR_E_I2C_ANSWER_POWER_FAIL                   = $6a; // РѕС€РёР±РєР° РїРёС‚Р°РЅРёСЏ РІ РјРѕРјРµРЅС‚ РѕС‚РІРµС‚Р° РїРѕ I2c
   FPTR_E_NO_RECEIPT_PAPER                        = $6b;
   FPTR_E_NO_JOURNAL_PAPER                        = $6c;
-  FPTR_E_TAX_CASH_MINUS                          = $6d; // нехватает денег по налогам (новая)
-  FPTR_E_TAX_CASH_OVF                            = $6e; // переполнение денег по налогам (новая)
-  FPTR_E_CASHE_OUT_OVF                           = $6f; // переполнение по выплате в смене
-  FPTR_E_FP_OVF                                  = $70; // переполнение ФП
-  FPTR_E_CUT_FAIL                                = $71; // ошибка отрезчика
-  FPTR_E_CMD_NOT_SUPPORT_CURRENT_SUB_ROUTINE     = $72; // команда не поддерживается в данном  подрежиме
-  FPTR_E_CMD_NOT_SUPPORT_CURRENT_STATE           = $73; // команда не поддерживается в данном режиме
-  FPTR_E_RAM_FAIL                                = $74; // ошибка в ОЗУ ()
-  RS_PC_POWER_FAIL                               = $75; // ошибка питания
-  FPTR_E_PRINTER_TN                              = $76; // ошибка принтера нет имп. с тахогенератора (новая)
-  FPTR_E_PRINTER_ALL_DAT                         = $77; // ошибка принтера нет сигналов  с обоих датчиков (новая)
-  FPTR_E_NEW_SOFT                                = $78; // замена ПО
-  FPTR_E_FP_CHANGE                               = $79; // ошибка замена ФП (новая)
-  FPTR_E_FIELD_NOT_CHANGE                        = $7A; // поле не редактируется (новая)
-  FPTR_E_HDW                                     = $7B; // ошибка оборудования(новая)
-  FPTR_E_DATE_NOT_COMPARE                        = $7C; // несовпадает дата (новая)
-  FPTR_E_DATE_INVALID_FORMAT                     = $7D; // неверный формат даты (новая)
-  FPTR_E_INVALID_CMD_LEN                         = $7E; // неверный параметр в поле длины команды обшая!!!
-  FPTR_E_SUMM_ITOG_PARAM_OVF                     = $7f; // переполнение диапазона  итога (новая)
-  FPTR_E_CASH_OVF                                = $84; // пепеполнение наличности (новая)
-  FPTR_E_SMENA_SALE_OVF                          = $85; // пепеполнение по продажам в смене
-  FPTR_E_SMENA_BUY_OVF                           = $86; // пепеполнение по покупкам в смене
-  FPTR_E_SMENA_SALE_RET_OVF                      = $87; // пепеполнение по возвратам продаж в смене
-  FPTR_E_SMENA_BUY_RET_OVF                       = $88; // пепеполнение по возвратам покупок в смене
-  FPTR_E_CASHE_IN_OVF                            = $89; // переполнение по внесению в смене
-  FPTR_E_CARGE_OVF_CHECK                         = $8a; // переполнение по надбавкам в чеке
-  FPTR_E_DISCOUNT_OVF_CHECK                      = $8b; // переполнение по скидкам в чеке
-  FPTR_E_CARGE_MINUS_CHECK                       = $8c; // отрицательный итог надбавки в чеке
-  FPTR_E_DISCOUNT_MINUS_CHECK                    = $8d; // отрицательный итог скидки в чеке
-  FPTR_E_ZERO_ITOG                               = $8e; // нулевой итог чека
-  FPTR_E_NO_FISK                                 = $8f; // касса не фискализирована
-  FPTR_E_FORMAT_FIELD_OVF                        = $90; // поле превышает размер установленный в настройках
-  FPTR_E_FORMAT_OVER_PRINT_SIZE                  = $91; // выход за границу поля печати при данных настройках шрифта
-  FPTR_E_FORMAT_OVERFLOW_FIELD                   = $92; // наложение полей
-  FPTR_E_FORMAT_RESTORE_SUCCESS                  = $93; // восстановление озу успешно
+  FPTR_E_TAX_CASH_MINUS                          = $6d; // РЅРµС…РІР°С‚Р°РµС‚ РґРµРЅРµРі РїРѕ РЅР°Р»РѕРіР°Рј (РЅРѕРІР°СЏ)
+  FPTR_E_TAX_CASH_OVF                            = $6e; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РґРµРЅРµРі РїРѕ РЅР°Р»РѕРіР°Рј (РЅРѕРІР°СЏ)
+  FPTR_E_CASHE_OUT_OVF                           = $6f; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РїРѕ РІС‹РїР»Р°С‚Рµ РІ СЃРјРµРЅРµ
+  FPTR_E_FP_OVF                                  = $70; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ Р¤Рџ
+  FPTR_E_CUT_FAIL                                = $71; // РѕС€РёР±РєР° РѕС‚СЂРµР·С‡РёРєР°
+  FPTR_E_CMD_NOT_SUPPORT_CURRENT_SUB_ROUTINE     = $72; // РєРѕРјР°РЅРґР° РЅРµ РїРѕРґРґРµСЂР¶РёРІР°РµС‚СЃСЏ РІ РґР°РЅРЅРѕРј  РїРѕРґСЂРµР¶РёРјРµ
+  FPTR_E_CMD_NOT_SUPPORT_CURRENT_STATE           = $73; // РєРѕРјР°РЅРґР° РЅРµ РїРѕРґРґРµСЂР¶РёРІР°РµС‚СЃСЏ РІ РґР°РЅРЅРѕРј СЂРµР¶РёРјРµ
+  FPTR_E_RAM_FAIL                                = $74; // РѕС€РёР±РєР° РІ РћР—РЈ ()
+  RS_PC_POWER_FAIL                               = $75; // РѕС€РёР±РєР° РїРёС‚Р°РЅРёСЏ
+  FPTR_E_PRINTER_TN                              = $76; // РѕС€РёР±РєР° РїСЂРёРЅС‚РµСЂР° РЅРµС‚ РёРјРї. СЃ С‚Р°С…РѕРіРµРЅРµСЂР°С‚РѕСЂР° (РЅРѕРІР°СЏ)
+  FPTR_E_PRINTER_ALL_DAT                         = $77; // РѕС€РёР±РєР° РїСЂРёРЅС‚РµСЂР° РЅРµС‚ СЃРёРіРЅР°Р»РѕРІ  СЃ РѕР±РѕРёС… РґР°С‚С‡РёРєРѕРІ (РЅРѕРІР°СЏ)
+  FPTR_E_NEW_SOFT                                = $78; // Р·Р°РјРµРЅР° РџРћ
+  FPTR_E_FP_CHANGE                               = $79; // РѕС€РёР±РєР° Р·Р°РјРµРЅР° Р¤Рџ (РЅРѕРІР°СЏ)
+  FPTR_E_FIELD_NOT_CHANGE                        = $7A; // РїРѕР»Рµ РЅРµ СЂРµРґР°РєС‚РёСЂСѓРµС‚СЃСЏ (РЅРѕРІР°СЏ)
+  FPTR_E_HDW                                     = $7B; // РѕС€РёР±РєР° РѕР±РѕСЂСѓРґРѕРІР°РЅРёСЏ(РЅРѕРІР°СЏ)
+  FPTR_E_DATE_NOT_COMPARE                        = $7C; // РЅРµСЃРѕРІРїР°РґР°РµС‚ РґР°С‚Р° (РЅРѕРІР°СЏ)
+  FPTR_E_DATE_INVALID_FORMAT                     = $7D; // РЅРµРІРµСЂРЅС‹Р№ С„РѕСЂРјР°С‚ РґР°С‚С‹ (РЅРѕРІР°СЏ)
+  FPTR_E_INVALID_CMD_LEN                         = $7E; // РЅРµРІРµСЂРЅС‹Р№ РїР°СЂР°РјРµС‚СЂ РІ РїРѕР»Рµ РґР»РёРЅС‹ РєРѕРјР°РЅРґС‹ РѕР±С€Р°СЏ!!!
+  FPTR_E_SUMM_ITOG_PARAM_OVF                     = $7f; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РґРёР°РїР°Р·РѕРЅР°  РёС‚РѕРіР° (РЅРѕРІР°СЏ)
+  FPTR_E_CASH_OVF                                = $84; // РїРµРїРµРїРѕР»РЅРµРЅРёРµ РЅР°Р»РёС‡РЅРѕСЃС‚Рё (РЅРѕРІР°СЏ)
+  FPTR_E_SMENA_SALE_OVF                          = $85; // РїРµРїРµРїРѕР»РЅРµРЅРёРµ РїРѕ РїСЂРѕРґР°Р¶Р°Рј РІ СЃРјРµРЅРµ
+  FPTR_E_SMENA_BUY_OVF                           = $86; // РїРµРїРµРїРѕР»РЅРµРЅРёРµ РїРѕ РїРѕРєСѓРїРєР°Рј РІ СЃРјРµРЅРµ
+  FPTR_E_SMENA_SALE_RET_OVF                      = $87; // РїРµРїРµРїРѕР»РЅРµРЅРёРµ РїРѕ РІРѕР·РІСЂР°С‚Р°Рј РїСЂРѕРґР°Р¶ РІ СЃРјРµРЅРµ
+  FPTR_E_SMENA_BUY_RET_OVF                       = $88; // РїРµРїРµРїРѕР»РЅРµРЅРёРµ РїРѕ РІРѕР·РІСЂР°С‚Р°Рј РїРѕРєСѓРїРѕРє РІ СЃРјРµРЅРµ
+  FPTR_E_CASHE_IN_OVF                            = $89; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РїРѕ РІРЅРµСЃРµРЅРёСЋ РІ СЃРјРµРЅРµ
+  FPTR_E_CARGE_OVF_CHECK                         = $8a; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РїРѕ РЅР°РґР±Р°РІРєР°Рј РІ С‡РµРєРµ
+  FPTR_E_DISCOUNT_OVF_CHECK                      = $8b; // РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РїРѕ СЃРєРёРґРєР°Рј РІ С‡РµРєРµ
+  FPTR_E_CARGE_MINUS_CHECK                       = $8c; // РѕС‚СЂРёС†Р°С‚РµР»СЊРЅС‹Р№ РёС‚РѕРі РЅР°РґР±Р°РІРєРё РІ С‡РµРєРµ
+  FPTR_E_DISCOUNT_MINUS_CHECK                    = $8d; // РѕС‚СЂРёС†Р°С‚РµР»СЊРЅС‹Р№ РёС‚РѕРі СЃРєРёРґРєРё РІ С‡РµРєРµ
+  FPTR_E_ZERO_ITOG                               = $8e; // РЅСѓР»РµРІРѕР№ РёС‚РѕРі С‡РµРєР°
+  FPTR_E_NO_FISK                                 = $8f; // РєР°СЃСЃР° РЅРµ С„РёСЃРєР°Р»РёР·РёСЂРѕРІР°РЅР°
+  FPTR_E_FORMAT_FIELD_OVF                        = $90; // РїРѕР»Рµ РїСЂРµРІС‹С€Р°РµС‚ СЂР°Р·РјРµСЂ СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅС‹Р№ РІ РЅР°СЃС‚СЂРѕР№РєР°С…
+  FPTR_E_FORMAT_OVER_PRINT_SIZE                  = $91; // РІС‹С…РѕРґ Р·Р° РіСЂР°РЅРёС†Сѓ РїРѕР»СЏ РїРµС‡Р°С‚Рё РїСЂРё РґР°РЅРЅС‹С… РЅР°СЃС‚СЂРѕР№РєР°С… С€СЂРёС„С‚Р°
+  FPTR_E_FORMAT_OVERFLOW_FIELD                   = $92; // РЅР°Р»РѕР¶РµРЅРёРµ РїРѕР»РµР№
+  FPTR_E_FORMAT_RESTORE_SUCCESS                  = $93; // РІРѕСЃСЃС‚Р°РЅРѕРІР»РµРЅРёРµ РѕР·Сѓ СѓСЃРїРµС€РЅРѕ
   FPTR_E_END_LIMIT_OPERATE_CHECK                 = $94;
   FPTR_E_EKLZ_UNKNOWN_ERROR                      = $95;
-  FPTR_E_EKLZ_CONNECT_ERROR                      = $A0; // ошибка связи с ЭКЛЗ
-  FPTR_E_EKLZ_ABSENT                             = $A1; // ЭКЛЗ отсутствует
-  FPTR_E_EKLZ_OFS                                = $A1; // ошибки ЭКЛЗ
-  FPTR_E_EKLZ_PARAM_OVF_QUANTITY                 = $b0; // ЭКЛЗ переполнение в параметре количества
-  FPTR_E_EKLZ_PARAM_OVF_SUM_CHECK                = $b1; // ЭКЛЗ переполнение в переполнение стоимости
-  FPTR_E_EKLZ_AKTIV                              = $b2; // ЭКЛЗ уже активизирована
-  FPTR_E_DATE_ENT                                = $c0; // контроль даты и времени  (Подтвердите дату и время)
-  FPTR_E_UPIT_OVF                                = $c2; // Превышение напряжения блока питания
-  FPTR_E_ITOG_NO_EQU_EKLZ                        = $c3; // несовпадение итогов чека с ЭКЛЗ
-  FPTR_E_SMENA_NO_EQU_EKLZ                       = $c4; // несовпадение номеров смен
-  FPTR_E_SLIP_NODATD                             = $c5; // Нечего печатать
-  FPTR_E_SLIP_NOSLIP                             = $c6; // Подкладной документ отсутствует
-  FPTR_E_FIELD_NOT_CHANGE_MODE                   = $c7; // Поле не редактируется в данном режиме
-  FPTR_E_PRINTER_FAIL                            = $c8; // Ошибка принтера
+  FPTR_E_EKLZ_CONNECT_ERROR                      = $A0; // РѕС€РёР±РєР° СЃРІСЏР·Рё СЃ Р­РљР›Р—
+  FPTR_E_EKLZ_ABSENT                             = $A1; // Р­РљР›Р— РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚
+  FPTR_E_EKLZ_OFS                                = $A1; // РѕС€РёР±РєРё Р­РљР›Р—
+  FPTR_E_EKLZ_PARAM_OVF_QUANTITY                 = $b0; // Р­РљР›Р— РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РІ РїР°СЂР°РјРµС‚СЂРµ РєРѕР»РёС‡РµСЃС‚РІР°
+  FPTR_E_EKLZ_PARAM_OVF_SUM_CHECK                = $b1; // Р­РљР›Р— РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РІ РїРµСЂРµРїРѕР»РЅРµРЅРёРµ СЃС‚РѕРёРјРѕСЃС‚Рё
+  FPTR_E_EKLZ_AKTIV                              = $b2; // Р­РљР›Р— СѓР¶Рµ Р°РєС‚РёРІРёР·РёСЂРѕРІР°РЅР°
+  FPTR_E_DATE_ENT                                = $c0; // РєРѕРЅС‚СЂРѕР»СЊ РґР°С‚С‹ Рё РІСЂРµРјРµРЅРё  (РџРѕРґС‚РІРµСЂРґРёС‚Рµ РґР°С‚Сѓ Рё РІСЂРµРјСЏ)
+  FPTR_E_UPIT_OVF                                = $c2; // РџСЂРµРІС‹С€РµРЅРёРµ РЅР°РїСЂСЏР¶РµРЅРёСЏ Р±Р»РѕРєР° РїРёС‚Р°РЅРёСЏ
+  FPTR_E_ITOG_NO_EQU_EKLZ                        = $c3; // РЅРµСЃРѕРІРїР°РґРµРЅРёРµ РёС‚РѕРіРѕРІ С‡РµРєР° СЃ Р­РљР›Р—
+  FPTR_E_SMENA_NO_EQU_EKLZ                       = $c4; // РЅРµСЃРѕРІРїР°РґРµРЅРёРµ РЅРѕРјРµСЂРѕРІ СЃРјРµРЅ
+  FPTR_E_SLIP_NODATD                             = $c5; // РќРµС‡РµРіРѕ РїРµС‡Р°С‚Р°С‚СЊ
+  FPTR_E_SLIP_NOSLIP                             = $c6; // РџРѕРґРєР»Р°РґРЅРѕР№ РґРѕРєСѓРјРµРЅС‚ РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚
+  FPTR_E_FIELD_NOT_CHANGE_MODE                   = $c7; // РџРѕР»Рµ РЅРµ СЂРµРґР°РєС‚РёСЂСѓРµС‚СЃСЏ РІ РґР°РЅРЅРѕРј СЂРµР¶РёРјРµ
+  FPTR_E_PRINTER_FAIL                            = $c8; // РћС€РёР±РєР° РїСЂРёРЅС‚РµСЂР°
 
   DUMP_BLOCK_SIZE = 32;
 
@@ -128,8 +128,8 @@ const
   // Font constants
   /////////////////////////////////////////////////////////////////////////////
 
-  FPTR_FONT_DEFAULT   = 1; // шрифт по умолчанию
-  FPTR_FONT_BOLD      = 2; // шрифт по умолчанию bold
+  FPTR_FONT_DEFAULT   = 1; // С€СЂРёС„С‚ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ
+  FPTR_FONT_BOLD      = 2; // С€СЂРёС„С‚ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ bold
 
   /////////////////////////////////////////////////////////////////////////////
   // Command codes
@@ -493,9 +493,9 @@ type
   { TLongFiscResult }
 
   TLongFiscResult = packed record
-    FiscNumber: Byte;       // Fiscalization/Refiscalization number(1 byte) 1…16
-    LeftNumber: Byte;       // Quantity of refiscalizations left in FM (1 byte) 0…15
-    ShiftNumber: Word;      // Last daily totals record number in FM (2 bytes) 0000…2100
+    FiscNumber: Byte;       // Fiscalization/Refiscalization number(1 byte) 1вЂ¦16
+    LeftNumber: Byte;       // Quantity of refiscalizations left in FM (1 byte) 0вЂ¦15
+    ShiftNumber: Word;      // Last daily totals record number in FM (2 bytes) 0000вЂ¦2100
     Date: TPrinterDate;     // Fiscalization/Refiscalization date (3 bytes) DD-MM-YY
   end;
 
@@ -649,16 +649,16 @@ type
   TShiftRange = packed record
     Date1: TPrinterDate;        // First shift date (3 bytes) DD-MM-YY
     Date2: TPrinterDate;        // Last shift date (3 bytes) DD-MM-YY
-    Number1: Word;              // First shift number (2 bytes) 0000…2100
-    Number2: Word;              // Last shift number (2 bytes) 0000…2100
+    Number1: Word;              // First shift number (2 bytes) 0000вЂ¦2100
+    Number2: Word;              // Last shift number (2 bytes) 0000вЂ¦2100
   end;
 
   { TFiscalizationResult }
 
   TFiscalizationResult = packed record
-    FiscNumber: Byte;           // Fiscalization (refiscalization) number  (1 byte) 1…16
-    LeftFiscCount: Byte;        // Refiscalizations left count (1 byte) 0…15
-    LastShiftNumber: Word;      // Last closed shift number(2 bytes) 0000…2100
+    FiscNumber: Byte;           // Fiscalization (refiscalization) number  (1 byte) 1вЂ¦16
+    LeftFiscCount: Byte;        // Refiscalizations left count (1 byte) 0вЂ¦15
+    LastShiftNumber: Word;      // Last closed shift number(2 bytes) 0000вЂ¦2100
     Date: TPrinterDate;         // Fiscalilzation (refiscalization) date (3 bytes) DD-MM-YY
   end;
 
@@ -680,16 +680,16 @@ type
 
   TFiscInfo = packed record
     Password: DWORD;    // Password (4 bytes)
-    PrinterID: Int64;   // ECRRN (5 bytes) 0000000000…9999999999
-    FiscalID: Int64;    // Taxpayer ID (6 byte) 000000000000…999999999999
-    ShiftNumber: Word;  // Shift number before fiscalization (refiscalization) (2 bytes) 0000…2100
+    PrinterID: Int64;   // ECRRN (5 bytes) 0000000000вЂ¦9999999999
+    FiscalID: Int64;    // Taxpayer ID (6 byte) 000000000000вЂ¦999999999999
+    ShiftNumber: Word;  // Shift number before fiscalization (refiscalization) (2 bytes) 0000вЂ¦2100
     Date: TPrinterDate; // Fiscalization (refiscalization) date (3 bytes) DD-MM-YY
   end;
 
   { TFptrDocResult }
 
   TFptrDocResult = packed record
-    Operator: Byte; // Operator number (1 byte) 1…30
+    Operator: Byte; // Operator number (1 byte) 1вЂ¦30
     DocNumber: WORD; // Transparent document number (2 bytes)
   end;
 
@@ -698,7 +698,7 @@ type
   TSlipParams = packed record
     DocType: Byte;              // Document type (1 byte) "0" - sale, "1" - buy, "2" - sale refund, "3" - buy refund
     DupType: Byte;              // Duplicate type (1 byte) "0" - columns, "1" - line blocks
-    DupCount: Byte;             // Duplicate count (1 byte) 0…5
+    DupCount: Byte;             // Duplicate count (1 byte) 0вЂ¦5
     DupOffset1: Byte;           // Spacing between original and 1-st duplicate (1 byte) *
     DupOffset2: Byte;           // Spacing between 1-st and 2-nd duplicate (1 byte) *
     DupOffset3: Byte;           // Spacing between 2-nd and 3-d duplicate (1 byte) *
@@ -724,7 +724,7 @@ type
   TStdSlipParams = packed record
     DocType: Byte;              // Document type (1 byte) "0" - sale, "1" - buy, "2" - sale refund, "3" - buy refund
     DupType: Byte;              // Duplicate type (1 byte) "0" - columns, "1" - string blocks
-    DupCount: Byte;             // Duplicate count (1 byte) 0…5
+    DupCount: Byte;             // Duplicate count (1 byte) 0вЂ¦5
     DupOffset1: Byte;           // Spacing between original and 1-st duplicate (1 byte) *
     DupOffset2: Byte;           // Spacing between 1-st and 2-nd duplicate (1 byte) *
     DupOffset3: Byte;           // Spacing between 2-nd and 3-d duplicate (1 byte) *
@@ -736,11 +736,11 @@ type
 
   TSlipOperation = packed record
     QuantityFormat: Byte;       // Quantitiy format (1 byte) "0" - without digits after delimeter, "1" - with digits after delimeter
-    LineCount: Byte;            // Operation line count (1 byte) 1…3
-    TextLine: Byte;             // Text line number (1 byte) 0…3, "0" - do not print
-    QuantityLine: Byte;         // Quantity times price line number (1 byte) 0…3, "0" - do not print
-    SummLine: Byte;             // Sum line number (1 byte) 1…3
-    DepartmentLine: Byte;       // Department line number (1 byte) 1…3
+    LineCount: Byte;            // Operation line count (1 byte) 1вЂ¦3
+    TextLine: Byte;             // Text line number (1 byte) 0вЂ¦3, "0" - do not print
+    QuantityLine: Byte;         // Quantity times price line number (1 byte) 0вЂ¦3, "0" - do not print
+    SummLine: Byte;             // Sum line number (1 byte) 1вЂ¦3
+    DepartmentLine: Byte;       // Department line number (1 byte) 1вЂ¦3
     TextFont: Byte;             // Text string font number (1 byte)
     QuantityFont: Byte;         // Quantity font numter (1 byte)
     MultSignFont: Byte;         // Multiplication sign font number (1 byte)
@@ -764,11 +764,11 @@ type
   TFptrItemRec = packed record
     Quantity: Int64;    // Quantity (5 bytes)
     Price: Int64;       // Price (5 bytes)
-    Department: Byte;   // Department (1 byte) 0…16
-    Tax1: Byte;         // Tax 1 (1 byte) "0" - no tax, "1"…"4" - tax group
-    Tax2: Byte;         // Tax 2 (1 byte) "0" - no tax, "1"…"4" - tax group
-    Tax3: Byte;         // Tax 3 (1 byte) "0" - no tax, "1"…"4" - tax group
-    Tax4: Byte;         // Tax 4 (1 byte) "0" - no tax, "1"…"4" - tax group
+    Department: Byte;   // Department (1 byte) 0вЂ¦16
+    Tax1: Byte;         // Tax 1 (1 byte) "0" - no tax, "1"вЂ¦"4" - tax group
+    Tax2: Byte;         // Tax 2 (1 byte) "0" - no tax, "1"вЂ¦"4" - tax group
+    Tax3: Byte;         // Tax 3 (1 byte) "0" - no tax, "1"вЂ¦"4" - tax group
+    Tax4: Byte;         // Tax 4 (1 byte) "0" - no tax, "1"вЂ¦"4" - tax group
     Text: string;       // Text (40 byte)
   end;
 
@@ -776,20 +776,20 @@ type
 
   TFptrDiscount = packed record
     Amount: Int64;       // Price (5 bytes)
-    Tax1: Byte;         // Tax 1 (1 byte) "0" - no tax, "1"…"4" - tax group
-    Tax2: Byte;         // Tax 2 (1 byte) "0" - no tax, "1"…"4" - tax group
-    Tax3: Byte;         // Tax 3 (1 byte) "0" - no tax, "1"…"4" - tax group
-    Tax4: Byte;         // Tax 4 (1 byte) "0" - no tax, "1"…"4" - tax group
+    Tax1: Byte;         // Tax 1 (1 byte) "0" - no tax, "1"вЂ¦"4" - tax group
+    Tax2: Byte;         // Tax 2 (1 byte) "0" - no tax, "1"вЂ¦"4" - tax group
+    Tax3: Byte;         // Tax 3 (1 byte) "0" - no tax, "1"вЂ¦"4" - tax group
+    Tax4: Byte;         // Tax 4 (1 byte) "0" - no tax, "1"вЂ¦"4" - tax group
     Text: string;       // Text (40 byte)
   end;
 
   { TSlipDiscountParams }
 
   TSlipDiscountParams = packed record
-    LineCount: Byte;    // Transaction line count (1 byte) 1…2
-    TextLine: Byte;     // Text string line number (1 byte) 0…2, "0" - do not print
-    NameLine: Byte;     // Transaction name line number (1 byte) 1…2
-    AmountLine: Byte;   // Sum line number (1 byte) 1…2
+    LineCount: Byte;    // Transaction line count (1 byte) 1вЂ¦2
+    TextLine: Byte;     // Text string line number (1 byte) 0вЂ¦2, "0" - do not print
+    NameLine: Byte;     // Transaction name line number (1 byte) 1вЂ¦2
+    AmountLine: Byte;   // Sum line number (1 byte) 1вЂ¦2
     TextFont: Byte;     // Text string font number (1 byte)
     NameFont: Byte;     // Transaction name font number (1 byte)
     AmountFont: Byte;   // Sum font number (1 byte)
@@ -806,11 +806,11 @@ type
     OperationType: Byte; // Operation type (1 byte) "0" - discount, "1" - charge
     LineNumber: Byte;    // First discount/charge element vertical position (1 byte)
     Amount: Int64;       // Sum (5 bytes)
-    Department: Byte;    // Department (1 byte) 0…16
-    Tax1: Byte;          // Tax 1 (1 byte) "0" - not, "1"…"4" - tax group
-    Tax2: Byte;          // Tax 2 (1 byte) "0" - not, "1"…"4" - tax group
-    Tax3: Byte;          // Tax 3 (1 byte) "0" - not, "1"…"4" - tax group
-    Tax4: Byte;          // Tax 4 (1 byte) "0" - not, "1"…"4" - tax group
+    Department: Byte;    // Department (1 byte) 0вЂ¦16
+    Tax1: Byte;          // Tax 1 (1 byte) "0" - not, "1"вЂ¦"4" - tax group
+    Tax2: Byte;          // Tax 2 (1 byte) "0" - not, "1"вЂ¦"4" - tax group
+    Tax3: Byte;          // Tax 3 (1 byte) "0" - not, "1"вЂ¦"4" - tax group
+    Tax4: Byte;          // Tax 4 (1 byte) "0" - not, "1"вЂ¦"4" - tax group
     Text: string;        // Text (40 byte)
   end;
 
@@ -821,19 +821,19 @@ type
     Amount2: Int64;     // Payment type 2 sum (5 bytes)
     Amount3: Int64;     // payment type 3 sum (5 bytes)
     Amount4: Int64;     // Payment type 4 sum (5 bytes)
-    Discount: WORD;      // Receipt discount in value 0 to 99.99 % (2 bytes) 0000…9999
-    Tax1: Byte;         // Tax 1 (1 byte) "0" - no tax, "1"…"4" - tax group
-    Tax2: Byte;         // Tax 2 (1 byte) "0" - no tax, "1"…"4" - tax group
-    Tax3: Byte;         // Tax 3 (1 byte) "0" - no tax, "1"…"4" - tax group
-    Tax4: Byte;         // Tax 4 (1 byte) "0" - no tax, "1"…"4" - tax group
+    Discount: WORD;      // Receipt discount in value 0 to 99.99 % (2 bytes) 0000вЂ¦9999
+    Tax1: Byte;         // Tax 1 (1 byte) "0" - no tax, "1"вЂ¦"4" - tax group
+    Tax2: Byte;         // Tax 2 (1 byte) "0" - no tax, "1"вЂ¦"4" - tax group
+    Tax3: Byte;         // Tax 3 (1 byte) "0" - no tax, "1"вЂ¦"4" - tax group
+    Tax4: Byte;         // Tax 4 (1 byte) "0" - no tax, "1"вЂ¦"4" - tax group
     Text: string;       // Text (40 byte)
   end;
 
   { TFptrCloseReceiptResult }
 
   TFptrCloseReceiptResult = packed record
-    Operator: Byte;       // Operator number (1 byte) 1…30
-    Change: Int64;        // Change (5 bytes) 0000000000…9999999999
+    Operator: Byte;       // Operator number (1 byte) 1вЂ¦30
+    Change: Int64;        // Change (5 bytes) 0000000000вЂ¦9999999999
   end;
 
   { TSlipCloseParams }
@@ -846,23 +846,23 @@ type
 
   TFptrAmountOperation = packed record
     Amount: Int64;      // Sum (5 bytes)
-    Department: Byte;   // Department (1 byte) 0…16
-    Tax1: Byte;         // Tax 1 (1 byte) "0" - no tax, "1"…"4" - tax group
-    Tax2: Byte;         // Tax 2 (1 byte) "0" - no tax, "1"…"4" - tax group
-    Tax3: Byte;         // Tax 3 (1 byte) "0" - no tax, "1"…"4" - tax group
-    Tax4: Byte;         // Tax 4 (1 byte) "0" - no tax, "1"…"4" - tax group
+    Department: Byte;   // Department (1 byte) 0вЂ¦16
+    Tax1: Byte;         // Tax 1 (1 byte) "0" - no tax, "1"вЂ¦"4" - tax group
+    Tax2: Byte;         // Tax 2 (1 byte) "0" - no tax, "1"вЂ¦"4" - tax group
+    Tax3: Byte;         // Tax 3 (1 byte) "0" - no tax, "1"вЂ¦"4" - tax group
+    Tax4: Byte;         // Tax 4 (1 byte) "0" - no tax, "1"вЂ¦"4" - tax group
     Text: string;       // Text (40 byte)
   end;
 
   { TFptrDeviceMetricsRec }
 
   TFptrDeviceMetricsRec = packed record
-    DeviceType: Byte;           // Device type (1 byte) 0…255
-    DeviceSubtype: Byte;        // Device suptype (1 byte) 0…255
-    ProtocolVersion: Byte;      // Device protocol version (1 byte) 0…255
-    ProtocolSubVersion: Byte;   // Device protocol subversion (1 byte) 0…255
-    Model: Byte;                // Device model (1 byte) 0…255
-    Language: Byte;             // Device language (1 byte) 0…255 Russian - 0; English - 1;
+    DeviceType: Byte;           // Device type (1 byte) 0вЂ¦255
+    DeviceSubtype: Byte;        // Device suptype (1 byte) 0вЂ¦255
+    ProtocolVersion: Byte;      // Device protocol version (1 byte) 0вЂ¦255
+    ProtocolSubVersion: Byte;   // Device protocol subversion (1 byte) 0вЂ¦255
+    Model: Byte;                // Device model (1 byte) 0вЂ¦255
+    Language: Byte;             // Device language (1 byte) 0вЂ¦255 Russian - 0; English - 1;
     DeviceName: string;         // Device name - string of characters in WIN1251.
   end;
 
@@ -881,11 +881,11 @@ type
   { TEJStatus1 }
 
   TEJStatus1 = packed record
-    DocAmount: Int64;           // Last KPK document total KPK (5 bytes) 0000000000…9999999999
+    DocAmount: Int64;           // Last KPK document total KPK (5 bytes) 0000000000вЂ¦9999999999
     DocDate: TPrinterDate;      // Last KPK date (3 bytes) DD-MM-YY
     DocTime: TEJTime;           // Last KPK time (2 bytes) HH-MM
-    DocNumber: DWORD;           // Last KPK number (4 bytes) 00000000…99999999
-    EJNumber: Int64;            // EJ serial number (5 bytes) 0000000000…9999999999
+    DocNumber: DWORD;           // Last KPK number (4 bytes) 00000000вЂ¦99999999
+    EJNumber: Int64;            // EJ serial number (5 bytes) 0000000000вЂ¦9999999999
     Flags: TEJFlags;            // EJ flags (1 byte)
   end;
 
@@ -1218,13 +1218,13 @@ begin
 end;
 
 resourcestring
-  SPaperPresented = 'Бумага присутствует';
-  SPassivePaperAbsense = 'Пассивное отсутствие бумаги';
-  SActivePaperAbsence = 'Активное отсутствие бумаги';
-  SAfterActivePaperAbsence = 'После активного отсутствия бумаги';
-  SLongReportPrintingStage = 'Фаза печати операции полных фискальных отчетов';
-  SOperationPrintingStage = 'Фаза печати операции';
-  SUnknownDeviceSubmode = 'Неизвестный подрежим устройства (%d)';
+  SPaperPresented = 'Р‘СѓРјР°РіР° РїСЂРёСЃСѓС‚СЃС‚РІСѓРµС‚';
+  SPassivePaperAbsense = 'РџР°СЃСЃРёРІРЅРѕРµ РѕС‚СЃСѓС‚СЃС‚РІРёРµ Р±СѓРјР°РіРё';
+  SActivePaperAbsence = 'РђРєС‚РёРІРЅРѕРµ РѕС‚СЃСѓС‚СЃС‚РІРёРµ Р±СѓРјР°РіРё';
+  SAfterActivePaperAbsence = 'РџРѕСЃР»Рµ Р°РєС‚РёРІРЅРѕРіРѕ РѕС‚СЃСѓС‚СЃС‚РІРёСЏ Р±СѓРјР°РіРё';
+  SLongReportPrintingStage = 'Р¤Р°Р·Р° РїРµС‡Р°С‚Рё РѕРїРµСЂР°С†РёРё РїРѕР»РЅС‹С… С„РёСЃРєР°Р»СЊРЅС‹С… РѕС‚С‡РµС‚РѕРІ';
+  SOperationPrintingStage = 'Р¤Р°Р·Р° РїРµС‡Р°С‚Рё РѕРїРµСЂР°С†РёРё';
+  SUnknownDeviceSubmode = 'РќРµРёР·РІРµСЃС‚РЅС‹Р№ РїРѕРґСЂРµР¶РёРј СѓСЃС‚СЂРѕР№СЃС‚РІР° (%d)';
 
 function GetAdvancedModeDescription(Value: Integer): WideString;
 begin
@@ -1243,14 +1243,14 @@ end;
 
 
 resourcestring
-  SFMAccumulator1 = 'Накопитель ФП1';
-  SFMAccumulator2 = 'Накопитель ФП2';
-  SClock = 'Часы';
+  SFMAccumulator1 = 'РќР°РєРѕРїРёС‚РµР»СЊ Р¤Рџ1';
+  SFMAccumulator2 = 'РќР°РєРѕРїРёС‚РµР»СЊ Р¤Рџ2';
+  SClock = 'Р§Р°СЃС‹';
   SVNRAM = 'VNRAM';
-  SFMProcessor = 'Процессор ФП';
-  SECRSoftMemory = 'Память программ ФР';
-  SECRRAM = 'Оперативная память ФР';
-  SUnknownDeviceCode = 'Неизвестный код устройства (%d)';
+  SFMProcessor = 'РџСЂРѕС†РµСЃСЃРѕСЂ Р¤Рџ';
+  SECRSoftMemory = 'РџР°РјСЏС‚СЊ РїСЂРѕРіСЂР°РјРј Р¤Р ';
+  SECRRAM = 'РћРїРµСЂР°С‚РёРІРЅР°СЏ РїР°РјСЏС‚СЊ Р¤Р ';
+  SUnknownDeviceCode = 'РќРµРёР·РІРµСЃС‚РЅС‹Р№ РєРѕРґ СѓСЃС‚СЂРѕР№СЃС‚РІР° (%d)';
 
 function GetDeviceCodeDescription(Value: Integer): WideString;
 begin
@@ -1269,34 +1269,34 @@ begin
 end;
 
 resourcestring
-  SDataDumping = 'Выдача данных';
-  SOpenedDayNot24hOver = 'Открытая смена, 24 часа не кончились';
-  SOpenedDay24hOver = 'Открытая смена, 24 часа кончились';
-  SClosedDay = 'Закрытая смена';
-  SBlockingByWrongPassword = 'Блокировка по неправильному паролю налогового инспектора';
-  SWaitingForDateConfirm = 'Ожидание подтверждения ввода даты';
-  SPermissionToChangeDecimalPoint = 'Разрешение изменения положения десятичной точки';
-  SOpenedDocumentSale = 'Открытый документ: Продажа';
-  STechResetPermissionMode = 'Режим разрешения технологического обнуления';
-  STestPassing = 'Тестовый прогон';
-  SFullReportPrinting = 'Печать полного фискального отчета';
-  SEJReportPrinting = 'Печать отчёта ЭКЛЗ';
-  SSalesSlipOpened = 'Открытый ПД: Продажа';
-  SWaitingForSlipCarge = 'Ожидание загрузки ПД';
-  SSlipIsFormed = 'ПД сформирован';
-  SOpenedDocumentBuy = 'Открытый документ: Покупка';
-  SOpenedBuySlip = 'Открытый ПД: Покупка';
-  SSlipLoadingAndPositioning = 'Загрузка и позиционирование ПД';
-  SOpenedDocumentSaleReturn = 'Открытый документ: Возврат продажи';
-  SOpenedSaleReturnSlip = 'Открытый ПД: Возврат продажи';
-  SSlipPositioning = 'Позиционирование ПД';
-  SOpenedDocumentBuyReturn = 'Открытый документ: Покупка';
-  SOpenedBuyReturnSlip = 'Открытый ПД: Возврат покупки';
-  SSlipPrinting = 'Печать ПД';
-  SSlipPrintingIsFinished = 'Печать ПД закончена';
-  SSlipEject = 'Выброс ПД';
-  SWaitingForSlipEject = 'Ожидание извлечения ПД';
-  SUnknownMode = 'Неизвестный режим (%d)';
+  SDataDumping = 'Р’С‹РґР°С‡Р° РґР°РЅРЅС‹С…';
+  SOpenedDayNot24hOver = 'РћС‚РєСЂС‹С‚Р°СЏ СЃРјРµРЅР°, 24 С‡Р°СЃР° РЅРµ РєРѕРЅС‡РёР»РёСЃСЊ';
+  SOpenedDay24hOver = 'РћС‚РєСЂС‹С‚Р°СЏ СЃРјРµРЅР°, 24 С‡Р°СЃР° РєРѕРЅС‡РёР»РёСЃСЊ';
+  SClosedDay = 'Р—Р°РєСЂС‹С‚Р°СЏ СЃРјРµРЅР°';
+  SBlockingByWrongPassword = 'Р‘Р»РѕРєРёСЂРѕРІРєР° РїРѕ РЅРµРїСЂР°РІРёР»СЊРЅРѕРјСѓ РїР°СЂРѕР»СЋ РЅР°Р»РѕРіРѕРІРѕРіРѕ РёРЅСЃРїРµРєС‚РѕСЂР°';
+  SWaitingForDateConfirm = 'РћР¶РёРґР°РЅРёРµ РїРѕРґС‚РІРµСЂР¶РґРµРЅРёСЏ РІРІРѕРґР° РґР°С‚С‹';
+  SPermissionToChangeDecimalPoint = 'Р Р°Р·СЂРµС€РµРЅРёРµ РёР·РјРµРЅРµРЅРёСЏ РїРѕР»РѕР¶РµРЅРёСЏ РґРµСЃСЏС‚РёС‡РЅРѕР№ С‚РѕС‡РєРё';
+  SOpenedDocumentSale = 'РћС‚РєСЂС‹С‚С‹Р№ РґРѕРєСѓРјРµРЅС‚: РџСЂРѕРґР°Р¶Р°';
+  STechResetPermissionMode = 'Р РµР¶РёРј СЂР°Р·СЂРµС€РµРЅРёСЏ С‚РµС…РЅРѕР»РѕРіРёС‡РµСЃРєРѕРіРѕ РѕР±РЅСѓР»РµРЅРёСЏ';
+  STestPassing = 'РўРµСЃС‚РѕРІС‹Р№ РїСЂРѕРіРѕРЅ';
+  SFullReportPrinting = 'РџРµС‡Р°С‚СЊ РїРѕР»РЅРѕРіРѕ С„РёСЃРєР°Р»СЊРЅРѕРіРѕ РѕС‚С‡РµС‚Р°';
+  SEJReportPrinting = 'РџРµС‡Р°С‚СЊ РѕС‚С‡С‘С‚Р° Р­РљР›Р—';
+  SSalesSlipOpened = 'РћС‚РєСЂС‹С‚С‹Р№ РџР”: РџСЂРѕРґР°Р¶Р°';
+  SWaitingForSlipCarge = 'РћР¶РёРґР°РЅРёРµ Р·Р°РіСЂСѓР·РєРё РџР”';
+  SSlipIsFormed = 'РџР” СЃС„РѕСЂРјРёСЂРѕРІР°РЅ';
+  SOpenedDocumentBuy = 'РћС‚РєСЂС‹С‚С‹Р№ РґРѕРєСѓРјРµРЅС‚: РџРѕРєСѓРїРєР°';
+  SOpenedBuySlip = 'РћС‚РєСЂС‹С‚С‹Р№ РџР”: РџРѕРєСѓРїРєР°';
+  SSlipLoadingAndPositioning = 'Р—Р°РіСЂСѓР·РєР° Рё РїРѕР·РёС†РёРѕРЅРёСЂРѕРІР°РЅРёРµ РџР”';
+  SOpenedDocumentSaleReturn = 'РћС‚РєСЂС‹С‚С‹Р№ РґРѕРєСѓРјРµРЅС‚: Р’РѕР·РІСЂР°С‚ РїСЂРѕРґР°Р¶Рё';
+  SOpenedSaleReturnSlip = 'РћС‚РєСЂС‹С‚С‹Р№ РџР”: Р’РѕР·РІСЂР°С‚ РїСЂРѕРґР°Р¶Рё';
+  SSlipPositioning = 'РџРѕР·РёС†РёРѕРЅРёСЂРѕРІР°РЅРёРµ РџР”';
+  SOpenedDocumentBuyReturn = 'РћС‚РєСЂС‹С‚С‹Р№ РґРѕРєСѓРјРµРЅС‚: РџРѕРєСѓРїРєР°';
+  SOpenedBuyReturnSlip = 'РћС‚РєСЂС‹С‚С‹Р№ РџР”: Р’РѕР·РІСЂР°С‚ РїРѕРєСѓРїРєРё';
+  SSlipPrinting = 'РџРµС‡Р°С‚СЊ РџР”';
+  SSlipPrintingIsFinished = 'РџРµС‡Р°С‚СЊ РџР” Р·Р°РєРѕРЅС‡РµРЅР°';
+  SSlipEject = 'Р’С‹Р±СЂРѕСЃ РџР”';
+  SWaitingForSlipEject = 'РћР¶РёРґР°РЅРёРµ РёР·РІР»РµС‡РµРЅРёСЏ РџР”';
+  SUnknownMode = 'РќРµРёР·РІРµСЃС‚РЅС‹Р№ СЂРµР¶РёРј (%d)';
 
 function GetModeDescription(Value: Integer): WideString;
 begin
@@ -1845,18 +1845,18 @@ begin
   Result := CompareInt(Date1.Day, Date2.Day);
 end;
 resourcestring
-  SCPRussian = 'Русская';
-  SCPEnglish = 'Английская';
-  SCPEstonian = 'Эстонская';
-  SCPKazakh = 'Казахская';
-  SCPBelorussian = 'Белорусская';
-  SCPArmenian = 'Армянская';
-  SCPGeorgian = 'Грузинская';
-  SCPUkrainian = 'Украинская';
-  SCPKirghiz = 'Киргизская';
-  SCPUnknown = 'Неизвестная';
-  SCPTurkmen = 'Туркменская';
-  SCPMoldova = 'Молдавская';
+  SCPRussian = 'Р СѓСЃСЃРєР°СЏ';
+  SCPEnglish = 'РђРЅРіР»РёР№СЃРєР°СЏ';
+  SCPEstonian = 'Р­СЃС‚РѕРЅСЃРєР°СЏ';
+  SCPKazakh = 'РљР°Р·Р°С…СЃРєР°СЏ';
+  SCPBelorussian = 'Р‘РµР»РѕСЂСѓСЃСЃРєР°СЏ';
+  SCPArmenian = 'РђСЂРјСЏРЅСЃРєР°СЏ';
+  SCPGeorgian = 'Р“СЂСѓР·РёРЅСЃРєР°СЏ';
+  SCPUkrainian = 'РЈРєСЂР°РёРЅСЃРєР°СЏ';
+  SCPKirghiz = 'РљРёСЂРіРёР·СЃРєР°СЏ';
+  SCPUnknown = 'РќРµРёР·РІРµСЃС‚РЅР°СЏ';
+  SCPTurkmen = 'РўСѓСЂРєРјРµРЅСЃРєР°СЏ';
+  SCPMoldova = 'РњРѕР»РґР°РІСЃРєР°СЏ';
 
 
 function GetLanguageName(Code: Integer): WideString;

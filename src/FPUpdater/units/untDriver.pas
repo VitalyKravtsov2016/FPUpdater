@@ -1,4 +1,4 @@
-unit untDriver;
+п»їunit untDriver;
 
 interface
 
@@ -105,9 +105,9 @@ uses
   Windows;
 
 resourcestring
-  SDriverCreateFailed = 'Ошибка создания объекта драйвера: ';
-  SCommandNotSupportedInMode = 'Команда не поддерживается в данном режиме';
-  SCommandNotSupportedInSubMode = 'Команда не поддерживается в данном подрежиме';
+  SDriverCreateFailed = 'РћС€РёР±РєР° СЃРѕР·РґР°РЅРёСЏ РѕР±СЉРµРєС‚Р° РґСЂР°Р№РІРµСЂР°: ';
+  SCommandNotSupportedInMode = 'РљРѕРјР°РЅРґР° РЅРµ РїРѕРґРґРµСЂР¶РёРІР°РµС‚СЃСЏ РІ РґР°РЅРЅРѕРј СЂРµР¶РёРјРµ';
+  SCommandNotSupportedInSubMode = 'РљРѕРјР°РЅРґР° РЅРµ РїРѕРґРґРµСЂР¶РёРІР°РµС‚СЃСЏ РІ РґР°РЅРЅРѕРј РїРѕРґСЂРµР¶РёРјРµ';
 
 function GetParamsFileName: string;
 begin
