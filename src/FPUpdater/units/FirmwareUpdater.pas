@@ -2,19 +2,18 @@ unit FirmwareUpdater;
 
 interface
 
-{DONE: Добавить прошивку по протоколу XModem}
-{TODO: Написать тесты для обновления ФР с любыми параметрами}
-{TODO: Проверить правильность лога прошивальщика - сохранение состояния ФР и ФН }
-{TODO: Сделать проверку записи тестового ПО в ККМ с рабочими ключами и наоборот}
-{TODO: Протестировать обновление ПО на возможные ошибки - прервать обновление на разных этапах}
-{TODO: Перед перерегистрацией нужно синхронизировать время ККМ и ПК }
+{ DONE: Добавить прошивку по протоколу XModem }
+{ TODO: Написать тесты для обновления ФР с любыми параметрами }
+{ TODO: Проверить правильность лога прошивальщика - сохранение состояния ФР и ФН }
+{ TODO: Сделать проверку записи тестового ПО в ККМ с рабочими ключами и наоборот }
+{ TODO: Протестировать обновление ПО на возможные ошибки - прервать обновление на разных этапах }
+{ TODO: Перед перерегистрацией нужно синхронизировать время ККМ и ПК }
 
 uses
   // VCL
-  Windows, SysUtils, Classes, Registry, SyncObjs, ShlObj,
-  System.Zip, System.IOUtils, System.Net.HttpClient,
-  System.Net.HttpClientComponent, System.DateUtils,
-  ComObj, ActiveX,
+  Windows, SysUtils, Classes, Registry, SyncObjs, ShlObj, System.Zip,
+  System.IOUtils, System.Net.HttpClient, System.Net.HttpClientComponent,
+  System.DateUtils, ComObj, ActiveX,
   // JVCL
   JvSetupApi,
   // TurboPower
@@ -27,31 +26,29 @@ const
   DFUDelayTime = 5000;
   LoaderRebootDelay = 3000;
   FirmwareRebootDelay = 3000;
-
   RebootTimeout = 6000;
   LoaderRebootTimeout = 60000;
   FirmwareRebootTimeout = 60000;
 
   // TODO: Обновление параметров сервера КМ для ИНН ОФД ??
 
-  /////////////////////////////////////////////////////////////////////////////
+  /// //////////////////////////////////////////////////////////////////////////
   // PortNumber значения
 
-  PORT_COM  = 0;  // RS-232 - обновление по XModem
-  PORT_VCOM = 1;  // USB vCOM - обновление по DFU (или XModem)
-  PORT_TCP  = 2;  // TCP сокет (RNDIS, Ethernet, WI-FI, ppp)
+  PORT_COM = 0; // RS-232 - обновление по XModem
+  PORT_VCOM = 1; // USB vCOM - обновление по DFU (или XModem)
+  PORT_TCP = 2; // TCP сокет (RNDIS, Ethernet, WI-FI, ppp)
 
-  /////////////////////////////////////////////////////////////////////////////
+  /// //////////////////////////////////////////////////////////////////////////
   // Значения режима ppp
 
-  PPP_NONE = 0;         // 0 – нет
-  PPP_COM_CLIENT = 1;   // 1 – клиент через COM
-  PPP_COM_SERVER = 2;   // 2 – сервер через COM
-  PPP_VCOM_CLIENT = 3;  // 3 – клиент через USB
-  PPP_VCOM_SERVER = 4;  // 4 – сервер через USB
+  PPP_NONE = 0; // 0 – нет
+  PPP_COM_CLIENT = 1; // 1 – клиент через COM
+  PPP_COM_SERVER = 2; // 2 – сервер через COM
+  PPP_VCOM_CLIENT = 3; // 3 – клиент через USB
+  PPP_VCOM_SERVER = 4; // 4 – сервер через USB
 
-
-  /////////////////////////////////////////////////////////////////////////////
+  /// //////////////////////////////////////////////////////////////////////////
   // ConnectionType constants
 
   CT_LOCAL = 0;
@@ -64,32 +61,31 @@ const
   CT_PPP = 7;
 
   // MODE constants
-  MODE_DUMPMODE			= $01; // Dump mode
-  MODE_24NOTOVER		= $02; // Opened day, 24 hours not left
-  MODE_24OVER			  = $03; // Opened day, 24 hours is over
-  MODE_CLOSED			  = $04; // Closed day
-  MODE_LOCKED			  = $05; // ECR is bloced because of incorrect tax offecer password
-  MODE_WAITDATE			= $06; // Waiting for date confirm
-  MODE_POINTPOS			= $07; // Change decimal point position permission
-  MODE_REC		     	= $08; // Opened document
-  MODE_TECH		     	= $09; // Technological reset permission
-  MODE_TEST			    = $0A; // Test run
-  MODE_FULLREPORT		= $0B; // Full fiscal report printing
-  MODE_EKLZREPORT		= $0C; // EJ report printing
-  MODE_SLP		     	= $0D; // Opened fiscal slip
-  MODE_SLPPRINT			= $0E; // Slip printing
-  MODE_SLPREADY			= $0F; // Fiscal slip is ready
+  MODE_DUMPMODE = $01; // Dump mode
+  MODE_24NOTOVER = $02; // Opened day, 24 hours not left
+  MODE_24OVER = $03; // Opened day, 24 hours is over
+  MODE_CLOSED = $04; // Closed day
+  MODE_LOCKED = $05; // ECR is bloced because of incorrect tax offecer password
+  MODE_WAITDATE = $06; // Waiting for date confirm
+  MODE_POINTPOS = $07; // Change decimal point position permission
+  MODE_REC = $08; // Opened document
+  MODE_TECH = $09; // Technological reset permission
+  MODE_TEST = $0A; // Test run
+  MODE_FULLREPORT = $0B; // Full fiscal report printing
+  MODE_EKLZREPORT = $0C; // EJ report printing
+  MODE_SLP = $0D; // Opened fiscal slip
+  MODE_SLPPRINT = $0E; // Slip printing
+  MODE_SLPREADY = $0F; // Fiscal slip is ready
 
-
-  /////////////////////////////////////////////////////////////////////////////
+  /// //////////////////////////////////////////////////////////////////////////
   // BaudRate values
 
-  BAUD_RATE_CODE_2400   = 0;
-  BAUD_RATE_CODE_4800   = 1;
-  BAUD_RATE_CODE_9600   = 2;
-  BAUD_RATE_CODE_19200  = 3;
-  BAUD_RATE_CODE_38400  = 4;
-  BAUD_RATE_CODE_57600  = 5;
+  BAUD_RATE_CODE_2400 = 0;
+  BAUD_RATE_CODE_4800 = 1;
+  BAUD_RATE_CODE_9600 = 2;
+  BAUD_RATE_CODE_19200 = 3;
+  BAUD_RATE_CODE_38400 = 4;
+  BAUD_RATE_CODE_57600 = 5;
   BAUD_RATE_CODE_115200 = 6;
   BAUD_RATE_CODE_230400 = 7;
   BAUD_RATE_CODE_460800 = 8;
@@ -129,21 +125,21 @@ type
   { TECRInfo }
 
   TECRInfo = record
-    FirmwareVersion: string;        // Версия ПО ФР
-    FirmwareBuild: Integer;         // Сборка ПО ФР
-    FirmwareDate: TDate;            // Дата ПО ФР
-    BootVer: Integer;               // Версия загрузчика
+    FirmwareVersion: string; // Версия ПО ФР
+    FirmwareBuild: Integer; // Сборка ПО ФР
+    FirmwareDate: TDate; // Дата ПО ФР
+    BootVer: Integer; // Версия загрузчика
     Serial: string;
-    FirmwareValid: Boolean;         //
+    FirmwareValid: Boolean; //
     // Тип подключения ККМ, COM, VCOM, TCP (0, 1, 2)
     SoftwarePort: Integer;
     // Физическое подключение ККМ, COM, VCOM, TCP
     // Например, если касса подключена по RNDIS, то после сброса параметров
     // искать ее нужно на порту VCOM, так как физически она подключена через USB
-    HardwarePort: Integer;          // TCP -> VCOM
+    HardwarePort: Integer; // TCP -> VCOM
     // Номер COM порта, если HardwarePort = COM, VCOM
     ComNumber: Integer;
-    SigningKey: Integer;            // Ключи для подписи
+    SigningKey: Integer; // Ключи для подписи
   end;
 
   { TUpdateStatus }
@@ -175,15 +171,13 @@ type
     function GetDriver: TDriver;
     procedure SetStatus(const Value: TUpdateStatus);
     procedure ThreadTerminated(Sender: TObject);
-    function ValidLoader(const Ecr: TEcrInfo; const Item: TActionUpdateLoader): Boolean;
-    function ValidFirmware(const Ecr: TEcrInfo;
-      const Item: TActionUpdateFirmware): Boolean;
+    function ValidLoader(const Ecr: TECRInfo; const Item: TActionUpdateLoader): Boolean;
+    function ValidFirmware(const Ecr: TECRInfo; const Item: TActionUpdateFirmware): Boolean;
     procedure CheckFSDebugVersion;
     procedure FiscalizeFS(Action: TActionFiscalizeFS);
     procedure InitializeFS(Item: TActionInitFS);
-    procedure RefiscalizeFS(Item: TActionRefiscalizeFS;
-      const Tables: TTableItems);
-    procedure UploadFile(const Ecr: TEcrInfo; const Path, FileName: string);
+    procedure RefiscalizeFS(Item: TActionRefiscalizeFS; const Tables: TTableItems);
+    procedure UploadFile(const Ecr: TECRInfo; const Path, FileName: string);
     function XModemCancelProc: Boolean;
     function GetHardwarePort(SoftwarePort: Integer): Integer;
     procedure SetCurrentDateTime;
@@ -220,24 +214,21 @@ type
     procedure LoadArchive(const FileName: string);
 
     function Connect: Integer;
-    function ReadEcrInfo: TEcrInfo;
+    function ReadEcrInfo: TECRInfo;
     function DownloadArchive(const ArchiveURL: string): Boolean;
     function GetStatus: TUpdateStatus;
     function ReadSerialNumber: string;
     function EcrUpdateable(const Serial: string): Boolean;
     function ReadFFDVersion: Integer;
-    function ReadLicense(const FileName, Serial: string;
-      var License: TEcrLicense): Boolean;
+    function ReadLicense(const FileName, Serial: string; var License: TEcrLicense): Boolean;
     function ReadCashRegister: Currency;
     function GetLogFileName: string;
     procedure DoUpdateFirmware;
     function FindDevice(const Serial: string): Boolean;
     procedure DiscoverDevice(const Params: TSearchParams);
     function FindDeviceLocal(const Params: TSearchParams): Boolean;
-    function FindOfdParams(const OfdInn: string;
-      var OfdParams: TOfdParams): Boolean;
-    function GetOfdParams(const Tables: TTableItems;
-      const OfdInn: string; var OfdParams: TOfdParams): Boolean;
+    function FindOfdParams(const OfdInn: string; var OfdParams: TOfdParams): Boolean;
+    function GetOfdParams(const Tables: TTableItems; const OfdInn: string; var OfdParams: TOfdParams): Boolean;
     function WaitDocSent(TimeoutInSec: Integer): Boolean;
     procedure DecryptFiles(const InPath, OutPath: string);
     procedure UnzipArhive(const OutPath, FileName: string);
@@ -261,8 +252,8 @@ type
     procedure Stop;
     procedure Wait;
     procedure LoadParameters;
-    function FindFirmware(Ecr: TEcrInfo): TActionUpdateFirmware;
-    function FindLastLoader(Ecr: TEcrInfo): TActionUpdateLoader;
+    function FindFirmware(Ecr: TECRInfo): TActionUpdateFirmware;
+    function FindLastLoader(Ecr: TECRInfo): TActionUpdateLoader;
 
     property Driver: TDriver read GetDriver;
     property Params: TUpdateParams read FParams;
@@ -277,7 +268,8 @@ implementation
 function AddLeadingZeros(const S: string; ACount: Integer): string;
 begin
   Result := Copy(S, 1, ACount);
-  if ACount < Length(S) then Exit;
+  if ACount < Length(S) then
+    Exit;
   Result := StringOfChar('0', ACount - Length(S)) + S;
 end;
 
@@ -285,36 +277,72 @@ function GenerateRNM(const ANumber, AINN, ASerial: string): string;
 var
   S: string;
 begin
-   S := AddLeadingZeros(ANumber, 10) +
-     AddLeadingZeros(AINN, 12) + AddLeadingZeros(ASerial, 20);
-   Result := AddLeadingZeros(ANumber, 10) +
-     AddLeadingZeros(IntToStr(CRCCITT16(AnsiString(S), $1021, $FFFF)), 6);
+  S := AddLeadingZeros(ANumber, 10) + AddLeadingZeros(AINN, 12) + AddLeadingZeros(ASerial, 20);
+  Result := AddLeadingZeros(ANumber, 10) + AddLeadingZeros(IntToStr(CRCCITT16(AnsiString(S), $1021, $FFFF)), 6);
 end;
 
-
 const
-  OfdParamsArray: array[1..13] of TOfdParams =
-  (
-    (Inn: '7728699517'; ServerKM: 'connect.Ofd-ya.ru'; PortKM: 7797),
-    (Inn: '7709364346'; ServerKM: 'k-server.1-Ofd.ru'; PortKM: 7788),
-    (Inn: '9715260691'; ServerKM: 'Ofdp.platformaOfd.ru'; PortKM: 21102),
-    (Inn: '7704211201'; ServerKM: 'f1.taxcom.ru'; PortKM: 8777),
-    (Inn: '6658497833'; ServerKM: 'Ofd.kontur.ru'; PortKM: 7778),
-    (Inn: '4029017981'; ServerKM: 'Ofd.astralnalog.ru'; PortKM: 7777),
-    (Inn: '7841465198'; ServerKM: 'crpt.Ofd.ru'; PortKM: 7000),
-    (Inn: '7605016030'; ServerKM: 'kkt.sbis.ru'; PortKM: 7777),
-    (Inn: '7704358518'; ServerKM: 'kkt.Ofd.yandex.net'; PortKM: 54321),
-    (Inn: '5902034504'; ServerKM: 'kkt.Ofd-initpro.ru'; PortKM: 9996),
-    (Inn: '7729642175'; ServerKM: 'crpt.e-Ofd.ru'; PortKM: 5555),
-    (Inn: '2310031475'; ServerKM: 'kkt.Ofd-magnit.ru'; PortKM: 7005),
-    (Inn: '7713076301'; ServerKM: 'Ofd.beeline.ru'; PortKM: 8765)
-  );
+  OfdParamsArray: array[1..13] of TOfdParams = ((
+    Inn: '7728699517';
+    ServerKM: 'connect.Ofd-ya.ru';
+    PortKM: 7797
+  ), (
+    Inn: '7709364346';
+    ServerKM: 'k-server.1-Ofd.ru';
+    PortKM: 7788
+  ), (
+    Inn: '9715260691';
+    ServerKM: 'Ofdp.platformaOfd.ru';
+    PortKM: 21102
+  ), (
+    Inn: '7704211201';
+    ServerKM: 'f1.taxcom.ru';
+    PortKM: 8777
+  ), (
+    Inn: '6658497833';
+    ServerKM: 'Ofd.kontur.ru';
+    PortKM: 7778
+  ), (
+    Inn: '4029017981';
+    ServerKM: 'Ofd.astralnalog.ru';
+    PortKM: 7777
+  ), (
+    Inn: '7841465198';
+    ServerKM: 'crpt.Ofd.ru';
+    PortKM: 7000
+  ), (
+    Inn: '7605016030';
+    ServerKM: 'kkt.sbis.ru';
+    PortKM: 7777
+  ), (
+    Inn: '7704358518';
+    ServerKM: 'kkt.Ofd.yandex.net';
+    PortKM: 54321
+  ), (
+    Inn: '5902034504';
+    ServerKM: 'kkt.Ofd-initpro.ru';
+    PortKM: 9996
+  ), (
+    Inn: '7729642175';
+    ServerKM: 'crpt.e-Ofd.ru';
+    PortKM: 5555
+  ), (
+    Inn: '2310031475';
+    ServerKM: 'kkt.Ofd-magnit.ru';
+    PortKM: 7005
+  ), (
+    Inn: '7713076301';
+    ServerKM: 'Ofd.beeline.ru';
+    PortKM: 8765
+  ));
 
 function FFDToStr(AFFDVer: Integer): string;
 begin
   case AFFDVer of
-    2: Result := 'ФФД 1.05';
-    4: Result := 'ФФД 1.2';
+    2:
+      Result := 'ФФД 1.05';
+    4:
+      Result := 'ФФД 1.2';
   end;
 end;
 
@@ -348,14 +376,15 @@ end;
 
 function IsModelType2(Value: Integer): Boolean;
 begin
-  Result := Value in [16, 19, 20, 21, 27, 28, 29, 30, 32, 33, 34, 35, 36, {37,} 38, 39, 40, 41, 42, 45, 45, 45, 46];
+  Result := Value in [16, 19, 20, 21, 27, 28, 29, 30, 32, 33, 34, 35, 36,
+  { 37, } 38, 39, 40, 41, 42, 45, 45, 45, 46];
 end;
 
-
 const
-  EcrModels: array [0..0] of TEcrModel = (
-  (Id: 0; Name: 'Test')
-  );
+  EcrModels: array[0..0] of TEcrModel = ((
+    Id: 0;
+    Name: 'Test'
+  ));
 
 function SplitLine(const ALine: string; AIndex: Integer): string;
 var
@@ -373,17 +402,16 @@ begin
   end;
 end;
 
-
-///////////////////////////////////////////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////
 // PortNumber значения
 // 0, RS-232 - обновление по XModem
 // 1, USB vCOM - обновление по DFU (или XModem)
 // 2, TCP сокет (RNDIS, Ethernet, WI-FI, ppp) -
-//    - обновление через DFU, если RNDIS
-//    - обновление через DFU, если PPP через VCom
-//    - обновление через XModem, если PPP через COM
+// - обновление через DFU, если RNDIS
+// - обновление через DFU, если PPP через VCom
+// - обновление через XModem, если PPP через COM
 //
-///////////////////////////////////////////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////////
 
 const
   CompanyName = 'TorgBalance';
@@ -414,7 +442,7 @@ begin
   try
     Reg.Access := KEY_READ;
     Reg.RootKey := HKEY_LOCAL_MACHINE;
-    Result := Reg.OpenKey('SYSTEM\CurrentControlSet\Control\DeviceClasses\{a01674b4-c5f6-485c-af94-3271701d5fb4}', False);
+    Result := Reg.OpenKey('SYSTEM\CurrentControlSet\Control\DeviceClasses\{a01674b4-c5f6-485c-af94-3271701d5fb4}', false);
   finally
     Reg.Free;
   end;
@@ -422,15 +450,15 @@ end;
 
 function GetHttpFileLastModified(const URL: string): TDateTime;
 var
-  HTTPClient: TNetHTTPClient;
+  HttpClient: TNetHTTPClient;
   Response: IHTTPResponse;
 begin
   Result := 0;
-  HTTPClient := TNetHTTPClient.Create(nil);
+  HttpClient := TNetHTTPClient.Create(nil);
   try
-    HTTPClient.UserAgent := 'Mozilla/5.0';
+    HttpClient.UserAgent := 'Mozilla/5.0';
     // Делаем HEAD запрос (только заголовки, без тела)
-    Response := HTTPClient.Head(URL);
+    Response := HttpClient.Head(URL);
     if Response.StatusCode = 200 then
     begin
       if Response.ContainsHeader('Last-Modified') then
@@ -440,35 +468,34 @@ begin
       end;
     end;
   finally
-    HTTPClient.Free;
+    HttpClient.Free;
   end;
 end;
 
-function DownloadFile(const URL, SavePath: string;
-  OnProgress: TReceiveDataEvent = nil): Boolean;
+function DownloadFile(const URL, SavePath: string; OnProgress: TReceiveDataEvent = nil): Boolean;
 var
-  HTTPClient: TNetHTTPClient;
+  HttpClient: TNetHTTPClient;
   Response: IHTTPResponse;
   FileStream: TFileStream;
 begin
-  HTTPClient := TNetHTTPClient.Create(nil);
+  HttpClient := TNetHTTPClient.Create(nil);
   try
-    HTTPClient.UserAgent := 'Mozilla/5.0';
-    HTTPClient.ConnectionTimeout := 3000;
-    HTTPClient.ResponseTimeout := 30000;
+    HttpClient.UserAgent := 'Mozilla/5.0';
+    HttpClient.ConnectionTimeout := 3000;
+    HttpClient.ResponseTimeout := 30000;
 
     if Assigned(OnProgress) then
-      HTTPClient.OnReceiveData := OnProgress;
+      HttpClient.OnReceiveData := OnProgress;
 
     FileStream := TFileStream.Create(SavePath, fmCreate);
     try
-      Response := HTTPClient.Get(URL, FileStream);
+      Response := HttpClient.Get(URL, FileStream);
       Result := (Response.StatusCode = 200);
     finally
       FileStream.Free;
     end;
   finally
-    HTTPClient.Free;
+    HttpClient.Free;
   end;
 end;
 
@@ -478,14 +505,14 @@ constructor TFirmwareUpdater.Create;
 begin
   inherited Create;
   FItems := TUpdateItems.Create;
-  FLock := TCriticalSection.Create;
+  FLock := TCriticalsection.Create;
 
   Logger.FileName := GetLogFileName;
   Logger.Enabled := True;
 
   FParams.SaveTables := True;
-  FParams.PrintStatus := False;
-  FParams.RestoreCashRegister := False;
+  FParams.PrintStatus := false;
+  FParams.RestoreCashRegister := false;
 end;
 
 destructor TFirmwareUpdater.Destroy;
@@ -523,7 +550,7 @@ begin
   FDriver.Free;
   FDriver := nil;
 
-  FStopped := False;
+  FStopped := false;
   FThread := TNotifyThread.CreateThread(Execute);
   FThread.OnTerminate := ThreadTerminated;
   FThread.Resume;
@@ -582,7 +609,7 @@ begin
   AStatus := GetStatus;
   AStatus.StartTime := Now;
   AStatus.IsStarted := True;
-  AStatus.IsSucceeded := False;
+  AStatus.IsSucceeded := false;
   SetStatus(AStatus);
 
   Logger.Debug(Separator);
@@ -597,20 +624,18 @@ begin
     end;
 
     AStatus := GetStatus;
-    AStatus.IsStarted := False;
+    AStatus.IsStarted := false;
     AStatus.IsSucceeded := True;
     AStatus.ResultText := 'Обновление выполнено успешно';
-    AStatus.Text := Format(
-      'Обновление выполнено успешно. Время выполнения: %d c.', [
-      SecondsBetween(Now, AStatus.StartTime)]);
+    AStatus.Text := Format('Обновление выполнено успешно. Время выполнения: %d c.', [SecondsBetween(Now, AStatus.StartTime)]);
 
     SetStatus(AStatus);
   except
     on E: Exception do
     begin
       AStatus := GetStatus;
-      AStatus.IsStarted := False;
-      AStatus.IsSucceeded := False;
+      AStatus.IsStarted := false;
+      AStatus.IsSucceeded := false;
       AStatus.ResultText := 'Ошибка: ' + E.Message;
       AStatus.Text := AStatus.ResultText;
       SetStatus(AStatus);
@@ -632,7 +657,7 @@ end;
 
 procedure TFirmwareUpdater.DoUpdateFirmware;
 var
-  EcrInfo: TEcrInfo;
+  EcrInfo: TECRInfo;
   Item: TUpdateItem;
   CashRegister: Currency;
   SearchParams: TSearchParams;
@@ -656,8 +681,7 @@ begin
       // Проверка режима ККМ
       if Driver.ECRMode <> MODE_CLOSED then
       begin
-        raise Exception.Create('ККТ на связи. Однако в данном режиме перепрошивка невозможна.'#13#10+
-          'Режим: ' + Driver.ECRModeDescription);
+        raise Exception.Create('ККТ на связи. Однако в данном режиме перепрошивка невозможна.'#13#10 + 'Режим: ' + Driver.ECRModeDescription);
       end;
       // Проверка отправленных документов, если нужна перерегистрация
       if IsRefiscalizationNeeded then
@@ -678,7 +702,7 @@ begin
     end;
     // Format SD card
     FormatSDCard;
-    //SetVComConnection;
+    // SetVComConnection;
     // Update loader
     for Item in FItems do
     begin
@@ -721,10 +745,10 @@ begin
       begin
         case Item.Action of
           ACTION_WRITE_TABLES:
-          begin
-            Tables := (Item as TActionWriteTables).Tables;
-            WriteTables(Tables);
-          end;
+            begin
+              Tables := (Item as TActionWriteTables).Tables;
+              WriteTables(Tables);
+            end;
         end;
       end;
 
@@ -743,21 +767,21 @@ begin
       CheckStopped;
       case Item.Action of
         ACTION_INIT_FS:
-        begin
-          InitializeFS(Item as TActionInitFS);
-        end;
+          begin
+            InitializeFS(Item as TActionInitFS);
+          end;
         ACTION_FISCALIZE_FS:
-        begin
-          FiscalizeFS(Item as TActionFiscalizeFS);
-        end;
+          begin
+            FiscalizeFS(Item as TActionFiscalizeFS);
+          end;
         ACTION_WRITE_LICENSE:
-        begin
-          WriteLicense(FPath + TActionWriteLicense(Item).FileName, EcrInfo.Serial);
-        end;
+          begin
+            WriteLicense(FPath + TActionWriteLicense(Item).FileName, EcrInfo.Serial);
+          end;
         ACTION_REFISCALIZE_FS:
-        begin
-          RefiscalizeFS(Item as TActionRefiscalizeFS, Tables);
-        end;
+          begin
+            RefiscalizeFS(Item as TActionRefiscalizeFS, Tables);
+          end;
       end;
     end;
     if EcrInfo.FirmwareValid then
@@ -777,7 +801,7 @@ var
   Item: TUpdateItem;
   Action: TActionRefiscalizeFS;
 begin
-  Result := False;
+  Result := false;
   for Item in FItems do
   begin
     if Item.Action = ACTION_REFISCALIZE_FS then
@@ -788,17 +812,18 @@ begin
   end;
 end;
 
-procedure TFirmwareUpdater.UploadFile(const Ecr: TEcrInfo; const Path, FileName: string);
+procedure TFirmwareUpdater.UploadFile(const Ecr: TECRInfo; const Path, FileName: string);
 begin
   Driver.Disconnect;
   case Ecr.HardwarePort of
-    PORT_COM: XModemUploadFile(Ecr.ComNumber, Path + FileName);
-    PORT_VCOM: DfuUploadFile(Path, FileName);
+    PORT_COM:
+      XModemUploadFile(Ecr.ComNumber, Path + FileName);
+    PORT_VCOM:
+      DfuUploadFile(Path, FileName);
     PORT_TCP:
       raise Exception.Create('Прошивка по TCP не поддерживается');
   else
-    raise Exception.CreateFmt('Прошивка не поддерживается, PortNumber=%d',
-      [Ecr.SoftwarePort]);
+    raise Exception.CreateFmt('Прошивка не поддерживается, PortNumber=%d', [Ecr.SoftwarePort]);
   end;
 end;
 
@@ -814,8 +839,7 @@ begin
   Driver.Check(Driver.SetTime);
 end;
 
-procedure TFirmwareUpdater.RefiscalizeFS(Item: TActionRefiscalizeFS;
-  const Tables: TTableItems);
+procedure TFirmwareUpdater.RefiscalizeFS(Item: TActionRefiscalizeFS; const Tables: TTableItems);
 var
   Inn: string;
   Text: string;
@@ -835,12 +859,14 @@ begin
   // Перерегистрация ФФД
   case Item.FfdVersion of
     0:
-    begin
-      Logger.Debug('ФФД = 0, обновление не нужно');
-      Exit;
-    end;
-    2:; // ФФД 1.05
-    4:; // ФФД 1.2
+      begin
+        Logger.Debug('ФФД = 0, обновление не нужно');
+        Exit;
+      end;
+    2:
+      ; // ФФД 1.05
+    4:
+      ; // ФФД 1.2
   else
     raise Exception.CreateFmt('Неверное значение формата ФФД, %d', [Item.FfdVersion]);
   end;
@@ -957,7 +983,7 @@ end;
 
 procedure TFirmwareUpdater.SetVComConnection;
 var
-  Ecr: TEcrInfo;
+  Ecr: TECRInfo;
   SearchParams: TSearchParams;
 begin
   if Driver.ConnectionType <> CT_LOCAL then
@@ -980,8 +1006,7 @@ begin
   Driver.Check(Driver.ReadLoaderVersion);
   if Driver.LoaderVersion <> IntToStr(NewBootVer) then
   begin
-    raise Exception.CreateFmt('Версия загрузчика отличается от целевой, %s <> %s',
-    [Driver.LoaderVersion, IntToStr(NewBootVer)]);
+    raise Exception.CreateFmt('Версия загрузчика отличается от целевой, %s <> %s', [Driver.LoaderVersion, IntToStr(NewBootVer)]);
   end;
 end;
 
@@ -993,39 +1018,46 @@ var
 begin
   Result := SoftwarePort;
   case SoftwarePort of
-    PORT_COM: Result := PORT_COM;
-    PORT_VCOM: Result := PORT_VCOM;
+    PORT_COM:
+      Result := PORT_COM;
+    PORT_VCOM:
+      Result := PORT_VCOM;
     PORT_TCP:
-    begin
-      PppMode := Driver.ReadTableInt(21, 1, 1); // Режим ppp
-      RndisActive := Driver.ReadTableInt(21, 1, 9) = 1; // Режим Rndis
-      if RndisActive then
       begin
-        Result := PORT_VCOM;
-      end;
-      if not RndisActive then
-      begin
-        case PppMode of
-          PPP_NONE: Result := PORT_TCP;
-          PPP_COM_CLIENT,
-          PPP_COM_SERVER: Result := PORT_COM;
-          PPP_VCOM_CLIENT,
-          PPP_VCOM_SERVER: Result := PORT_VCOM;
+        PppMode := Driver.ReadTableInt(21, 1, 1); // Режим ppp
+        RndisActive := Driver.ReadTableInt(21, 1, 9) = 1; // Режим Rndis
+        if RndisActive then
+        begin
+          Result := PORT_VCOM;
+        end;
+        if not RndisActive then
+        begin
+          case PppMode of
+            PPP_NONE:
+              Result := PORT_TCP;
+            PPP_COM_CLIENT, PPP_COM_SERVER:
+              Result := PORT_COM;
+            PPP_VCOM_CLIENT, PPP_VCOM_SERVER:
+              Result := PORT_VCOM;
+          end;
         end;
       end;
-    end;
   end;
 end;
 
-function TFirmwareUpdater.ReadEcrInfo: TEcrInfo;
+function TFirmwareUpdater.ReadEcrInfo: TECRInfo;
 
   function GetSigningKey(const Version: string): Integer;
   begin
     Result := SigningKeyUnknown;
-    if Pos('W', Version) > 0 then Result := SigningKeyTehnoWork;
-    if Pos('T', Version) > 0 then Result := SigningKeyTehnoTest;
-    if Pos('N', Version) > 0 then Result := SigningKeyShtrihWork;
-    if Pos('P', Version) > 0 then Result := SigningKeyShtrihInter;
+    if Pos('W', Version) > 0 then
+      Result := SigningKeyTehnoWork;
+    if Pos('T', Version) > 0 then
+      Result := SigningKeyTehnoTest;
+    if Pos('N', Version) > 0 then
+      Result := SigningKeyShtrihWork;
+    if Pos('P', Version) > 0 then
+      Result := SigningKeyShtrihInter;
   end;
 
 begin
@@ -1036,7 +1068,7 @@ begin
   if (Driver.ResultCode = 123) or (Driver.ResultCode = 56) then
   begin
     Logger.Debug('HardwareFailure detected');
-    Result.FirmwareValid := False;
+    Result.FirmwareValid := false;
     Exit;
   end;
   Result.SoftwarePort := PORT_COM;
@@ -1084,7 +1116,7 @@ end;
 
 procedure TFirmwareUpdater.LoadArchive(const FileName: string);
 begin
-  FPath := GetEnvironmentVariable('TEMP')+'\'+copy(TPath.GetRandomFileName,1,8)+'\';
+  FPath := GetEnvironmentVariable('TEMP') + '\' + Copy(TPath.GetRandomFileName, 1, 8) + '\';
   ForceDirectories(FPath);
   UnzipArhive(FPath, FileName);
   LoadFiles(FPath);
@@ -1099,9 +1131,10 @@ procedure TFirmwareUpdater.DownloadFiles;
 var
   FileName: string;
 begin
-  if FFilesDownloaded then Exit;
+  if FFilesDownloaded then
+    Exit;
 
-  FPath := GetEnvironmentVariable('TEMP')+'\'+copy(TPath.GetRandomFileName,1,8)+'\';
+  FPath := GetEnvironmentVariable('TEMP') + '\' + Copy(TPath.GetRandomFileName, 1, 8) + '\';
   ForceDirectories(FPath);
   // Если обновления есть - скачиваем архив
   FileName := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'archive.zip';
@@ -1151,7 +1184,7 @@ end;
 
 function TFirmwareUpdater.DownloadArchive(const ArchiveURL: string): Boolean;
 begin
-  Result := False;
+  Result := false;
   try
     Result := DownloadFile(ArchiveURL, FPath + 'arhive.zip');
   except
@@ -1167,7 +1200,7 @@ var
   Stream: TResourceStream;
 begin
   SetStatusText('Сохранение архива');
-  Stream := TResourceStream.Create(HInstance,'arhive', RT_RCDATA);
+  Stream := TResourceStream.Create(HInstance, 'arhive', RT_RCDATA);
   try
     Stream.SaveToFile(FPath + 'arhive.zip');
   finally
@@ -1206,11 +1239,11 @@ begin
       until FindNext(SearchRec) <> 0;
       FindClose(SearchRec);
     end;
-    for i := 0 to FileNames.Count-1 do
+    for i := 0 to FileNames.Count - 1 do
     begin
       FileName := FileNames[i];
       FileExt := LowerCase(ExtractFileExt(FileName));
-      if (FileExt = '.bin')or(FileExt = '.exe')or(FileExt = '.json') then
+      if (FileExt = '.bin') or (FileExt = '.exe') or (FileExt = '.json') then
       begin
         DecryptFile(OutPath + FileName, InPath + FileName);
       end;
@@ -1245,23 +1278,19 @@ begin
   end;
 end;
 
-
 function TFirmwareUpdater.EcrUpdateable(const Serial: string): Boolean;
 const
-  models: array [0..11] of string =
-    (
-    '0006','0004','0007','0008','0022','0002','0009','0001',
-    '0041','0051','0044','0048'
-    );
+  models: array[0..11] of string = ('0006', '0004', '0007', '0008', '0022', '0002', '0009', '0001', '0041', '0051', '0044', '0048');
 var
   i: Integer;
   Model: string;
 begin
   Model := Copy(Serial, 7, 4);
-  for i := Low(Models) to High(Models) do
+  for i := Low(models) to High(models) do
   begin
-    Result := Model = Models[i];
-    if Result then Break;
+    Result := Model = models[i];
+    if Result then
+      Break;
   end;
 end;
 
@@ -1276,12 +1305,10 @@ begin
   Driver.Check(Driver.GetECRStatus);
   begin
     if Driver.ECRSoftVersion <> Item.Version then
-      raise Exception.CreateFmt('Версия ПО ФР отличается, %s <> %s',
-      [Driver.ECRSoftVersion, Item.Version]);
+      raise Exception.CreateFmt('Версия ПО ФР отличается, %s <> %s', [Driver.ECRSoftVersion, Item.Version]);
 
     if Driver.ECRBuild <> Item.Build then
-      raise Exception.CreateFmt('Сборка ПО ФР отличается, %d <> %d',
-      [Driver.ECRBuild, Item.Build]);
+      raise Exception.CreateFmt('Сборка ПО ФР отличается, %d <> %d', [Driver.ECRBuild, Item.Build]);
   end;
 end;
 
@@ -1305,8 +1332,8 @@ begin
     raise Exception.CreateFmt('Файл "%s" не найден.', [DfuUtilFile]);
 
   (*
-  SetStatusText('Проверка драйвера DFU');
-  if not CheckDFU then
+    SetStatusText('Проверка драйвера DFU');
+    if not CheckDFU then
     raise Exception.Create('Не установлен драйвер DFU, прошивка невозможна.');
   *)
 
@@ -1314,26 +1341,23 @@ begin
   SetStatusText('Переход в режим DFU');
   if Driver.SetDFUMode <> 0 then
   begin
-    raise Exception.CreateFmt('Ошибка перехода в режим DFU. %s', [
-      Driver.ResultCodeDescription]);
+    raise Exception.CreateFmt('Ошибка перехода в режим DFU. %s', [Driver.ResultCodeDescription]);
   end;
   Driver.Disconnect;
   // Ждём переход в DFU
   WaitForDFUDevice(DFUDelayTime);
   // Грузим файл
   SetStatusText('Запись файла ' + FileName);
-  ResultCode := SystemUtils.ExecuteProcess(DfuUtilFile,' -D '+ FirmwareFile, StdOut);
+  ResultCode := SystemUtils.ExecuteProcess(DfuUtilFile, ' -D ' + FirmwareFile, StdOut);
   if ResultCode <> 0 then
-    raise Exception.CreateFmt('Ошибка загрузки прошивки. %s, %s', [
-    SysErrorMessage(GetLastError), StdOut]);
+    raise Exception.CreateFmt('Ошибка загрузки прошивки. %s, %s', [SysErrorMessage(GetLastError), StdOut]);
 
   if Pos('Done!', StdOut) = 0 then
   begin
     raise Exception('Не удалось загрузить прошивку в ККТ.'#13#10 + StdOut);
   end;
   SetStatusText('DFU, запись успешно выполнена');
-  Logger.Debug(Format('DFU, запись выполнена за %d мс.', [
-    MilliSecondsBetween(Now, StartTime)]));
+  Logger.Debug(Format('DFU, запись выполнена за %d мс.', [MilliSecondsBetween(Now, StartTime)]));
 end;
 
 function TFirmwareUpdater.RunDfuUtil(const Path, Params: string): string;
@@ -1347,8 +1371,7 @@ begin
 
   ResultCode := SystemUtils.ExecuteProcess(DfuUtilFile, Params, Result);
   if ResultCode <> 0 then
-    raise Exception.CreateFmt('Ошибка выполнения. %s, %s', [
-    SysErrorMessage(GetLastError), Result]);
+    raise Exception.CreateFmt('Ошибка выполнения. %s, %s', [SysErrorMessage(GetLastError), Result]);
 end;
 
 function TFirmwareUpdater.WaitForDFUDevice(Timeout: Cardinal): Boolean;
@@ -1359,9 +1382,11 @@ begin
   while True do
   begin
     Result := IsDFUDevicePresent;
-    if Result then Exit;
+    if Result then
+      Exit;
 
-    if (GetTickCount - StartTime) >= Timeout then Break;
+    if (GetTickCount - StartTime) >= Timeout then
+      Break;
     Sleep(100); // Проверяем каждые 100 мс
   end;
 end;
@@ -1371,8 +1396,7 @@ begin
   Result := Pos('DFU', RunDfuUtil(FPath, '-l')) <> 0;
 end;
 
-procedure TFirmwareUpdater.XModemUploadFile(ComNumber: Integer;
-  const FileName: string);
+procedure TFirmwareUpdater.XModemUploadFile(ComNumber: Integer; const FileName: string);
 var
   Modem: TXModem;
   StartTime: TDateTime;
@@ -1382,18 +1406,17 @@ begin
   Modem := TXModem.Create;
   try
     Modem.PortNumber := ComNumber;
-    Modem.Baudrate := 115200;
+    Modem.BaudRate := 115200;
     Modem.Timeout := 3000;
-    Modem.LogOn := False;
+    Modem.LogOn := false;
     Modem.OnCancel := XModemCancelProc;
-    //Modem.OnPercent := OnPercent;
+    // Modem.OnPercent := OnPercent;
     Modem.SendFile(FileName);
   finally
     Modem.Free;
   end;
   SetStatusText('XModem, запись выполнена успешно');
-  Logger.Debug(Format('XModem, запись выполнена за %d мс.', [
-    MilliSecondsBetween(Now, StartTime)]));
+  Logger.Debug(Format('XModem, запись выполнена за %d мс.', [MilliSecondsBetween(Now, StartTime)]));
 end;
 
 function TFirmwareUpdater.XModemCancelProc: Boolean;
@@ -1432,7 +1455,7 @@ begin
   CheckStopped;
   SetStatusText('Запись дополнительных таблиц...');
   // Дозапись таблиц после обновления
-  for i := 0 to Length(Tables)-1 do
+  for i := 0 to Length(Tables) - 1 do
   begin
     Table := Tables[i];
     Driver.Password := 30;
@@ -1448,8 +1471,7 @@ begin
   SetStatusText('Запись дополнительных таблиц: OK');
 end;
 
-procedure TFirmwareUpdater.WaitForDevice(const Serial: string;
-  TimeoutInMs: Integer);
+procedure TFirmwareUpdater.WaitForDevice(const Serial: string; TimeoutInMs: Integer);
 var
   TickCount: Integer;
 begin
@@ -1461,8 +1483,7 @@ begin
     CheckStopped;
     if FindDevice(Serial) then
     begin
-      Logger.Debug(Format('Устройство найдено за %d мс', [
-        Integer(GetTickCount) - TickCount]));
+      Logger.Debug(Format('Устройство найдено за %d мс', [Integer(GetTickCount) - TickCount]));
       Logger.Debug('Проверка состояния ККМ');
       Driver.Check(Driver.ResetECR);
       Exit;
@@ -1481,8 +1502,7 @@ begin
     Result := Driver.ReadSerialNumber = 0;
     if not Result then
     begin
-      Logger.Debug(Format('ReadSerialNumber: %d, %s', [
-        Driver.ResultCode, Driver.ResultCodeDescription]));
+      Logger.Debug(Format('ReadSerialNumber: %d, %s', [Driver.ResultCode, Driver.ResultCodeDescription]));
     end;
 
     if Result then
@@ -1503,11 +1523,13 @@ begin
     Result := Driver.ResetSettings;
     // FPTR_E_FORMAT_RESTORE_SUCCESS = $93; // восстановление озу успешно
     if Result = 147 then
-        Result := Driver.ResetSettings;
-    if Result <> 0 then Exit;
+      Result := Driver.ResetSettings;
+    if Result <> 0 then
+      Exit;
 
     Result := Driver.GetShortECRStatus;
-    if Result <> 0 then Exit;
+    if Result <> 0 then
+      Exit;
   end;
   if Result = 0 then
   begin
@@ -1529,8 +1551,7 @@ begin
     CheckStopped;
     if FindDeviceLocal(Params) then
     begin
-      Logger.Debug(Format('Устройство найдено за %d мс', [
-        Integer(GetTickCount) - TickCount]));
+      Logger.Debug(Format('Устройство найдено за %d мс', [Integer(GetTickCount) - TickCount]));
       Logger.Debug('Проверка состояния ККМ');
       Exit;
     end;
@@ -1541,7 +1562,7 @@ begin
   raise Exception.CreateFmt('Устройство %s не найдено', [Params.Serial]);
 end;
 
-//////////////////////////////////////////////////////////
+/// ///////////////////////////////////////////////////////
 // Для подключения COM - 4800
 // Для подключения VCOM - любая скорость
 //
@@ -1552,21 +1573,20 @@ var
   Port: TSearchPort;
   Search: TDeviceSearch;
 begin
-  Result := False;
+  Result := false;
   Search := TDeviceSearch.Create;
   try
     Search.DoTechReset := True;
-    Search.ShortSearch := False;
+    Search.ShortSearch := false;
 
     Search.Start;
     Search.Wait;
     for i := 0 to Search.Ports.Count - 1 do
     begin
       Port := Search.Ports[i];
-      if ((Port.SerialNumber = Params.Serial) or (Params.Serial = ''))and
-        (Params.Port = Port.DevicePort) then
+      if ((Port.SerialNumber = Params.Serial) or (Params.Serial = '')) and (Params.Port = Port.DevicePort) then
       begin
-        //Logger.Debug('Устройство найдено');
+        // Logger.Debug('Устройство найдено');
         Driver.ConnectionType := CT_LOCAL;
         Driver.ProtocolType := 0; // Standard
         Driver.ComNumber := Port.PortNumber;
@@ -1575,7 +1595,7 @@ begin
         Driver.Check(Driver.Connect);
         if Driver.BaudRate < BAUD_RATE_CODE_115200 then
         begin
-          //Logger.Debug('Установка скорости ККМ 115200');
+          // Logger.Debug('Установка скорости ККМ 115200');
           Driver.BaudRate := BAUD_RATE_CODE_115200;
           Driver.Check(Driver.SetExchangeParam);
           Driver.Disconnect;
@@ -1595,34 +1615,34 @@ var
 begin
   Driver.ConnectionType := CT_LOCAL;
   RC := Driver.FindDevice;
-  if (RC = $74) or (RC = $79) or (RC = $78)  then
+  if (RC = $74) or (RC = $79) or (RC = $78) then
   begin
     RC := Driver.ResetSettings;
     if RC = 147 then
       Driver.Check(Driver.ResetSettings)
     else
-      Driver.Check(Rc);
+      Driver.Check(RC);
 
     SetCurrentDateTime;
   end;
   Driver.Check(RC);
   Driver.Check(Driver.ReadSerialNumber);
   Result := Driver.SerialNumber = Params.Serial;
-  if not Result then Exit;
+  if not Result then
+    Exit;
 
   Driver.Check(Driver.GetECRStatus);
   Result := Driver.PortNumber = Params.Port;
 end;
 
-
 procedure TFirmwareUpdater.SetBaudRate(BaudRate: Integer);
 begin
-  //Logger.Debug('Set baudrate ' + IntToStr(ABaudrate));
-  //Driver.PortNumber := 0;
+  // Logger.Debug('Set baudrate ' + IntToStr(ABaudrate));
+  // Driver.PortNumber := 0;
   Driver.Timeout := 10000;
   Driver.BaudRate := BaudRate;
   Driver.Check(Driver.SetExchangeParam);
-  Driver.BaudRate := Baudrate;
+  Driver.BaudRate := BaudRate;
 end;
 
 procedure TFirmwareUpdater.SetStatusText(const Text: string);
@@ -1671,14 +1691,12 @@ begin
   Result := EcrUpdateable(ReadSerialNumber);
 end;
 
-function TFirmwareUpdater.ReadLicense(const FileName: string;
-  const Serial: string;
-  var License: TEcrLicense): Boolean;
+function TFirmwareUpdater.ReadLicense(const FileName: string; const Serial: string; var License: TEcrLicense): Boolean;
 var
   i: Integer;
   Strings: TStringList;
 begin
-  Result := False;
+  Result := false;
   Strings := TStringList.Create;
   try
     Strings.LoadFromFile(FileName);
@@ -1712,8 +1730,7 @@ begin
   Driver.DigitalSign := License.Signature;
   if Driver.WriteFeatureLicenses <> 0 then
   begin
-    raise Exception.CreateFmt('Ошибка записи лицензий, %d, %s', [
-      Driver.ResultCode, Driver.ResultCodeDescription]);
+    raise Exception.CreateFmt('Ошибка записи лицензий, %d, %s', [Driver.ResultCode, Driver.ResultCodeDescription]);
   end;
 end;
 
@@ -1726,13 +1743,12 @@ begin
     Result := Driver.ReadTableInt(17, 1, 17)
   else
   begin
-    if ModelId = 19 then
+    if Modelid = 19 then
       Result := Driver.ReadTableInt(10, 1, 4)
+    else if IsModelType2(Modelid) then
+      Result := Driver.ReadTableInt(10, 1, 29)
     else
-      if IsModelType2(ModelId) then
-        Result := Driver.ReadTableInt(10, 1, 29)
-      else
-        Result := Driver.ReadTableInt(17, 1, 17);
+      Result := Driver.ReadTableInt(17, 1, 17);
   end;
 end;
 
@@ -1801,8 +1817,7 @@ begin
     Driver.WaitForPrinting;
   end;
   if IsTimeout then
-    raise Exception.Create(
-      'Перерегистрация на ФФД 1.2 не может быть произведена. Есть неотправленные в ОФД документы');
+    raise Exception.Create('Перерегистрация на ФФД 1.2 не может быть произведена. Есть неотправленные в ОФД документы');
   SetStatusText('Проверка отправленных документов: OK');
 end;
 
@@ -1865,12 +1880,11 @@ begin
   Driver.Check(Driver.WaitForPrinting);
 end;
 
-//Logger.Debug('Обновление параметров сервера КМ для ИНН ОФД ' + OfdInn);
-//Logger.Debug('ServerKM: ' + ServerKM);
-//Logger.Debug('PortKM: ' + PortKM.ToString);
+// Logger.Debug('Обновление параметров сервера КМ для ИНН ОФД ' + OfdInn);
+// Logger.Debug('ServerKM: ' + ServerKM);
+// Logger.Debug('PortKM: ' + PortKM.ToString);
 
-function TFirmwareUpdater.FindOfdParams(const OfdInn: string;
-  var OfdParams: TOfdParams): Boolean;
+function TFirmwareUpdater.FindOfdParams(const OfdInn: string; var OfdParams: TOfdParams): Boolean;
 var
   Ofd: TOfdParams;
 begin
@@ -1885,12 +1899,11 @@ begin
   end;
 end;
 
-///////////////////////////////////////////////////////////////////////////////
-//19,1,5,64,1,0,3000,'Сервер км','192.168.144.138'
-//19,1,6,2,0,1,65535,'Порт км','8789'
+/// ////////////////////////////////////////////////////////////////////////////
+// 19,1,5,64,1,0,3000,'Сервер км','192.168.144.138'
+// 19,1,6,2,0,1,65535,'Порт км','8789'
 
-function TFirmwareUpdater.GetOfdParams(const Tables: TTableItems;
-  const OfdInn: string; var OfdParams: TOfdParams): Boolean;
+function TFirmwareUpdater.GetOfdParams(const Tables: TTableItems; const OfdInn: string; var OfdParams: TOfdParams): Boolean;
 var
   Ofd: TOfdParams;
   Item: TTableItem;
@@ -1900,16 +1913,16 @@ begin
   Ofd.PortKM := 0;
   for Item in Tables do
   begin
-    if (Item.Table = 19)and(Item.Row = 1)and (Item.Field = 5) then
+    if (Item.Table = 19) and (Item.Row = 1) and (Item.Field = 5) then
     begin
       Ofd.ServerKM := Item.StrValue;
     end;
-    if (Item.Table = 19)and(Item.Row = 1)and (Item.Field = 6) then
+    if (Item.Table = 19) and (Item.Row = 1) and (Item.Field = 6) then
     begin
       Ofd.PortKM := Item.IntValue;
     end;
   end;
-  Result := (Ofd.ServerKM <> '')and(Ofd.PortKM <> 0);
+  Result := (Ofd.ServerKM <> '') and (Ofd.PortKM <> 0);
   if Result then
   begin
     OfdParams := Ofd;
@@ -1919,39 +1932,38 @@ begin
   end;
 end;
 
-function TFirmwareUpdater.ValidLoader(const Ecr: TEcrInfo;
-  const Item: TActionUpdateLoader): Boolean;
+function TFirmwareUpdater.ValidLoader(const Ecr: TECRInfo; const Item: TActionUpdateLoader): Boolean;
 begin
   // Если нужно переписывать для тестирования
   Result := Item.Force and (Item.NewBootVer = Ecr.BootVer);
-  if Result then Exit;
+  if Result then
+    Exit;
 
   Result := Item.CurrBootVer = Ecr.BootVer;
-  if Result then Exit;
+  if Result then
+    Exit;
 
   if Item.CurrBootVer = 0 then
   begin
-    Result := (Ecr.BootVer <> -1)and(Item.NewBootVer > Ecr.BootVer) and (Ecr.BootVer > 129);
+    Result := (Ecr.BootVer <> -1) and (Item.NewBootVer > Ecr.BootVer) and (Ecr.BootVer > 129);
   end;
 end;
 
-function TFirmwareUpdater.ValidFirmware(const Ecr: TEcrInfo;
-  const Item: TActionUpdateFirmware): Boolean;
+function TFirmwareUpdater.ValidFirmware(const Ecr: TECRInfo; const Item: TActionUpdateFirmware): Boolean;
 begin
-  Result := False;
-  if  Ecr.BootVer >= Item.CurrBootVer then
+  Result := false;
+  if Ecr.BootVer >= Item.CurrBootVer then
   begin
     Result := True;
-    if (Item.Build = Ecr.FirmwareBuild) and
-      (Item.Version = Ecr.FirmwareVersion) then
+    if (Item.Build = Ecr.FirmwareBuild) and (Item.Version = Ecr.FirmwareVersion) then
     begin
       if not Item.Force then
-        Result := False;
+        Result := false;
     end;
   end;
 end;
 
-function TFirmwareUpdater.FindLastLoader(Ecr: TEcrInfo): TActionUpdateLoader;
+function TFirmwareUpdater.FindLastLoader(Ecr: TECRInfo): TActionUpdateLoader;
 var
   Item: TUpdateItem;
 begin
@@ -1969,7 +1981,7 @@ begin
   end;
 end;
 
-function TFirmwareUpdater.FindFirmware(Ecr: TEcrInfo): TActionUpdateFirmware;
+function TFirmwareUpdater.FindFirmware(Ecr: TECRInfo): TActionUpdateFirmware;
 var
   Item: TUpdateItem;
 begin
@@ -1978,7 +1990,8 @@ begin
     if Item is TActionUpdateFirmware then
     begin
       Result := Item as TActionUpdateFirmware;
-      if ValidFirmware(Ecr, Result) then Exit;
+      if ValidFirmware(Ecr, Result) then
+        Exit;
     end;
   end;
   Result := nil;
@@ -1991,5 +2004,5 @@ begin
   Driver.Disconnect;
 end;
 
-
 end.
+

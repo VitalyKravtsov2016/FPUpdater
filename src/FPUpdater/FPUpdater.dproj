@@ -144,10 +144,10 @@
     <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
     <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     <VerInfo_Locale>1033</VerInfo_Locale>
-    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.86;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.88;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     <Icon_MainIcon>MAINICON.ico</Icon_MainIcon>
     <VerInfo_Release>1</VerInfo_Release>
-    <VerInfo_Build>86</VerInfo_Build>
+    <VerInfo_Build>88</VerInfo_Build>
     <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
     <DCC_ExeOutput>..\Bin</DCC_ExeOutput>
     <PostBuildEventCancelOnError>false</PostBuildEventCancelOnError>
@@ -228,12 +228,6 @@
             <Overwrite>true</Overwrite>
           </Platform>
         </DeployFile>
-        <DeployFile LocalName="..\Bin\FPUpdater.exe" Configuration="Debug" Class="ProjectOutput">
-          <Platform Name="Win32">
-            <RemoteName>FPUpdater.exe</RemoteName>
-            <Overwrite>true</Overwrite>
-          </Platform>
-        </DeployFile>
         <DeployFile LocalName="Win32\Release\FPUpdater.exe" Configuration="Release" Class="ProjectOutput">
           <Platform Name="Win32">
             <RemoteName>FPUpdater.exe</RemoteName>
@@ -244,6 +238,12 @@
           <Platform Name="Win32">
             <RemoteDir>Assets\</RemoteDir>
             <RemoteName>Logo44x44.png</RemoteName>
+            <Overwrite>true</Overwrite>
+          </Platform>
+        </DeployFile>
+        <DeployFile LocalName="..\Bin\FPUpdater.exe" Configuration="Debug" Class="ProjectOutput">
+          <Platform Name="Win32">
+            <RemoteName>FPUpdater.exe</RemoteName>
             <Overwrite>true</Overwrite>
           </Platform>
         </DeployFile>

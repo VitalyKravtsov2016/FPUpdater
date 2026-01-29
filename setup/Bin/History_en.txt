@@ -8,8 +8,15 @@
 
 *******************************************************************
 
+  FPUpdater_1.0_27.exe
+  29 January 2026 13:30
+  
+  [-] Fixed setup errors
+  
+*******************************************************************
+
   FPUpdater_1.0_26.exe
-  16 January 2025 17:15
+  16 January 2026 17:15
   
   [+] Added switch \SILENT to update without GUI
   [+] Added command line utility FPUpdaterCli

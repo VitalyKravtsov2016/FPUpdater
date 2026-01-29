@@ -59,8 +59,8 @@ begin
     Application.MainFormOnTaskbar := True;
     Application.Title := 'Прошивальщик ' + GetFileVersionInfoStr;
     Application.CreateForm(TfmMain, fmMain);
-    Application.CreateForm(TfmUnsupported, fmUnsupported);
-    fmMain.Position := poDesktopCenter;
+  Application.CreateForm(TfmUnsupported, fmUnsupported);
+  fmMain.Position := poDesktopCenter;
     Application.Run;
   end;
 end.

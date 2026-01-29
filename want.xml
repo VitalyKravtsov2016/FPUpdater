@@ -23,7 +23,7 @@
 This is the Want script for building Want.
 See http://www.suigeneris.org/want/ for details.
 -->
-<project name="FPUpdater" basedir="." default="release">
+<project name="FPUpdater" basedir="." default="release_64">
 	<property name="old.version" value="?{release.ini:releases:current}"/>
 	<regexp property="old.build" text="${old.version}" pattern="^.*\.([0-9]+)$" subst="\1"/>
 	<property name="build" value="={${old.build}}"/>
@@ -70,7 +70,7 @@ See http://www.suigeneris.org/want/ for details.
 		</delete>
 	</target>
 	<!-- ***** Compile FPUpdater ***** -->
-	<target name="Compile-FPUpdater" depends="prepare">
+	<target name="Compile-FPUpdater-32" depends="prepare">
 		<delete dir="${dcu}">
 			<include name="*.dcu"/>
 		</delete>
@@ -78,25 +78,43 @@ See http://www.suigeneris.org/want/ for details.
 		<exec executable="msbuild.exe">
 			<arg value="/clp:ErrorsOnly /t:Build  ${FPUpdater}/FPUpdater.dproj /p:Platform=Win32 /p:Config=Release /p:DCC_ExeOutput=${setup}/Bin/Win32"/>
 		</exec>
+	</target>
+	
+	<target name="Compile-FPUpdater-64" depends="prepare">
+		<delete dir="${dcu}">
+			<include name="*.dcu"/>
+		</delete>
+		<echo input="${FPUpdater}/FPUpdater.rt" file="${FPUpdater}/FPUpdater.rc"/>
 		<exec executable="msbuild.exe">
 			<arg value="/clp:ErrorsOnly /t:Build  ${FPUpdater}/FPUpdater.dproj /p:Platform=Win64 /p:Config=Release /p:DCC_ExeOutput=${setup}/Bin/Win64"/>
 		</exec>
 	</target>
 	
 	<!-- ***** Compile FPUpdater ***** -->
-	<target name="Compile-FPUpdaterCli" depends="prepare">
+	<target name="Compile-FPUpdaterCli-32" depends="prepare">
 		<delete dir="${dcu}">
 			<include name="*.dcu"/>
 		</delete>
 		<exec executable="msbuild.exe">
 			<arg value="/clp:ErrorsOnly /t:Build  ${FPUpdaterCli}/FPUpdaterCli.dproj /p:Platform=Win32 /p:Config=Release /p:DCC_ExeOutput=${setup}/Bin/Win32"/>
 		</exec>
+	</target>
+	
+	<!-- ***** Compile FPUpdater ***** -->
+	<target name="Compile-FPUpdaterCli-64" depends="prepare">
+		<delete dir="${dcu}">
+			<include name="*.dcu"/>
+		</delete>
 		<exec executable="msbuild.exe">
 			<arg value="/clp:ErrorsOnly /t:Build  ${FPUpdaterCli}/FPUpdaterCli.dproj /p:Platform=Win64 /p:Config=Release /p:DCC_ExeOutput=${setup}/Bin/Win64"/>
 		</exec>
 	</target>
 	
-	<target name="setup32">
+	<target name="beeline_test_setup32">
+		<copy tofile="${setup}/bin/Archive.zip">
+			<include name="${setup}/bin/ArchiveBeelineTest.zip"/>
+		</copy>
+		
 		<property name="Architecture" value=""/>
 		<property name="Arch" value="Win32"/>
 		<property name="Archbit" value="32bit"/>
@@ -106,18 +124,55 @@ See http://www.suigeneris.org/want/ for details.
 			<arg value="${setup}/Setup.iss"/>
 			<arg value="/Q"/>
 		</exec>
-		<move tofile="${basepath}/dist/FPUpdater_${version2}_${build}_x32.exe">
+		<move tofile="${basepath}/dist/Test/FPUpdater_${version2}_${build}_x32.exe">
 			<include name="${setup}/setup.exe"/>
 		</move>
-		<move tofile="${basepath}/dist/FPUpdater_x32.exe">
+		<copy tofile="${basepath}/dist/Test/FPUpdater_x32.exe">
 			<include name="${setup}/Bin/Win32/FPUpdater.exe"/>
-		</move>
-		<move tofile="${basepath}/dist/FPUpdaterCli_x32.exe">
+		</copy>
+		<copy tofile="${basepath}/dist/Test/FPUpdaterCli_x32.exe">
 			<include name="${setup}/Bin/Win32/FPUpdaterCli.exe"/>
-		</move>
+		</copy>
 		<delete file="${setup}/setup.iss"/>
+		<move tofile="${basepath}/dist/Test/Archive.zip">
+			<include name="${setup}/bin/Archive.zip"/>
+		</move>
 	</target>
-	<target name="setup64">
+	
+	<target name="beeline_work_setup32">
+		<copy tofile="${setup}/bin/Archive.zip">
+			<include name="${setup}/bin/ArchiveBeelineWork.zip"/>
+		</copy>
+		
+		<property name="Architecture" value=""/>
+		<property name="Arch" value="Win32"/>
+		<property name="Archbit" value="32bit"/>
+		<property name="Arch2" value="(32-bit)"/>
+		<echo input="${setup}/setup_template.iss" file="${setup}/setup.iss"/>
+		<exec basedir="${setup}" executable="iscc">
+			<arg value="${setup}/Setup.iss"/>
+			<arg value="/Q"/>
+		</exec>
+		<move tofile="${basepath}/dist/Work/FPUpdater_${version2}_${build}_x32.exe">
+			<include name="${setup}/setup.exe"/>
+		</move>
+		<copy tofile="${basepath}/dist/Work/FPUpdater_x32.exe">
+			<include name="${setup}/Bin/Win32/FPUpdater.exe"/>
+		</copy>
+		<copy tofile="${basepath}/dist/Work/FPUpdaterCli_x32.exe">
+			<include name="${setup}/Bin/Win32/FPUpdaterCli.exe"/>
+		</copy>
+		<delete file="${setup}/setup.iss"/>
+		<move tofile="${basepath}/dist/Work/Archive.zip">
+			<include name="${setup}/bin/Archive.zip"/>
+		</move>
+	</target>
+	
+	<target name="beeline_test_setup64">
+		<copy tofile="${setup}/bin/Archive.zip">
+			<include name="${setup}/bin/ArchiveBeelineTest.zip"/>
+		</copy>
+		
 		<property name="Architecture" value="ArchitecturesInstallIn64BitMode=x64"/>
 		<property name="Arch" value="Win64"/>
 		<property name="Archbit" value="64bit"/>
@@ -127,23 +182,60 @@ See http://www.suigeneris.org/want/ for details.
 			<arg value="Setup.iss"/>
 			<arg value="/Q"/>
 		</exec>
-		<move tofile="${basepath}/dist/FPUpdater_${version2}_${build}_x64.exe">
+		<move tofile="${basepath}/dist/Test/FPUpdater_${version2}_${build}_x64.exe">
 			<include name="${setup}/setup.exe"/>
 		</move>
 		<delete file="${setup}/setup.iss"/>
-		<move tofile="${basepath}/dist/FPUpdater_x64.exe">
+		<copy tofile="${basepath}/dist/Test/FPUpdater_x64.exe">
 			<include name="${setup}/Bin/Win64/FPUpdater.exe"/>
-		</move>
-		<move tofile="${basepath}/dist/FPUpdaterCli_x64.exe">
+		</copy>
+		<copy tofile="${basepath}/dist/Test/FPUpdaterCli_x64.exe">
 			<include name="${setup}/Bin/Win64/FPUpdaterCli.exe"/>
+		</copy>
+		<delete file="${setup}/setup.iss"/>
+		<move tofile="${basepath}/dist/Test/Archive.zip">
+			<include name="${setup}/bin/Archive.zip"/>
 		</move>
 	</target>
+	
+	<target name="beeline_work_setup64">
+		<copy tofile="${setup}/bin/Archive.zip">
+			<include name="${setup}/bin/ArchiveBeelineWork.zip"/>
+		</copy>
+		
+		<property name="Architecture" value="ArchitecturesInstallIn64BitMode=x64"/>
+		<property name="Arch" value="Win64"/>
+		<property name="Archbit" value="64bit"/>
+		<property name="Arch2" value="(64-bit)"/>
+		<echo input="${setup}/setup_template.iss" file="${setup}/setup.iss"/>
+		<exec basedir="${setup}" executable="iscc">
+			<arg value="Setup.iss"/>
+			<arg value="/Q"/>
+		</exec>
+		<move tofile="${basepath}/dist/Work/FPUpdater_${version2}_${build}_x64.exe">
+			<include name="${setup}/setup.exe"/>
+		</move>
+		<delete file="${setup}/setup.iss"/>
+		<copy tofile="${basepath}/dist/Work/FPUpdater_x64.exe">
+			<include name="${setup}/Bin/Win64/FPUpdater.exe"/>
+		</copy>
+		<copy tofile="${basepath}/dist/Work/FPUpdaterCli_x64.exe">
+			<include name="${setup}/Bin/Win64/FPUpdaterCli.exe"/>
+		</copy>
+		<delete file="${setup}/setup.iss"/>
+		<move tofile="${basepath}/dist/Work/Archive.zip">
+			<include name="${setup}/bin/Archive.zip"/>
+		</move>
+	</target>
+	
 	<target name="build">
 		<ini file="release.ini">
 			<write section="releases" key="current" value="${version}"/>
 			<write section="releases" key="last_date" value="${date.tag}"/>
 		</ini>
 	</target>
-	<target name="compile" depends="Compile-FPUpdater,Compile-FPUpdaterCli"/>
-	<target name="release" depends="clean,prepare,compile,setup32,setup64,clean"/>
+	<target name="compile32" depends="Compile-FPUpdater-32,Compile-FPUpdaterCli-32"/>
+	<target name="compile64" depends="Compile-FPUpdater-64,Compile-FPUpdaterCli-64"/>
+	<target name="release" depends="clean,prepare,compile32,compile64,beeline_test_setup32,beeline_work_setup32,beeline_test_setup64,beeline_work_setup64,clean"/>
+	<target name="release_64" depends="clean,prepare,compile64,beeline_test_setup64,beeline_work_setup64,clean"/>
 </project>
