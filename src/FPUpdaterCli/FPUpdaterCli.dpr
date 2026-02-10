@@ -1,5 +1,7 @@
 ﻿program FPUpdaterCli;
 
+{$R 'FPUpdaterCli.res' 'FPUpdaterCli.rc'}
+
 uses
   SysUtils,
   untDriver in '..\FPUpdater\units\untDriver.pas',
@@ -46,6 +48,8 @@ end;
 
 begin
   Logger.WriteConsole := True;
-  WriteLn('FPUpdaterCli 1.0_26, утилита для обновления ФР, ООО «Торговый Баланс М», 2026');
+  Logger.Info(LogFile.Separator);
+  Logger.Info('FPUpdaterCli ' + GetModuleVersion + ', утилита для обновления ФР, ООО «Торговый Баланс М», 2026');
+
   AutoUpdadeEcr;
 end.

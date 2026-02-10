@@ -7,6 +7,9 @@ uses
   Windows, Classes, SysUtils, SyncObjs, SysConst, Variants, DateUtils,
   AnsiStrings;
 
+const
+  Separator     = '------------------------------------------------------------';
+
 type
   TVariantArray = array of Variant;
 
@@ -30,7 +33,7 @@ type
     procedure CloseFile;
     procedure Write(const Data: string);
     procedure SetEnabled(Value: Boolean);
-    procedure AddLine(const Data: string);
+    procedure AddLine(const Tag, Data: string);
     procedure SetFileName(const Value: string);
 
     function GetOpened: Boolean;
@@ -73,8 +76,6 @@ function GlobalLogger: TLogFile;
 implementation
 
 const
-  S_SEPARATOR   = '------------------------------------------------------------';
-
   TagInfo         = '[ INFO] ';
   TagTrace        = '[TRACE] ';
   TagDebug        = '[DEBUG] ';
@@ -329,37 +330,37 @@ begin
   Result := Format('[%s] [%.8d] ', [GetTimeStamp, GetCurrentThreadID]);
 end;
 
-procedure TLogFile.AddLine(const Data: string);
+procedure TLogFile.AddLine(const Tag, Data: string);
 begin
   if WriteConsole then
     WriteLn(Data);
 
-  Write(GetLineHeader + Data + #13#10);
+  Write(GetLineHeader + Tag + Data + #13#10);
 end;
 
 procedure TLogFile.Trace(const Data: string);
 begin
-  AddLine(TagTrace + Data);
+  AddLine(TagTrace, Data);
 end;
 
 procedure TLogFile.Info(const Data: string);
 begin
-  AddLine(TagInfo + Data);
+  AddLine(TagInfo, Data);
 end;
 
 procedure TLogFile.Error(const Data: string);
 begin
-  AddLine(TagError + Data);
+  AddLine(TagError, Data);
 end;
 
 procedure TLogFile.Error(const Data: string; E: Exception);
 begin
-  AddLine(TagError + Data + ' ' + E.Message);
+  AddLine(TagError, Data + ' ' + E.Message);
 end;
 
 procedure TLogFile.Debug(const Data: string);
 begin
-  AddLine(TagDebug + Data);
+  AddLine(TagDebug, Data);
 end;
 
 class function TLogFile.ParamsToStr(const Params: array of const): string;

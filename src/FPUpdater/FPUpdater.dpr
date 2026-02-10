@@ -50,6 +50,9 @@ begin
 end;
 
 begin
+  Logger.Info(LogFile.Separator);
+  Logger.Info('FPUpdater ' + GetModuleVersion + ', утилита для обновления ФР, ООО «Торговый Баланс М», 2026');
+
   if FindCmdLineSwitch('SILENT', ['-', '/'], False) then
   begin
     AutoUpdadeEcr;
@@ -59,8 +62,8 @@ begin
     Application.MainFormOnTaskbar := True;
     Application.Title := 'Прошивальщик ' + GetFileVersionInfoStr;
     Application.CreateForm(TfmMain, fmMain);
-  Application.CreateForm(TfmUnsupported, fmUnsupported);
-  fmMain.Position := poDesktopCenter;
+    Application.CreateForm(TfmUnsupported, fmUnsupported);
+    fmMain.Position := poDesktopCenter;
     Application.Run;
   end;
 end.

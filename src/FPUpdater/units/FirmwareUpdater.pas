@@ -587,9 +587,6 @@ begin
     raise Exception.Create('Прервано пользователем');
 end;
 
-const
-  Separator = '------------------------------------------------------------';
-
 procedure TFirmwareUpdater.Execute(Sender: TObject);
 begin
   try

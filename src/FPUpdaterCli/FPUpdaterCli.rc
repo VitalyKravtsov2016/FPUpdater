@@ -16,7 +16,7 @@ BEGIN
       VALUE "FileVersion", "1.0.0.28\0"
       VALUE "InternalName", "Fiscal printer updater\0"
       VALUE "LegalCopyright", "Copyright \251 2026, TorgBalance\0"
-      VALUE "OriginalFilename", "FPUpdater.exe\0"
+      VALUE "OriginalFilename", "FPUpdaterCli.exe\0"
       VALUE "ProductName", "Fiscal printer updater\0"
       VALUE "ProductVersion","1.0\0"
       VALUE "Comments", "http://www.torgbalance.com\0"

@@ -142,10 +142,10 @@
     <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
     <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     <VerInfo_Locale>1033</VerInfo_Locale>
-    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.90;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.98;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     <Icon_MainIcon>MAINICON.ico</Icon_MainIcon>
     <VerInfo_Release>1</VerInfo_Release>
-    <VerInfo_Build>90</VerInfo_Build>
+    <VerInfo_Build>98</VerInfo_Build>
     <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
     <DCC_ExeOutput>..\Bin</DCC_ExeOutput>
     <PostBuildEventCancelOnError>false</PostBuildEventCancelOnError>
@@ -226,13 +226,6 @@
             <Overwrite>true</Overwrite>
           </Platform>
         </DeployFile>
-        <DeployFile LocalName="$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_44.png" Configuration="Release" Class="UWP_DelphiLogo44">
-          <Platform Name="Win32">
-            <RemoteDir>Assets\</RemoteDir>
-            <RemoteName>Logo44x44.png</RemoteName>
-            <Overwrite>true</Overwrite>
-          </Platform>
-        </DeployFile>
         <DeployFile LocalName="..\Bin\FPUpdater.exe" Configuration="Debug" Class="ProjectOutput">
           <Platform Name="Win32">
             <RemoteName>FPUpdater.exe</RemoteName>
@@ -242,6 +235,13 @@
         <DeployFile LocalName="Win32\Release\FPUpdater.exe" Configuration="Release" Class="ProjectOutput">
           <Platform Name="Win32">
             <RemoteName>FPUpdater.exe</RemoteName>
+            <Overwrite>true</Overwrite>
+          </Platform>
+        </DeployFile>
+        <DeployFile LocalName="$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_44.png" Configuration="Release" Class="UWP_DelphiLogo44">
+          <Platform Name="Win32">
+            <RemoteDir>Assets\</RemoteDir>
+            <RemoteName>Logo44x44.png</RemoteName>
             <Overwrite>true</Overwrite>
           </Platform>
         </DeployFile>
