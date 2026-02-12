@@ -47,6 +47,8 @@ begin
 end;
 
 begin
+  Logger.FileName := ChangeFileExt(ParamStr(0), '.log');
+  Logger.Enabled := True;
   Logger.WriteConsole := True;
   Logger.Info(LogFile.Separator);
   Logger.Info('FPUpdaterCli ' + GetModuleVersion + ', утилита для обновления ФР, ООО «Торговый Баланс М», 2026');

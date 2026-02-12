@@ -185,7 +185,6 @@ type
   public
     procedure ShowProperties;
     procedure DeleteFiles;
-    procedure DeleteLog;
     procedure CheckStopped;
     procedure DownloadFiles;
     procedure UnpackArhiveToDrive;
@@ -215,14 +214,13 @@ type
 
     function Connect: Integer;
     function ReadEcrInfo: TECRInfo;
-    function DownloadArchive(const ArchiveURL: string): Boolean;
+    function DownloadArchive(const URL, FileName: string): Boolean;
     function GetStatus: TUpdateStatus;
     function ReadSerialNumber: string;
     function EcrUpdateable(const Serial: string): Boolean;
     function ReadFFDVersion: Integer;
     function ReadLicense(const FileName, Serial: string; var License: TEcrLicense): Boolean;
     function ReadCashRegister: Currency;
-    function GetLogFileName: string;
     procedure DoUpdateFirmware;
     function FindDevice(const Serial: string): Boolean;
     procedure DiscoverDevice(const Params: TSearchParams);
@@ -472,7 +470,7 @@ begin
   end;
 end;
 
-function DownloadFile(const URL, SavePath: string; OnProgress: TReceiveDataEvent = nil): Boolean;
+function DownloadFile(const URL, FileName: string; OnProgress: TReceiveDataEvent = nil): Boolean;
 var
   HttpClient: TNetHTTPClient;
   Response: IHTTPResponse;
@@ -487,7 +485,7 @@ begin
     if Assigned(OnProgress) then
       HttpClient.OnReceiveData := OnProgress;
 
-    FileStream := TFileStream.Create(SavePath, fmCreate);
+    FileStream := TFileStream.Create(FileName, fmCreate);
     try
       Response := HttpClient.Get(URL, FileStream);
       Result := (Response.StatusCode = 200);
@@ -507,8 +505,6 @@ begin
   FItems := TUpdateItems.Create;
   FLock := TCriticalsection.Create;
 
-  Logger.FileName := GetLogFileName;
-  Logger.Enabled := True;
 
   FParams.SaveTables := True;
   FParams.PrintStatus := false;
@@ -529,16 +525,6 @@ begin
   if FDriver = nil then
     FDriver := TDriver.Create(nil);
   Result := FDriver;
-end;
-
-function TFirmwareUpdater.GetLogFileName: string;
-begin
-  Result := ChangeFileExt(ParamStr(0), '.log');
-end;
-
-procedure TFirmwareUpdater.DeleteLog;
-begin
-  DeleteFile(GetLogFileName);
 end;
 
 procedure TFirmwareUpdater.Start;
@@ -665,11 +651,11 @@ begin
   DownloadFiles;
 
   CashRegister := 0;
-  SetStatusText('Обновление устройства');
+  SetStatusText('Обновление устройства...');
   CheckStopped;
   Driver.Check(Connect);
   if not CheckEcrUpdateable then
-    raise Exception.Create('Нельзя обновить ККМ');
+    raise Exception.Create('Эту модель ККМ нельзя обновить');
 
   try
     EcrInfo := ReadEcrInfo;
@@ -1127,11 +1113,13 @@ end;
 procedure TFirmwareUpdater.DownloadFiles;
 var
   FileName: string;
+  RemoteArchivePath: string;
 begin
   if FFilesDownloaded then
     Exit;
 
   FPath := GetEnvironmentVariable('TEMP') + '\' + Copy(TPath.GetRandomFileName, 1, 8) + '\';
+
   ForceDirectories(FPath);
   // Если обновления есть - скачиваем архив
   FileName := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'archive.zip';
@@ -1143,13 +1131,17 @@ begin
 
   if FParams.ArchiveURL <> '' then
   begin
-    TDirectory.Delete(FPath, True);
-    ForceDirectories(FPath);
-
-    if DownloadArchive(FParams.ArchiveURL) then
+    RemoteArchivePath := GetEnvironmentVariable('TEMP') + '\' + Copy(TPath.GetRandomFileName, 1, 8) + '\';
+    ForceDirectories(RemoteArchivePath);
+    if DownloadArchive(FParams.ArchiveURL, RemoteArchivePath  + 'arhive.zip') then
     begin
-      UnzipArhive(Path, Path + 'arhive.zip');
-      LoadFiles(FPath);
+      UnzipArhive(RemoteArchivePath, RemoteArchivePath + 'arhive.zip');
+      LoadFiles(RemoteArchivePath);
+      TDirectory.Delete(FPath, True);
+      FPath := RemoteArchivePath;
+    end else
+    begin
+      TDirectory.Delete(RemoteArchivePath, True);
     end;
   end;
   FFilesDownloaded := True;
@@ -1181,15 +1173,17 @@ begin
   SetStatusText('Чтение таблиц: OK');
 end;
 
-function TFirmwareUpdater.DownloadArchive(const ArchiveURL: string): Boolean;
+function TFirmwareUpdater.DownloadArchive(const URL, FileName: string): Boolean;
 begin
-  Result := false;
+  Logger.Debug('DownloadArchive...');
+  Result := False;
   try
-    Result := DownloadFile(ArchiveURL, FPath + 'arhive.zip');
+    Result := DownloadFile(URL, FileName);
+    Logger.Debug('DownloadArchive: OK');
   except
     on E: Exception do
     begin
-      Logger.Error(E.Message);
+      Logger.Error('DownloadArchive: ' + E.Message);
     end;
   end;
 end;
