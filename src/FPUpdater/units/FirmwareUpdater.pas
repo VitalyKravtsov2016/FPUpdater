@@ -1,4 +1,4 @@
-﻿unit FirmwareUpdater;
+unit FirmwareUpdater;
 
 interface
 
@@ -341,6 +341,8 @@ begin
       Result := 'ФФД 1.05';
     4:
       Result := 'ФФД 1.2';
+  else
+    Result := Format('Неизвестный ФФД (%d)', [AFFDVer]);
   end;
 end;
 
@@ -375,7 +377,7 @@ end;
 function IsModelType2(Value: Integer): Boolean;
 begin
   Result := Value in [16, 19, 20, 21, 27, 28, 29, 30, 32, 33, 34, 35, 36,
-  { 37, } 38, 39, 40, 41, 42, 45, 45, 45, 46];
+  { 37, } 38, 39, 40, 41, 42, 45, 46];
 end;
 
 const
@@ -580,7 +582,7 @@ begin
   except
     on E: Exception do
     begin
-      //
+      Logger.Error('Ошибка при выполнении обновления прошивки', E);
     end;
   end;
 end;

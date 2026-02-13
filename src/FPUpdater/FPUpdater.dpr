@@ -1,4 +1,4 @@
-﻿program FPUpdater;
+program FPUpdater;
 
 {$R 'FPUpdater.res' 'FPUpdater.rc'}
 
@@ -33,29 +33,38 @@ uses
 
 {$R *.res}
 
-procedure AutoUpdadeEcr;
+procedure AutoUpdateEcr;
 var
   Updater: TFirmwareUpdater;
 begin
-  Updater := TFirmwareUpdater.Create;
+  Updater := nil;
   try
-    Updater.UpdateFirmware;
-  except
-    on E: Exception do
-    begin
-      //
+    try
+      Updater := TFirmwareUpdater.Create;
+      Updater.UpdateFirmware;
+      ExitCode := 0;
+    except
+      on E: Exception do
+      begin
+        Logger.Error('Ошибка обновления прошивки', E);
+        ExitCode := 1;
+      end;
     end;
+  finally
+    Updater.Free;
   end;
-  Updater.Free;
 end;
 
 begin
+  Logger.FileName := ChangeFileExt(ParamStr(0), '.log');
+  Logger.Enabled := True;
+
   Logger.Info(LogFile.Separator);
   Logger.Info('FPUpdater ' + GetModuleVersion + ', утилита для обновления ФР, ООО «Торговый Баланс М», 2026');
 
   if FindCmdLineSwitch('SILENT', ['-', '/'], False) then
   begin
-    AutoUpdadeEcr;
+    AutoUpdateEcr;
   end else
   begin
     Application.Initialize;

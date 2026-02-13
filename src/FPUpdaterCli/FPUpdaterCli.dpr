@@ -1,4 +1,4 @@
-﻿program FPUpdaterCli;
+program FPUpdaterCli;
 
 {$R 'FPUpdaterCli.res' 'FPUpdaterCli.rc'}
 
@@ -30,20 +30,26 @@ uses
 
 {$R *.res}
 
-procedure AutoUpdadeEcr;
+procedure AutoUpdateEcr;
 var
   Updater: TFirmwareUpdater;
 begin
-  Updater := TFirmwareUpdater.Create;
+  Updater := nil;
   try
-    Updater.UpdateFirmware;
-  except
-    on E: Exception do
-    begin
-      //
+    try
+      Updater := TFirmwareUpdater.Create;
+      Updater.UpdateFirmware;
+      ExitCode := 0;
+    except
+      on E: Exception do
+      begin
+        Logger.Error('Ошибка обновления прошивки', E);
+        ExitCode := 1;
+      end;
     end;
+  finally
+    Updater.Free;
   end;
-  Updater.Free;
 end;
 
 begin
@@ -53,5 +59,5 @@ begin
   Logger.Info(LogFile.Separator);
   Logger.Info('FPUpdaterCli ' + GetModuleVersion + ', утилита для обновления ФР, ООО «Торговый Баланс М», 2026');
 
-  AutoUpdadeEcr;
+  AutoUpdateEcr;
 end.
