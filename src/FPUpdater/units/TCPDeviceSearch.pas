@@ -125,7 +125,7 @@ begin
   ODS('TTCPDeviceSearch.DeviceFound: ' + Data);
   if SR.Parse(Data) then
   begin
-    //if IsLocalRNDISDevice(SR.IP) then
+    if IsLocalRNDISDevice(SR.IP) then
     begin
       if AddItem(SR) then
       begin

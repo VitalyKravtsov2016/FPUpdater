@@ -6,9 +6,7 @@ uses
   // VCL
   Windows, Winsock, WinSvc, Classes, SysUtils, TlHelp32,
   Winapi.IpHlpApi, Winapi.IpExport, Winapi.IpTypes, Winapi.WinSock2,
-  Winapi.IpRtrMib,
-  // This
-  LogFile;
+  Winapi.IpRtrMib;
 
 type
   TNetworkAdapter = record
@@ -16,6 +14,7 @@ type
     Description: string;
     IPAddress: string;
     SubnetMask: string;
+    MACAddress: string;
     IsRNDIS: Boolean;
   end;
 
@@ -26,15 +25,6 @@ function IsRNDISAdapter(const AdapterDesc: string): Boolean;
 function GetAdaptersList: TArray<TNetworkAdapter>;
 
 implementation
-
-// Вспомогательная функция для конвертации DWORD в строку IP
-function IPAddrToStr(Addr: DWORD): string;
-var
-  IP: TInAddr;
-begin
-  IP.S_addr := Addr;
-  Result := string(inet_ntoa(IP));
-end;
 
 // Проверка, является ли адаптер RNDIS
 function IsRNDISAdapter(const AdapterDesc: string): Boolean;
@@ -63,16 +53,17 @@ var
   Status: DWORD;
   AdapterList: TArray<TNetworkAdapter>;
   Count: Integer;
+  I: Integer;
 begin
   SetLength(AdapterList, 0);
   Count := 0;
-  
+
   BufferSize := 0;
   GetAdaptersInfo(nil, BufferSize);
-  
+
   if BufferSize = 0 then
     Exit;
-    
+
   GetMem(AdaptersInfo, BufferSize);
   try
     Status := GetAdaptersInfo(AdaptersInfo, BufferSize);
@@ -84,10 +75,20 @@ begin
         SetLength(AdapterList, Count + 1);
         AdapterList[Count].Name := string(Adapter.AdapterName);
         AdapterList[Count].Description := string(Adapter.Description);
-        AdapterList[Count].IPAddress := PAnsiChar(@Adapter.IpAddressList.IpAddress.S);
-        AdapterList[Count].SubnetMask := PAnsiChar(@Adapter.IpAddressList.IpMask.S);
+        AdapterList[Count].IPAddress := PAnsiChar(@Adapter.IpAddressList.IpAddress);
+        AdapterList[Count].SubnetMask := PAnsiChar(@Adapter.IpAddressList.IpMask);
+
+        // Преобразование MAC адреса
+        AdapterList[Count].MACAddress := '';
+        for I := 0 to Adapter.AddressLength - 1 do
+        begin
+          if I > 0 then
+            AdapterList[Count].MACAddress := AdapterList[Count].MACAddress + '-';
+          AdapterList[Count].MACAddress := AdapterList[Count].MACAddress + IntToHex(Adapter.Address[I], 2);
+        end;
+
         AdapterList[Count].IsRNDIS := IsRNDISAdapter(AdapterList[Count].Description);
-        
+
         Inc(Count);
         Adapter := Adapter.Next;
       end;
@@ -95,7 +96,7 @@ begin
   finally
     FreeMem(AdaptersInfo);
   end;
-  
+
   Result := AdapterList;
 end;
 
@@ -127,7 +128,7 @@ var
   BufferSize: DWORD;
   i: Integer;
   Status: DWORD;
-  NullMac: array[0..5] of Byte;  // Добавляем константный массив для сравнения
+  NullMac: array[0..5] of Byte;
 begin
   Result := '';
 
@@ -157,7 +158,6 @@ begin
         if ARPTable.table[i].dwAddr = DestIP then
         begin
           // Проверяем, что MAC адрес существует (не все нули)
-          // Исправлено: используем NullMac вместо @[0,0,0,0,0,0]
           if not CompareMem(@ARPTable.table[i].bPhysAddr, @NullMac, 6) then
           begin
             Move(ARPTable.table[i].bPhysAddr, MACAddr, 6);
@@ -177,9 +177,9 @@ end;
 // Проверка, локально ли подключено устройство
 function IsLocalConnection(const AIPAddress: string): Boolean;
 var
-  BestRoute: MIB_IPFORWARDROW;  // Правильная структура
-  SourceIP: DWORD;
+  BestRoute: MIB_IPFORWARDROW;
   DestIP: DWORD;
+  BestInterface: DWORD;
 begin
   Result := False;
 
@@ -190,17 +190,11 @@ begin
   // Получаем лучший маршрут
   if GetBestRoute(DestIP, 0, @BestRoute) = NO_ERROR then
   begin
-    // Получаем интерфейс для этого IP
-    if GetBestInterface(DestIP, SourceIP) = NO_ERROR then
+    // Получаем лучший интерфейс
+    if GetBestInterface(DestIP, BestInterface) = NO_ERROR then
     begin
-      // Сравниваем
-      Result := (SourceIP = BestRoute.dwForwardNextHop);
-
-      Logger.Debug(Format('IsLocalConnection: DestIP=%s, SourceIP=%s, NextHop=%s, Result=%s',
-        [AIPAddress,
-         IPAddrToStr(SourceIP),
-         IPAddrToStr(BestRoute.dwForwardNextHop),
-         BoolToStr(Result, True)]));
+      // Проверяем, что интерфейс назначения совпадает с интерфейсом, через который идет трафик
+      Result := (BestInterface = BestRoute.dwForwardIfIndex);
     end;
   end;
 end;
@@ -208,35 +202,61 @@ end;
 // Основная функция проверки
 function IsLocalRNDISDevice(const IPAddress: string): Boolean;
 var
-  Adapter: TNetworkAdapter;
   MAC: string;
+  Adapters: TArray<TNetworkAdapter>;
+  Adapter: TNetworkAdapter;
 begin
   Result := False;
 
-  // 1. Проверяем, что устройство в одной подсети с RNDIS адаптером
+  // Сначала проверяем, не принадлежит ли IP самому RNDIS адаптеру
   Adapter := GetAdapterByIP(IPAddress);
-  if (Adapter.Description <> '') and Adapter.IsRNDIS then
+  if (Adapter.Description <> '') then
   begin
-    Result := True;
-    Exit;
-  end;
-
-  // 2. Проверяем MAC адрес
-  MAC := GetMACAddress(IPAddress);
-  if MAC <> '' then
-  begin
-    // Проверяем характерные для USB/RNDIS MAC префиксы
-    if (Copy(MAC, 1, 8) = '02:00:00') or  // Common USB MAC
-       (Copy(MAC, 1, 8) = '0A:00:00') or  // Common USB MAC
-       (Copy(MAC, 1, 8) = '00:15:83') then // Android devices
+    if Adapter.IsRNDIS then
     begin
+      // Это сам RNDIS адаптер
       Result := True;
       Exit;
     end;
   end;
-  
-  // 3. Проверяем через маршрутизацию
-  Result := IsLocalConnection(IPAddress);
+
+  // Проверяем, есть ли у нас RNDIS адаптер в системе
+  Adapters := GetAdaptersList;
+  for Adapter in Adapters do
+  begin
+    if Adapter.IsRNDIS then
+    begin
+      // Проверяем, что устройство в одной подсети с RNDIS адаптером
+      if (Adapter.IPAddress <> '') and (Adapter.SubnetMask <> '') then
+      begin
+        // Здесь можно добавить проверку нахождения в одной подсети
+        // Но для простоты будем считать, что если есть ARP запись и RNDIS адаптер, то устройство локальное
+
+        // Проверяем MAC адрес
+        MAC := GetMACAddress(IPAddress);
+        if MAC <> '' then
+        begin
+          // Проверяем характерные для USB/RNDIS MAC префиксы
+          if (Copy(MAC, 1, 8) = '02:00:00') or  // Common USB MAC
+             (Copy(MAC, 1, 8) = '0A:00:00') or  // Common USB MAC
+             (Copy(MAC, 1, 8) = '00:15:83') then // Android devices
+          begin
+            Result := True;
+            Exit;
+          end;
+        end;
+
+        // Проверяем через маршрутизацию
+        Result := IsLocalConnection(IPAddress);
+        if Result then
+          Exit;
+      end;
+    end;
+  end;
+
+  // Дополнительная проверка через ARP таблицу
+  MAC := GetMACAddress(IPAddress);
+  Result := MAC <> '';
 end;
 
 end.
