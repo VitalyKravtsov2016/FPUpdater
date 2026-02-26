@@ -23,7 +23,6 @@ type
     procedure TearDown; override;
 
     procedure SaveEcrStatus;
-    procedure SaveTables(const FileName: string);
     procedure CheckPortNumber(PortNumber: Integer);
 
     procedure CheckConnection;
@@ -87,7 +86,6 @@ begin
   Updater := TFirmwareUpdater.Create;
   //Updater.Path := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'data\';
   Updater.Path := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0))) + 'smtest\';
-  Updater.DeleteLog;
   //Updater.LoadFiles(Updater.Path);
 end;
 
@@ -130,17 +128,6 @@ begin
   Ecr := Updater.ReadEcrInfo;
   Updater.LoadFiles(Updater.Path);
   //Updater.WriteLicense(Ecr); !!!
-end;
-
-procedure TFirmwareUpdaterTest.SaveTables(const FileName: string);
-begin
-  Driver.FileName := FileName;
-  if FileExists(Driver.FileName) then
-  begin
-    if not DeleteFile(Driver.FileName) then
-      RaiseLastWin32Error;
-  end;
-  Driver.Check(Driver.ExportTables);
 end;
 
 procedure TFirmwareUpdaterTest.CheckPortNumber(PortNumber: Integer);

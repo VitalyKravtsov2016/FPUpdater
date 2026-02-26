@@ -1,4 +1,4 @@
-program FPUpdater;
+﻿program FPUpdater;
 
 {$R 'FPUpdater.res' 'FPUpdater.rc'}
 
@@ -29,7 +29,12 @@ uses
   SearchPort in 'units\SearchPort.pas',
   PrinterTypes in 'units\PrinterTypes.pas',
   untUtil in 'units\untUtil.pas',
-  ComportUtils in 'units\ComportUtils.pas';
+  ComportUtils in 'units\ComportUtils.pas',
+  TCPDeviceSearch in 'units\TCPDeviceSearch.pas',
+  TCPSearchRec in 'units\TCPSearchRec.pas',
+  MultiCastIPv6Receiver in 'units\MultiCastIPv6Receiver.pas',
+  NetworkUtils in 'units\NetworkUtils.pas',
+  DebugUtils in 'units\DebugUtils.pas';
 
 {$R *.res}
 
@@ -71,8 +76,8 @@ begin
     Application.MainFormOnTaskbar := True;
     Application.Title := 'Прошивальщик ' + GetFileVersionInfoStr;
     Application.CreateForm(TfmMain, fmMain);
-    Application.CreateForm(TfmUnsupported, fmUnsupported);
-    fmMain.Position := poDesktopCenter;
+  Application.CreateForm(TfmUnsupported, fmUnsupported);
+  fmMain.Position := poDesktopCenter;
     Application.Run;
   end;
 end.

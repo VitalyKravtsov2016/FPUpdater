@@ -142,10 +142,10 @@
     <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
     <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     <VerInfo_Locale>1033</VerInfo_Locale>
-    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.101;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.102;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     <Icon_MainIcon>MAINICON.ico</Icon_MainIcon>
     <VerInfo_Release>1</VerInfo_Release>
-    <VerInfo_Build>101</VerInfo_Build>
+    <VerInfo_Build>102</VerInfo_Build>
     <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
     <DCC_ExeOutput>..\Bin</DCC_ExeOutput>
     <PostBuildEventCancelOnError>false</PostBuildEventCancelOnError>
@@ -187,6 +187,11 @@
     <DCCReference Include="units\PrinterTypes.pas" />
     <DCCReference Include="units\untUtil.pas" />
     <DCCReference Include="units\ComportUtils.pas" />
+    <DCCReference Include="units\TCPDeviceSearch.pas" />
+    <DCCReference Include="units\TCPSearchRec.pas" />
+    <DCCReference Include="units\MultiCastIPv6Receiver.pas" />
+    <DCCReference Include="units\NetworkUtils.pas" />
+    <DCCReference Include="units\DebugUtils.pas" />
     <BuildConfiguration Include="Release">
       <Key>Cfg_2</Key>
       <CfgParent>Base</CfgParent>

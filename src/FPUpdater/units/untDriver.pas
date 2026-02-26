@@ -99,6 +99,8 @@ type
     function GetPrintStringWidth(AFont: Integer = 0): Integer;
   end;
 
+function Driver: TDriver;
+
 implementation
 
 uses

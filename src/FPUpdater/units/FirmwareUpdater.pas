@@ -1,4 +1,4 @@
-unit FirmwareUpdater;
+﻿unit FirmwareUpdater;
 
 interface
 
@@ -182,6 +182,7 @@ type
     function GetHardwarePort(SoftwarePort: Integer): Integer;
     procedure SetCurrentDateTime;
     function IsRefiscalizationNeeded: Boolean;
+    procedure ConnectDevice;
   public
     procedure ShowProperties;
     procedure DeleteFiles;
@@ -655,7 +656,9 @@ begin
   CashRegister := 0;
   SetStatusText('Обновление устройства...');
   CheckStopped;
-  Driver.Check(Connect);
+
+
+  ConnectDevice;
   if not CheckEcrUpdateable then
     raise Exception.Create('Эту модель ККМ нельзя обновить');
 
@@ -710,13 +713,11 @@ begin
     begin
       UploadFile(EcrInfo, FPath, Firmware.FileName);
       DelayInMs(FirmwareRebootDelay);
-
       // Ищем устройство на порту HardwarePort
       SearchParams.Serial := EcrInfo.Serial;
       SearchParams.Timeout := FirmwareRebootTimeout;
       SearchParams.Port := EcrInfo.HardwarePort;
       DiscoverDevice(SearchParams);
-
       // Проверка, обновилось ли ПО
       CheckFirmwareUpdated(Firmware);
       PrintUpdateCompleted;
@@ -780,6 +781,68 @@ begin
     Driver.Disconnect;
   end;
 end;
+
+///////////////////////////////////////////////////////////////////////////////
+// Подключение к устройству.
+// Если устройство не подключается - выполняем поиск
+
+procedure TFirmwareUpdater.ConnectDevice;
+var
+  ResultCode: Integer;
+begin
+  ResultCode := Connect;
+  if ResultCode = 0 then Exit;
+  if ResultCode > 0 then
+  begin
+    Driver.Check(ResultCode);
+  end;
+
+  if ResultCode < 0 then
+  begin
+
+  end;
+end;
+
+(*
+procedure DemonstrateParsing;
+var
+  Search: TTCPDeviceSearch;
+  Devices: TArray<TTCPSearchRec>;
+  Device: TTCPSearchRec;
+begin
+  Search := TTCPDeviceSearch.Create('FF02::2606:1', 16327, 3000);
+  try
+    Search.FilterLocalOnly := True;
+
+    // Запускаем поиск
+    Devices := Search.SearchDevices;
+
+    // Выводим результаты с полной информацией
+    for Device in Devices do
+    begin
+      Logger.Info('=' * 50);
+      Logger.Info('Устройство:');
+      Logger.Info('  IP: %s', [Device.IPAddress]);
+      Logger.Info('  SN: %s', [Device.SN]);
+      Logger.Info('  Модель: %s', [Device.Model]);
+      Logger.Info('  Порт: %d', [Device.Port]);
+      Logger.Info('  Версия: %s', [Device.Version]);
+      Logger.Info('  Тип: %s', [Device.DeviceType]);
+      Logger.Info('  Статус: %s', [Device.Status]);
+      Logger.Info('  Локальное: %s', [BoolToStr(Device.IsLocal, True)]);
+      Logger.Info('  RNDIS: %s', [BoolToStr(Device.IsRNDIS, True)]);
+      Logger.Info('  Интерфейс: %s', [Device.InterfaceName]);
+      Logger.Info('  MAC: %s', [Device.MACAddress]);
+
+      Device.Free;
+    end;
+
+  finally
+    Search.Free;
+  end;
+end;
+*)
+
 
 function TFirmwareUpdater.IsRefiscalizationNeeded: Boolean;
 var

@@ -18,7 +18,7 @@ uses
   GlobalConst in '..\..\src\FPUpdater\units\GlobalConst.pas',
   XModem in '..\..\src\FPUpdater\units\XModem.pas',
   AsyncSerialPort in '..\..\src\FPUpdater\units\AsyncSerialPort.pas',
-  duFirmwareUpdater in 'units\duFirmwareUpdater.pas',
+  duNetworkUtils in 'Units\duNetworkUtils.pas',
   DeviceSearch in '..\..\src\FPUpdater\units\DeviceSearch.pas',
   SearchPort in '..\..\src\FPUpdater\units\SearchPort.pas',
   untUtil in '..\..\src\FPUpdater\units\untUtil.pas',
@@ -26,7 +26,13 @@ uses
   LangUtils in '..\..\src\FPUpdater\units\LangUtils.pas',
   PrinterTypes in '..\..\src\FPUpdater\units\PrinterTypes.pas',
   ComportUtils in '..\..\src\FPUpdater\units\ComportUtils.pas',
-  UpdateItem in '..\..\src\FPUpdater\units\UpdateItem.pas';
+  UpdateItem in '..\..\src\FPUpdater\units\UpdateItem.pas',
+  duFirmwareUpdater in 'Units\duFirmwareUpdater.pas',
+  NetworkUtils in '..\..\src\FPUpdater\units\NetworkUtils.pas',
+  TCPDeviceSearch in '..\..\src\FPUpdater\units\TCPDeviceSearch.pas',
+  TCPSearchRec in '..\..\src\FPUpdater\units\TCPSearchRec.pas',
+  MultiCastIPv6Receiver in '..\..\src\FPUpdater\units\MultiCastIPv6Receiver.pas',
+  DebugUtils in '..\..\src\FPUpdater\units\DebugUtils.pas';
 
 {$R *.RES}
 
