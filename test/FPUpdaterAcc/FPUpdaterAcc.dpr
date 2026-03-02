@@ -27,7 +27,13 @@ uses
   PrinterTypes in '..\..\src\FPUpdater\units\PrinterTypes.pas',
   ComportUtils in '..\..\src\FPUpdater\units\ComportUtils.pas',
   UpdateItem in '..\..\src\FPUpdater\units\UpdateItem.pas',
-  EcrManager in '..\..\src\FPUpdater\units\EcrManager.pas';
+  EcrManager in '..\..\src\FPUpdater\units\EcrManager.pas',
+  duNetworkUtils in 'Units\duNetworkUtils.pas',
+  NetworkUtils in '..\..\src\FPUpdater\units\NetworkUtils.pas',
+  TCPDeviceSearch in '..\..\src\FPUpdater\units\TCPDeviceSearch.pas',
+  MultiCastIPv6Receiver in '..\..\src\FPUpdater\units\MultiCastIPv6Receiver.pas',
+  TCPSearchRec in '..\..\src\FPUpdater\units\TCPSearchRec.pas',
+  DebugUtils in '..\..\src\FPUpdater\units\DebugUtils.pas';
 
 {$R *.RES}
 {$R arhive.res}

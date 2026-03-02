@@ -197,6 +197,12 @@
         <DCCReference Include="..\..\src\FPUpdater\units\ComportUtils.pas"/>
         <DCCReference Include="..\..\src\FPUpdater\units\UpdateItem.pas"/>
         <DCCReference Include="..\..\src\FPUpdater\units\EcrManager.pas"/>
+        <DCCReference Include="Units\duNetworkUtils.pas"/>
+        <DCCReference Include="..\..\src\FPUpdater\units\NetworkUtils.pas"/>
+        <DCCReference Include="..\..\src\FPUpdater\units\TCPDeviceSearch.pas"/>
+        <DCCReference Include="..\..\src\FPUpdater\units\MultiCastIPv6Receiver.pas"/>
+        <DCCReference Include="..\..\src\FPUpdater\units\TCPSearchRec.pas"/>
+        <DCCReference Include="..\..\src\FPUpdater\units\DebugUtils.pas"/>
         <None Include="FPUpdaterAcc.todo"/>
         <BuildConfiguration Include="Debug">
             <Key>Cfg_2</Key>
@@ -237,9 +243,9 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="..\..\Bin\Win64\Release\FPUpdaterAcc.exe" Configuration="Release" Class="ProjectOutput">
+                <DeployFile LocalName="DrvFRTst.todo" Configuration="Release" Class="ProjectFile">
                     <Platform Name="Win64">
-                        <RemoteName>FPUpdaterAcc.exe</RemoteName>
+                        <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -285,9 +291,9 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="DrvFRTst.todo" Configuration="Release" Class="ProjectFile">
+                <DeployFile LocalName="..\..\Bin\Win64\Release\FPUpdaterAcc.exe" Configuration="Release" Class="ProjectOutput">
                     <Platform Name="Win64">
-                        <RemoteDir>.\</RemoteDir>
+                        <RemoteName>FPUpdaterAcc.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

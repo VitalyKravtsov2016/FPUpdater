@@ -83,6 +83,7 @@ type
     procedure SetData(const Value: TSearchPortRec);
     procedure SetBaudRateText(const Value: WideString);
     procedure SearchByBaudRates(Driver: IDrvFR48);
+    procedure LoggerDebug(const S: string);
   public
     constructor Create(AOwner: TSearchPorts);
     destructor Destroy; override;
@@ -246,6 +247,11 @@ begin
   inherited Destroy;
 end;
 
+procedure TSearchPort.LoggerDebug(const S: string);
+begin
+  //Logger.Debug(S);
+end;
+
 procedure TSearchPort.SetOwner(AOwner: TSearchPorts);
 begin
   if AOwner <> FOwner then
@@ -335,6 +341,7 @@ var
   Driver: IDrvFR49;
   ResultCode: Integer;
 begin
+  LoggerDebug('TSearchPort.SearchDevice...');
   if not Selected then Exit;
 
   FStopFlag := False;
@@ -362,6 +369,7 @@ begin
     Driver.Disconnect;
     Driver := nil;
   end;
+  LoggerDebug('TSearchPort.SearchDevice: OK');
 end;
 
 procedure TSearchPort.SearchByBaudRates(Driver: IDrvFR48);
@@ -404,7 +412,7 @@ begin
       SerialNumber := '';
       if FDoTechReset then
       begin
-        Logger.Debug('Разрешено техобнуление: ' + BoolToStr[DoTechReset]);
+        LoggerDebug('Разрешено техобнуление: ' + BoolToStr[DoTechReset]);
         try
           Driver.Timeout := 5000;
           Res := Driver.ReadSerialNumber;
@@ -445,7 +453,7 @@ begin
       Driver.ReadModelParamValue;
       Text := Driver.UDescription; //TrimRight(Driver.UDescription);
       FDefSysPassword := Driver.ModelParamValue;
-      Logger.Debug('Устройство найдено, ' + Text);
+      LoggerDebug('Устройство найдено, ' + Text);
       Break;
     end
     else
@@ -453,7 +461,7 @@ begin
       if ResultCode <> E_NOHARDWARE then
       begin
         Text := Format('%d: %s', [ResultCode, Driver.ResultCodeDescription]);
-        //Logger.Debug('Устройство не найдено, ' + Text);
+        //LoggerDebug('Устройство не найдено, ' + Text);
         Break;
       end;
     end;

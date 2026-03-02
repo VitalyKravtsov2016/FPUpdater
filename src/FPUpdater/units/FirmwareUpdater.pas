@@ -20,12 +20,13 @@ uses
   uTPLb_Codec, uTPLb_CryptographicLibrary,
   // This
   DrvFRLib_TLB, untDriver, SystemUtils, UpdateItem, NotifyThread, StringUtils,
-  LogFile, BinUtils, FptrTypes, XModem, DeviceSearch, SearchPort;
+  LogFile, BinUtils, FptrTypes, XModem, DeviceSearch, SearchPort,
+  TCPDeviceSearch, TCPSearchRec;
 
 const
   DFUDelayTime = 5000;
   LoaderRebootDelay = 3000;
-  FirmwareRebootDelay = 3000;
+  FirmwareRebootDelay = 10000;
   RebootTimeout = 6000;
   LoaderRebootTimeout = 60000;
   FirmwareRebootTimeout = 60000;
@@ -35,9 +36,10 @@ const
   /// //////////////////////////////////////////////////////////////////////////
   // PortNumber значения
 
-  PORT_COM = 0; // RS-232 - обновление по XModem
-  PORT_VCOM = 1; // USB vCOM - обновление по DFU (или XModem)
-  PORT_TCP = 2; // TCP сокет (RNDIS, Ethernet, WI-FI, ppp)
+  PORT_ANY  = -1;   // Поиск по любым портам
+  PORT_COM  =  0;   // RS-232 - обновление по XModem
+  PORT_VCOM =  1;   // USB vCOM - обновление по DFU (или XModem)
+  PORT_TCP  =  2;   // TCP сокет (RNDIS, Ethernet, WI-FI, ppp)
 
   /// //////////////////////////////////////////////////////////////////////////
   // Значения режима ppp
@@ -789,6 +791,10 @@ end;
 procedure TFirmwareUpdater.ConnectDevice;
 var
   ResultCode: Integer;
+  Device: TTCPSearchRec;
+  SearchParams: TSearchParams;
+const
+  DeviceSearchTimeout = 3000;
 begin
   ResultCode := Connect;
   if ResultCode = 0 then Exit;
@@ -799,50 +805,23 @@ begin
 
   if ResultCode < 0 then
   begin
-
-  end;
-end;
-
-(*
-procedure DemonstrateParsing;
-var
-  Search: TTCPDeviceSearch;
-  Devices: TArray<TTCPSearchRec>;
-  Device: TTCPSearchRec;
-begin
-  Search := TTCPDeviceSearch.Create('FF02::2606:1', 16327, 3000);
-  try
-    Search.FilterLocalOnly := True;
-
-    // Запускаем поиск
-    Devices := Search.SearchDevices;
-
-    // Выводим результаты с полной информацией
-    for Device in Devices do
+    Driver.Disconnect;
+    // Find TCP device
+    if FindLocalTCPDevice(Device, DeviceSearchTimeout) then
     begin
-      Logger.Info('=' * 50);
-      Logger.Info('Устройство:');
-      Logger.Info('  IP: %s', [Device.IPAddress]);
-      Logger.Info('  SN: %s', [Device.SN]);
-      Logger.Info('  Модель: %s', [Device.Model]);
-      Logger.Info('  Порт: %d', [Device.Port]);
-      Logger.Info('  Версия: %s', [Device.Version]);
-      Logger.Info('  Тип: %s', [Device.DeviceType]);
-      Logger.Info('  Статус: %s', [Device.Status]);
-      Logger.Info('  Локальное: %s', [BoolToStr(Device.IsLocal, True)]);
-      Logger.Info('  RNDIS: %s', [BoolToStr(Device.IsRNDIS, True)]);
-      Logger.Info('  Интерфейс: %s', [Device.InterfaceName]);
-      Logger.Info('  MAC: %s', [Device.MACAddress]);
-
-      Device.Free;
+      Driver.ConnectionType := CT_TCPSOCKET;
+      Driver.IPAddress := Device.IP;
+      Driver.PortNumber := Device.port;
+      Driver.Check(Driver.Connect);
+      Exit;
     end;
-
-  finally
-    Search.Free;
+    // Find serial device
+    SearchParams.Serial := '';
+    SearchParams.Timeout := DeviceSearchTimeout;
+    SearchParams.Port := PORT_ANY;
+    DiscoverDevice(SearchParams);
   end;
 end;
-*)
-
 
 function TFirmwareUpdater.IsRefiscalizationNeeded: Boolean;
 var
@@ -1642,7 +1621,8 @@ begin
     for i := 0 to Search.Ports.Count - 1 do
     begin
       Port := Search.Ports[i];
-      if ((Port.SerialNumber = Params.Serial) or (Params.Serial = '')) and (Params.Port = Port.DevicePort) then
+      if ((Port.SerialNumber = Params.Serial) or (Params.Serial = '')) and
+        ((Params.Port = PORT_ANY)or(Params.Port = Port.DevicePort)) then
       begin
         // Logger.Debug('Устройство найдено');
         Driver.ConnectionType := CT_LOCAL;

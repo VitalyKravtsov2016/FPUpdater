@@ -39,7 +39,6 @@ function FindLocalTCPDevice(var Item: TTCPSearchRec; TimeoutInMs: Integer): Bool
 
 implementation
 
-
 function FindLocalTCPDevice(var Item: TTCPSearchRec; TimeoutInMs: Integer): Boolean;
 var
   StopTime: Integer;
@@ -51,7 +50,7 @@ begin
     Search.Start;
     while GetTickCount < StopTime do
     begin
-      Application.ProcessMessages;
+      Sleep(100);
       Result := Search.Items.Count > 0;
       if Result then
       begin
@@ -80,6 +79,7 @@ begin
   FClientIpv4.DefaultPort := SEARCHPORT;
   FClientIpv4.OnUDPRead := OnUDPRead;
   FClientIpv4.ReuseSocket := rsTrue;
+  FClientIpv4.ThreadedEvent := True;
   FClientIpv4.Active := False;
 
   FClientIpv6 := TMulticastIPv6Receiver.Create(IPV6GROUP, SEARCHPORT);
@@ -125,7 +125,7 @@ begin
   ODS('TTCPDeviceSearch.DeviceFound: ' + Data);
   if SR.Parse(Data) then
   begin
-    if IsLocalRNDISDevice(SR.IP) then
+    if IsRouteViaRNDIS(SR.IP) then
     begin
       if AddItem(SR) then
       begin
@@ -140,7 +140,7 @@ procedure TTCPDeviceSearch.Start;
 begin
   FItems.Clear;
   FClientIpv4.Active := True;
-  FClientIpv6.Active := True;
+  //FClientIpv6.Active := True;
 end;
 
 procedure TTCPDeviceSearch.Stop;

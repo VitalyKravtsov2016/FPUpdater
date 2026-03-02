@@ -1,4 +1,4 @@
-program FPUpdaterCli;
+﻿program FPUpdaterCli;
 
 {$R 'FPUpdaterCli.res' 'FPUpdaterCli.rc'}
 
@@ -26,7 +26,12 @@ uses
   SearchPort in '..\FPUpdater\units\SearchPort.pas',
   PrinterTypes in '..\FPUpdater\units\PrinterTypes.pas',
   untUtil in '..\FPUpdater\units\untUtil.pas',
-  ComportUtils in '..\FPUpdater\units\ComportUtils.pas';
+  ComportUtils in '..\FPUpdater\units\ComportUtils.pas',
+  TCPDeviceSearch in '..\FPUpdater\units\TCPDeviceSearch.pas',
+  TCPSearchRec in '..\FPUpdater\units\TCPSearchRec.pas',
+  MultiCastIPv6Receiver in '..\FPUpdater\units\MultiCastIPv6Receiver.pas',
+  NetworkUtils in '..\FPUpdater\units\NetworkUtils.pas',
+  DebugUtils in '..\FPUpdater\units\DebugUtils.pas';
 
 {$R *.res}
 

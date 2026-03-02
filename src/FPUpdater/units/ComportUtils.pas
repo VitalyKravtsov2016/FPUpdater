@@ -113,6 +113,8 @@ var
   S1: string;
   PortRec: TSerialPortRec;
 begin
+  //Logger.Debug('EnumPorts...');
+
   Ports.Clear;
   if not LoadsetupAPI then
     exit;
@@ -173,6 +175,7 @@ begin
       end;
     end;
   end;
+  //Logger.Debug('EnumPorts: OK');
 end;
 
 { TSerialPortRec }

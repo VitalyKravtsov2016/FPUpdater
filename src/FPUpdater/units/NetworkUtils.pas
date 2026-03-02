@@ -3,10 +3,8 @@
 interface
 
 uses
-  // VCL
-  Windows, Winsock, WinSvc, Classes, SysUtils, TlHelp32,
-  Winapi.IpHlpApi, Winapi.IpExport, Winapi.IpTypes, Winapi.WinSock2,
-  Winapi.IpRtrMib;
+  Winapi.Windows, Winapi.Winsock2, System.SysUtils, System.Classes,
+  Winapi.IpHlpApi, Winapi.IpExport, Winapi.IpTypes, Winapi.IpRtrMib;
 
 type
   TNetworkAdapter = record
@@ -16,27 +14,79 @@ type
     SubnetMask: string;
     MACAddress: string;
     IsRNDIS: Boolean;
+    IsUSB: Boolean;
+    IfType: DWORD;
+    IfIndex: DWORD;
   end;
 
 function IsLocalRNDISDevice(const IPAddress: string): Boolean;
 function GetAdapterByIP(const IPAddress: string): TNetworkAdapter;
 function GetMACAddress(const AIPAddress: string): string;
-function IsRNDISAdapter(const AdapterDesc: string): Boolean;
 function GetAdaptersList: TArray<TNetworkAdapter>;
+function IsRouteViaRNDIS(const IPAddress: string): Boolean;
 
 implementation
 
-// Проверка, является ли адаптер RNDIS
-function IsRNDISAdapter(const AdapterDesc: string): Boolean;
 const
-  RNDISKeywords: array[0..4] of string = ('RNDIS', 'USB', 'ETHERNET', 'GADGET', 'REMOTE');
+  IF_TYPE_USB = 160;
+  IF_TYPE_IEEE80211 = 71;
+  MAX_ADAPTER_ADDRESS_LENGTH = 8;
+  ERROR_INSUFFICIENT_BUFFER = 122;
+  NO_ERROR = 0;
+  INADDR_NONE = $FFFFFFFF;
+
+// Вспомогательная функция для определения RNDIS по описанию
+function IsRNDISAdapter(const Description: string; IfType: DWORD; const MACAddress: string): Boolean;
 var
-  i: Integer;
+  DescUpper: string;
 begin
   Result := False;
-  for i := 0 to High(RNDISKeywords) do
+  DescUpper := UpperCase(Description);
+
+  // Основные признаки RNDIS в имени
+  if (Pos('RNDIS', DescUpper) > 0) or
+     (Pos('REMOTE NDIS', DescUpper) > 0) or
+     (Pos('USB RNDIS', DescUpper) > 0) or
+     (Pos('REMOTE NDIS BASED', DescUpper) > 0) then
   begin
-    if Pos(UpperCase(RNDISKeywords[i]), UpperCase(AdapterDesc)) > 0 then
+    Result := True;
+    Exit;
+  end;
+
+  // Признаки для Android устройств (часто используют RNDIS)
+  if (Pos('ANDROID', DescUpper) > 0) and
+     ((Pos('NETWORK', DescUpper) > 0) or (Pos('ETHERNET', DescUpper) > 0) or (Pos('RNDIS', DescUpper) > 0)) then
+  begin
+    Result := True;
+    Exit;
+  end;
+
+  // Признаки для Linux USB gadgets
+  if (Pos('GADGET', DescUpper) > 0) and (Pos('USB', DescUpper) > 0) then
+  begin
+    Result := True;
+    Exit;
+  end;
+
+  // USB интерфейс с характерными признаками сетевого адаптера
+  if (IfType = IF_TYPE_USB) and
+     ((Pos('USB', DescUpper) > 0) or
+      (Pos('ETHERNET', DescUpper) > 0) or
+      (Pos('NETWORK', DescUpper) > 0)) and
+     (MACAddress <> '') then
+  begin
+    Result := True;
+    Exit;
+  end;
+
+  // Проверка по вендорским префиксам MAC адреса (дополнительная проверка)
+  if MACAddress <> '' then
+  begin
+    // Префиксы MAC адресов, часто используемые для виртуальных и USB интерфейсов
+    if (Copy(MACAddress, 1, 8) = '02-00-00') or  // Виртуальные интерфейсы
+       (Copy(MACAddress, 1, 8) = '0A-00-00') or  // Linux USB gadgets
+       (Copy(MACAddress, 1, 8) = '00-15-83') or  // Некоторые Android
+       (Copy(MACAddress, 1, 8) = '00-1C-42') then // Встроенные устройства
     begin
       Result := True;
       Exit;
@@ -44,82 +94,160 @@ begin
   end;
 end;
 
-// Получение списка всех сетевых адаптеров
+// Получение списка адаптеров
 function GetAdaptersList: TArray<TNetworkAdapter>;
 var
   AdaptersInfo: PIP_ADAPTER_INFO;
-  Adapter: PIP_ADAPTER_INFO;
+  AdapterInfo: PIP_ADAPTER_INFO;
   BufferSize: ULONG;
   Status: DWORD;
   AdapterList: TArray<TNetworkAdapter>;
   Count: Integer;
-  I: Integer;
+  iIndex, iMAC: Integer;
+  IpAddrString: PIP_ADDR_STRING;
+  AdaptersAddresses: PIP_ADAPTER_ADDRESSES;
+  AdapterAddr: PIP_ADAPTER_ADDRESSES;
+  WorkBufferSize: ULONG;
+  TempIP: AnsiString;
 begin
   SetLength(AdapterList, 0);
   Count := 0;
 
+  // Получаем базовую информацию через GetAdaptersInfo
   BufferSize := 0;
   GetAdaptersInfo(nil, BufferSize);
 
   if BufferSize = 0 then
     Exit;
 
-  GetMem(AdaptersInfo, BufferSize);
+  AdaptersInfo := AllocMem(BufferSize);
   try
     Status := GetAdaptersInfo(AdaptersInfo, BufferSize);
     if Status = ERROR_SUCCESS then
     begin
-      Adapter := AdaptersInfo;
-      while Assigned(Adapter) do
+      AdapterInfo := AdaptersInfo;
+      while Assigned(AdapterInfo) do
       begin
         SetLength(AdapterList, Count + 1);
-        AdapterList[Count].Name := string(Adapter.AdapterName);
-        AdapterList[Count].Description := string(Adapter.Description);
-        AdapterList[Count].IPAddress := PAnsiChar(@Adapter.IpAddressList.IpAddress);
-        AdapterList[Count].SubnetMask := PAnsiChar(@Adapter.IpAddressList.IpMask);
 
-        // Преобразование MAC адреса
+        // Инициализируем запись
+        AdapterList[Count].Name := string(AnsiString(AdapterInfo.AdapterName));
+        AdapterList[Count].Description := string(AnsiString(AdapterInfo.Description));
+        AdapterList[Count].IfIndex := AdapterInfo.Index;
         AdapterList[Count].MACAddress := '';
-        for I := 0 to Adapter.AddressLength - 1 do
+        AdapterList[Count].IsRNDIS := False;
+        AdapterList[Count].IsUSB := False;
+        AdapterList[Count].IfType := 0;
+        AdapterList[Count].IPAddress := '';
+        AdapterList[Count].SubnetMask := '';
+
+        // Формируем MAC адрес
+        if AdapterInfo.AddressLength > 0 then
         begin
-          if I > 0 then
-            AdapterList[Count].MACAddress := AdapterList[Count].MACAddress + '-';
-          AdapterList[Count].MACAddress := AdapterList[Count].MACAddress + IntToHex(Adapter.Address[I], 2);
+          for iMAC := 0 to AdapterInfo.AddressLength - 1 do
+          begin
+            if iMAC > 0 then
+              AdapterList[Count].MACAddress := AdapterList[Count].MACAddress + '-';
+            AdapterList[Count].MACAddress := AdapterList[Count].MACAddress + IntToHex(AdapterInfo.Address[iMAC], 2);
+          end;
         end;
 
-        AdapterList[Count].IsRNDIS := IsRNDISAdapter(AdapterList[Count].Description);
+        // Получаем IP адреса (первый значимый)
+        IpAddrString := @AdapterInfo.IpAddressList;
+        while Assigned(IpAddrString) do
+        begin
+          TempIP := AnsiString(IpAddrString.IpAddress.S);
+          // Проверяем, что IP не пустой и не 0.0.0.0
+          if (TempIP <> '0.0.0.0') and (TempIP <> '') and
+             (AdapterList[Count].IPAddress = '') then
+          begin
+            AdapterList[Count].IPAddress := string(TempIP);
+            AdapterList[Count].SubnetMask := string(AnsiString(IpAddrString.IpMask.S));
+          end;
+          IpAddrString := IpAddrString.Next;
+        end;
 
         Inc(Count);
-        Adapter := Adapter.Next;
+        AdapterInfo := AdapterInfo.Next;
       end;
     end;
   finally
     FreeMem(AdaptersInfo);
   end;
 
+  // Получаем информацию о типе через GetAdaptersAddresses (Windows XP+)
+  WorkBufferSize := 0;
+  GetAdaptersAddresses(AF_UNSPEC, 0, nil, nil, @WorkBufferSize);
+  if WorkBufferSize > 0 then
+  begin
+    AdaptersAddresses := AllocMem(WorkBufferSize);
+    try
+      Status := GetAdaptersAddresses(AF_UNSPEC, 0, nil, AdaptersAddresses, @WorkBufferSize);
+      if Status = ERROR_SUCCESS then
+      begin
+        AdapterAddr := AdaptersAddresses;
+        while Assigned(AdapterAddr) do
+        begin
+          // Ищем соответствующий адаптер по индексу
+          for iIndex := 0 to Count - 1 do
+          begin
+            if AdapterList[iIndex].IfIndex = AdapterAddr.Union.IfIndex then
+            begin
+              AdapterList[iIndex].IfType := AdapterAddr.IfType;
+              AdapterList[iIndex].IsUSB := (AdapterAddr.IfType = IF_TYPE_USB);
+              Break;
+            end;
+          end;
+          AdapterAddr := AdapterAddr.Next;
+        end;
+      end;
+    finally
+      FreeMem(AdaptersAddresses);
+    end;
+  end;
+
+  // ОПРЕДЕЛЕНИЕ RNDIS ПО ИМЕНИ (DESCRIPTION) И ДРУГИМ ПРИЗНАКАМ
+  for iIndex := 0 to Count - 1 do
+  begin
+    AdapterList[iIndex].IsRNDIS := IsRNDISAdapter(
+      AdapterList[iIndex].Description,
+      AdapterList[iIndex].IfType,
+      AdapterList[iIndex].MACAddress
+    );
+  end;
+
   Result := AdapterList;
 end;
 
-// Получение адаптера по IP адресу
+// Получение адаптера по IP
 function GetAdapterByIP(const IPAddress: string): TNetworkAdapter;
 var
   Adapters: TArray<TNetworkAdapter>;
-  Adapter: TNetworkAdapter;
+  i: Integer;
 begin
+  // Инициализируем результат
   Result.Description := '';
-  Adapters := GetAdaptersList;
+  Result.IPAddress := '';
+  Result.IsRNDIS := False;
+  Result.IfIndex := 0;
+  Result.MACAddress := '';
+  Result.Name := '';
+  Result.SubnetMask := '';
+  Result.IsUSB := False;
+  Result.IfType := 0;
 
-  for Adapter in Adapters do
+  Adapters := GetAdaptersList;
+  for i := 0 to High(Adapters) do
   begin
-    if Adapter.IPAddress = IPAddress then
+    if Trim(Adapters[i].IPAddress) = Trim(IPAddress) then
     begin
-      Result := Adapter;
+      Result := Adapters[i];
       Exit;
     end;
   end;
 end;
 
-// Получение MAC адреса по IP из ARP таблицы
+// Получение MAC адреса из ARP таблицы
 function GetMACAddress(const AIPAddress: string): string;
 var
   DestIP: DWORD;
@@ -132,32 +260,28 @@ var
 begin
   Result := '';
 
-  // Конвертируем IP адрес
   DestIP := inet_addr(PAnsiChar(AnsiString(AIPAddress)));
-  if DestIP = INADDR_NONE then
+  if Integer(DestIP) = Integer(INADDR_NONE) then
     Exit;
 
-  // Инициализируем нулевой MAC для сравнения
   FillChar(NullMac, SizeOf(NullMac), 0);
 
-  // Получаем необходимый размер буфера
+  // Получаем размер буфера
   BufferSize := 0;
   Status := GetIpNetTable(nil, BufferSize, False);
   if Status <> ERROR_INSUFFICIENT_BUFFER then
     Exit;
 
-  // Выделяем память под ARP таблицу
-  GetMem(ARPTable, BufferSize);
+  ARPTable := AllocMem(BufferSize);
   try
     Status := GetIpNetTable(ARPTable, BufferSize, False);
     if Status = NO_ERROR then
     begin
-      // Ищем запись с нужным IP
       for i := 0 to ARPTable.dwNumEntries - 1 do
       begin
         if ARPTable.table[i].dwAddr = DestIP then
         begin
-          // Проверяем, что MAC адрес существует (не все нули)
+          // Проверяем, что MAC адрес не нулевой
           if not CompareMem(@ARPTable.table[i].bPhysAddr, @NullMac, 6) then
           begin
             Move(ARPTable.table[i].bPhysAddr, MACAddr, 6);
@@ -174,89 +298,80 @@ begin
   end;
 end;
 
-// Проверка, локально ли подключено устройство
-function IsLocalConnection(const AIPAddress: string): Boolean;
+// Проверка маршрута до IP через RNDIS
+function IsRouteViaRNDIS(const IPAddress: string): Boolean;
 var
-  BestRoute: MIB_IPFORWARDROW;
   DestIP: DWORD;
   BestInterface: DWORD;
+  Status: DWORD;
+  Adapters: TArray<TNetworkAdapter>;
+  i: Integer;
 begin
   Result := False;
 
-  DestIP := inet_addr(PAnsiChar(AnsiString(AIPAddress)));
-  if DestIP = INADDR_NONE then
+  DestIP := inet_addr(PAnsiChar(AnsiString(IPAddress)));
+  if Integer(DestIP) = Integer(INADDR_NONE) then
     Exit;
 
-  // Получаем лучший маршрут
-  if GetBestRoute(DestIP, 0, @BestRoute) = NO_ERROR then
-  begin
-    // Получаем лучший интерфейс
-    if GetBestInterface(DestIP, BestInterface) = NO_ERROR then
-    begin
-      // Проверяем, что интерфейс назначения совпадает с интерфейсом, через который идет трафик
-      Result := (BestInterface = BestRoute.dwForwardIfIndex);
-    end;
-  end;
-end;
+  // Получаем индекс наилучшего интерфейса для этого IP
+  Status := GetBestInterface(DestIP, BestInterface);
+  if Status <> NO_ERROR then
+    Exit;
 
-// Основная функция проверки
-function IsLocalRNDISDevice(const IPAddress: string): Boolean;
-var
-  MAC: string;
-  Adapters: TArray<TNetworkAdapter>;
-  Adapter: TNetworkAdapter;
-begin
-  Result := False;
-
-  // Сначала проверяем, не принадлежит ли IP самому RNDIS адаптеру
-  Adapter := GetAdapterByIP(IPAddress);
-  if (Adapter.Description <> '') then
+  // Получаем список адаптеров и ищем по индексу
+  Adapters := GetAdaptersList;
+  for i := 0 to High(Adapters) do
   begin
-    if Adapter.IsRNDIS then
+    if (Adapters[i].IfIndex = BestInterface) and Adapters[i].IsRNDIS then
     begin
-      // Это сам RNDIS адаптер
       Result := True;
       Exit;
     end;
   end;
+end;
 
-  // Проверяем, есть ли у нас RNDIS адаптер в системе
-  Adapters := GetAdaptersList;
-  for Adapter in Adapters do
+// Основная функция проверки RNDIS устройства
+function IsLocalRNDISDevice(const IPAddress: string): Boolean;
+var
+  Adapter: TNetworkAdapter;
+  MAC: string;
+  Adapters: TArray<TNetworkAdapter>;
+  i: Integer;
+begin
+  Result := False;
+
+  // Проверка 1: Сам IP принадлежит RNDIS адаптеру
+  Adapter := GetAdapterByIP(IPAddress);
+  if (Adapter.IPAddress <> '') and Adapter.IsRNDIS then
   begin
-    if Adapter.IsRNDIS then
+    Result := True;
+    Exit;
+  end;
+
+  // Проверка 2: Маршрут до IP идет через RNDIS адаптер
+  if IsRouteViaRNDIS(IPAddress) then
+  begin
+    Result := True;
+    Exit;
+  end;
+
+  // Проверка 3: Проверка MAC адреса в ARP таблице
+  MAC := GetMACAddress(IPAddress);
+  if MAC <> '' then
+  begin
+    // Получаем список адаптеров
+    Adapters := GetAdaptersList;
+    for i := 0 to High(Adapters) do
     begin
-      // Проверяем, что устройство в одной подсети с RNDIS адаптером
-      if (Adapter.IPAddress <> '') and (Adapter.SubnetMask <> '') then
+      // Проверяем, что это RNDIS адаптер и MAC совпадает
+      if Adapters[i].IsRNDIS and
+         (Adapters[i].MACAddress = StringReplace(MAC, ':', '-', [rfReplaceAll])) then
       begin
-        // Здесь можно добавить проверку нахождения в одной подсети
-        // Но для простоты будем считать, что если есть ARP запись и RNDIS адаптер, то устройство локальное
-
-        // Проверяем MAC адрес
-        MAC := GetMACAddress(IPAddress);
-        if MAC <> '' then
-        begin
-          // Проверяем характерные для USB/RNDIS MAC префиксы
-          if (Copy(MAC, 1, 8) = '02:00:00') or  // Common USB MAC
-             (Copy(MAC, 1, 8) = '0A:00:00') or  // Common USB MAC
-             (Copy(MAC, 1, 8) = '00:15:83') then // Android devices
-          begin
-            Result := True;
-            Exit;
-          end;
-        end;
-
-        // Проверяем через маршрутизацию
-        Result := IsLocalConnection(IPAddress);
-        if Result then
-          Exit;
+        Result := True;
+        Exit;
       end;
     end;
   end;
-
-  // Дополнительная проверка через ARP таблицу
-  MAC := GetMACAddress(IPAddress);
-  Result := MAC <> '';
 end;
 
 end.

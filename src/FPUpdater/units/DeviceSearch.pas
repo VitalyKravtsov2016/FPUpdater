@@ -19,6 +19,7 @@ type
     FShortSearch: Boolean;
     procedure UpdatePorts;
     function GetCompleted: Boolean;
+    procedure LoggerDebug(const S: string);
   public
     constructor Create;
     destructor Destroy; override;
@@ -48,6 +49,11 @@ destructor TDeviceSearch.Destroy;
 begin
   FPorts.Free;
   inherited Destroy;
+end;
+
+procedure TDeviceSearch.LoggerDebug(const S: string);
+begin
+  //Logger.Debug(S);
 end;
 
 //(PortRec.vid <> $0E8D) and (PortRec.pid <> $2012) and (
@@ -93,30 +99,36 @@ procedure TDeviceSearch.Stop;
 var
   i: Integer;
 begin
+  LoggerDebug('TDeviceSearch.Stop...');
   for i := 0 to Ports.Count - 1 do
     Ports[i].Stop;
+  LoggerDebug('TDeviceSearch.Stop: OK');
 end;
 
 procedure TDeviceSearch.Start;
 var
   i: Integer;
 begin
+  LoggerDebug('TDeviceSearch.Start...');
   Stop;
   UpdatePorts;
   for i := 0 to Ports.Count - 1 do
   begin
     Ports[i].Start;
   end;
+  LoggerDebug('TDeviceSearch.Wait: OK');
 end;
 
 procedure TDeviceSearch.Wait;
 var
   i: Integer;
 begin
+  LoggerDebug('TDeviceSearch.Wait...');
   for i := 0 to Ports.Count - 1 do
   begin
     Ports[i].Wait;
   end;
+  LoggerDebug('TDeviceSearch.Wait: OK');
 end;
 
 function TDeviceSearch.GetCompleted: Boolean;

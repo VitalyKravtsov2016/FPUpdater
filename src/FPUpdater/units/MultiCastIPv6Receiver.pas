@@ -3,9 +3,12 @@ unit MultiCastIPv6Receiver;
 interface
 
 uses
-  IdGlobal, IdSocketHandle, IdBaseComponent, IdComponent, IdIPMCastClient,
-  IdStackBSDBase, IdStackConsts, IdStack, IdStackWindows,
-  System.Generics.Collections;
+  // VCL
+  SysUtils, IdGlobal, IdSocketHandle, IdBaseComponent, IdComponent,
+  IdIPMCastClient, IdStackBSDBase, IdStackConsts, IdStack, IdStackWindows,
+  System.Generics.Collections,
+  // This
+  LogFile;
 
 type
   TOnDataProc = procedure(const AData: string) of object;
@@ -79,7 +82,10 @@ begin
         TIdStackWindows(GStack).SetSocketOption(FClient.Bindings[FClient.Bindings.Count - 1].Handle, Id_IPPROTO_IPv6, Id_IP_ADD_MEMBERSHIP, LIP6, SizeOf(LIP6));
         // Нужно ли потом делать Id_IPV6_DROP_MEMBERSHIP ?
       except
-        //Logger.Debug('bind to ' + interfaceindex.ToString + ' error');
+        on E: Exception do
+        begin
+          Logger.Debug('bind to ' + interfaceindex.ToString + ' error');
+        end;
       end;
     end;
   finally
