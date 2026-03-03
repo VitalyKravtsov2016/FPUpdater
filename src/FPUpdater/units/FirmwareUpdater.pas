@@ -21,7 +21,7 @@ uses
   // This
   DrvFRLib_TLB, untDriver, SystemUtils, UpdateItem, NotifyThread, StringUtils,
   LogFile, BinUtils, FptrTypes, XModem, DeviceSearch, SearchPort,
-  TCPDeviceSearch, TCPSearchRec;
+  TCPDeviceSearch, TCPSearchRec, NetworkUtils;
 
 const
   COMConnectionTimeoutInMs = 1000;
@@ -809,15 +809,33 @@ begin
   begin
     Driver.Disconnect;
     // Check 192.168.137.111:7778
-    Logger.Debug('Подключение к устройству 192.168.137.111:7778');
-    Driver.ConnectionType := CT_TCPSOCKET;
-    Driver.IPAddress := '192.168.137.111';
-    Driver.PortNumber := 7778;
-    Driver.Timeout := TCPConnectionTimeoutInMs;
-    if Driver.Connect = 0 then
+    if IsRouteViaRNDIS('192.168.137.111') then
     begin
-      Driver.SaveParams;
-      Exit;
+      Logger.Debug('Подключение к устройству 192.168.137.111:7778');
+      Driver.ConnectionType := CT_TCPSOCKET;
+      Driver.IPAddress := '192.168.137.111';
+      Driver.PortNumber := 7778;
+      Driver.Timeout := TCPConnectionTimeoutInMs;
+      if Driver.Connect = 0 then
+      begin
+        Driver.SaveParams;
+        Exit;
+      end;
+    end;
+    // Find device behind RNDIS from ARP table
+    Driver.IPAddress := FindRNDISDeviceIP;
+    if Driver.IPAddress <> '' then
+    begin
+      Logger.Debug(Format('Подключение к устройству: %s:%d', [Driver.IPAddress, 7778]));
+      Driver.ConnectionType := CT_TCPSOCKET;
+      Driver.IPAddress := Driver.IPAddress;
+      Driver.PortNumber := 7778;
+      Driver.Timeout := TCPConnectionTimeoutInMs;
+      if Driver.Connect = 0 then
+      begin
+        Driver.SaveParams;
+        Exit;
+      end;
     end;
     // Find TCP device
     Logger.Debug('Поиск устройства по UDP...');

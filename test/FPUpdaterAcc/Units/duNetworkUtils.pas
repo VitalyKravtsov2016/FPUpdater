@@ -17,6 +17,7 @@ type
   published
     procedure TestIsLocalRNDISDevice;
     procedure TestFindLocalTCPDevice;
+    procedure TestFindRNDISDeviceIP;
   end;
 
 implementation
@@ -38,6 +39,13 @@ begin
   Check(FindLocalTCPDevice(Item, 3000), 'FindLocalTCPDevice');
   CheckEquals('192.168.137.111', Item.IP, 'Item.IP');
 end;
+
+procedure TNetworkUtilsTest.TestFindRNDISDeviceIP;
+begin
+  CheckEquals('192.168.137.111', FindRNDISDeviceIP, 'FindRNDISDeviceIP');
+end;
+
+
 
 
 initialization

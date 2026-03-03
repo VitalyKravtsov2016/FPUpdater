@@ -19,11 +19,27 @@ type
     IfIndex: DWORD;
   end;
 
+  TARPEntry = record
+    IPAddress: string;
+    MACAddress: string;
+    IsDynamic: Boolean;
+    IfIndex: DWORD;
+  end;
+
 function IsLocalRNDISDevice(const IPAddress: string): Boolean;
 function GetAdapterByIP(const IPAddress: string): TNetworkAdapter;
 function GetMACAddress(const AIPAddress: string): string;
 function GetAdaptersList: TArray<TNetworkAdapter>;
 function IsRouteViaRNDIS(const IPAddress: string): Boolean;
+
+// Новые функции для работы с RNDIS устройствами
+function FindRNDISDeviceIP: string;                                     // Поиск IP активного RNDIS устройства
+function GetAllRNDISDevicesInSubnet: TArray<string>;                  // Получить все устройства в подсети RNDIS
+function GetRNDISAdapterInfo(out Adapter: TNetworkAdapter): Boolean;  // Получить информацию о RNDIS адаптере
+function GetARPTable: TArray<TARPEntry>;                              // Получить ARP таблицу
+function IsSameSubnet(const IP1, IP2, Mask: string): Boolean;         // Проверить в одной ли подсети
+function IPDWordToString(IP: DWORD): string;                           // Преобразовать DWORD в IP строку
+function StringToIPDWord(const IP: string): DWORD;                     // Преобразовать IP строку в DWORD
 
 implementation
 
@@ -370,6 +386,206 @@ begin
         Result := True;
         Exit;
       end;
+    end;
+  end;
+end;
+
+// ============== НОВЫЕ ФУНКЦИИ ==============
+
+// Преобразование DWORD в IP строку
+function IPDWordToString(IP: DWORD): string;
+var
+  ipBytes: array[0..3] of Byte;
+begin
+  ipBytes[0] := IP and $FF;
+  ipBytes[1] := (IP shr 8) and $FF;
+  ipBytes[2] := (IP shr 16) and $FF;
+  ipBytes[3] := (IP shr 24) and $FF;
+  Result := Format('%d.%d.%d.%d', [ipBytes[0], ipBytes[1], ipBytes[2], ipBytes[3]]);
+end;
+
+// Преобразование IP строки в DWORD
+function StringToIPDWord(const IP: string): DWORD;
+var
+  Parts: TArray<string>;
+  b: array[0..3] of Byte;
+begin
+  Result := INADDR_NONE;
+  Parts := IP.Split(['.']);
+  if Length(Parts) = 4 then
+  begin
+    b[0] := StrToIntDef(Parts[0], 0);
+    b[1] := StrToIntDef(Parts[1], 0);
+    b[2] := StrToIntDef(Parts[2], 0);
+    b[3] := StrToIntDef(Parts[3], 0);
+    Result := (b[3] shl 24) or (b[2] shl 16) or (b[1] shl 8) or b[0];
+  end;
+end;
+
+// Проверка, находятся ли IP адреса в одной подсети
+function IsSameSubnet(const IP1, IP2, Mask: string): Boolean;
+var
+  ip1dw, ip2dw, maskdw: DWORD;
+begin
+  Result := False;
+
+  ip1dw := StringToIPDWord(IP1);
+  ip2dw := StringToIPDWord(IP2);
+  maskdw := StringToIPDWord(Mask);
+
+  if (ip1dw <> INADDR_NONE) and (ip2dw <> INADDR_NONE) and (maskdw <> INADDR_NONE) then
+  begin
+    Result := (ip1dw and maskdw) = (ip2dw and maskdw);
+  end;
+end;
+
+// Получение ARP таблицы
+function GetARPTable: TArray<TARPEntry>;
+var
+  pIpNetTable: PMibIpNetTable;
+  BufLen: ULONG;
+  Status: DWORD;
+  i: Integer;
+  Entries: TArray<TARPEntry>;
+begin
+  SetLength(Result, 0);
+
+  // Получаем размер буфера
+  BufLen := 0;
+  Status := GetIpNetTable(nil, BufLen, False);
+  if Status <> ERROR_INSUFFICIENT_BUFFER then
+    Exit;
+
+  // Выделяем память
+  pIpNetTable := AllocMem(BufLen);
+  try
+    Status := GetIpNetTable(pIpNetTable, BufLen, True);
+    if Status <> NO_ERROR then
+      Exit;
+
+    SetLength(Entries, pIpNetTable.dwNumEntries);
+
+    for i := 0 to pIpNetTable.dwNumEntries - 1 do
+    begin
+      Entries[i].IPAddress := IPDWordToString(pIpNetTable.table[i].dwAddr);
+      Entries[i].MACAddress := Format('%.2X-%.2X-%.2X-%.2X-%.2X-%.2X',
+        [pIpNetTable.table[i].bPhysAddr[0], pIpNetTable.table[i].bPhysAddr[1],
+         pIpNetTable.table[i].bPhysAddr[2], pIpNetTable.table[i].bPhysAddr[3],
+         pIpNetTable.table[i].bPhysAddr[4], pIpNetTable.table[i].bPhysAddr[5]]);
+      Entries[i].IsDynamic := (pIpNetTable.table[i].dwType = MIB_IPNET_TYPE_DYNAMIC);
+      Entries[i].IfIndex := pIpNetTable.table[i].dwIndex;
+    end;
+
+    Result := Entries;
+  finally
+    FreeMem(pIpNetTable);
+  end;
+end;
+
+// Получение информации о RNDIS адаптере
+function GetRNDISAdapterInfo(out Adapter: TNetworkAdapter): Boolean;
+var
+  Adapters: TArray<TNetworkAdapter>;
+  i: Integer;
+begin
+  Result := False;
+  Adapters := GetAdaptersList;
+
+  for i := 0 to High(Adapters) do
+  begin
+    if Adapters[i].IsRNDIS and (Adapters[i].IPAddress <> '') then
+    begin
+      Adapter := Adapters[i];
+      Result := True;
+      Exit;
+    end;
+  end;
+end;
+
+// Получение всех устройств в подсети RNDIS
+function GetAllRNDISDevicesInSubnet: TArray<string>;
+var
+  ARPEntries: TArray<TARPEntry>;
+  RNDISAdapter: TNetworkAdapter;
+  i: Integer;
+  Devices: TArray<string>;
+begin
+  SetLength(Result, 0);
+
+  // Получаем информацию о RNDIS адаптере
+  if not GetRNDISAdapterInfo(RNDISAdapter) then
+    Exit;
+
+  // Если маска не определена, используем стандартную для Class C
+  if RNDISAdapter.SubnetMask = '' then
+    RNDISAdapter.SubnetMask := '255.255.255.0';
+
+  // Получаем ARP таблицу
+  ARPEntries := GetARPTable;
+
+  SetLength(Devices, 0);
+
+  for i := 0 to High(ARPEntries) do
+  begin
+    // Проверяем записи для нашего адаптера
+    if ARPEntries[i].IfIndex <> RNDISAdapter.IfIndex then
+      Continue;
+
+    // Проверяем критерии для устройства:
+    // 1. В той же подсети, что и адаптер
+    // 2. Не IP самого адаптера
+    // 3. Не нулевой MAC адрес
+    // 4. Не широковещательный MAC
+    // 5. Не multicast
+    // 6. Динамическая запись
+    if IsSameSubnet(ARPEntries[i].IPAddress, RNDISAdapter.IPAddress, RNDISAdapter.SubnetMask) and
+       (ARPEntries[i].IPAddress <> RNDISAdapter.IPAddress) and
+       (ARPEntries[i].MACAddress <> '00-00-00-00-00-00') and
+       (ARPEntries[i].MACAddress <> 'FF-FF-FF-FF-FF-FF') and
+       (StringToIPDWord(ARPEntries[i].IPAddress) and $F0000000 <> $E0000000) and
+       ARPEntries[i].IsDynamic then
+    begin
+      SetLength(Devices, Length(Devices) + 1);
+      Devices[High(Devices)] := ARPEntries[i].IPAddress;
+    end;
+  end;
+
+  Result := Devices;
+end;
+
+// Поиск IP активного RNDIS устройства
+function FindRNDISDeviceIP: string;
+var
+  ARPEntries: TArray<TARPEntry>;
+  RNDISAdapter: TNetworkAdapter;
+  i: Integer;
+begin
+  Result := '';
+
+  // Получаем информацию о RNDIS адаптере
+  if not GetRNDISAdapterInfo(RNDISAdapter) then
+    Exit;
+
+  // Если маска не определена, используем стандартную для Class C
+  if RNDISAdapter.SubnetMask = '' then
+    RNDISAdapter.SubnetMask := '255.255.255.0';
+
+  // Получаем ARP таблицу
+  ARPEntries := GetARPTable;
+
+  for i := 0 to High(ARPEntries) do
+  begin
+    // Проверяем записи для нашего адаптера
+    if ARPEntries[i].IfIndex <> RNDISAdapter.IfIndex then
+      Continue;
+
+    // Проверяем критерии для устройства
+    if IsSameSubnet(ARPEntries[i].IPAddress, RNDISAdapter.IPAddress, RNDISAdapter.SubnetMask) and
+       (ARPEntries[i].IPAddress <> RNDISAdapter.IPAddress) then
+    begin
+      // Нашли подходящую запись
+      Result := ARPEntries[i].IPAddress;
+      Exit;
     end;
   end;
 end;

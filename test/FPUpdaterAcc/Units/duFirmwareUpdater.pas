@@ -152,13 +152,13 @@ begin
   Ecr := Updater.ReadEcrInfo;
   // Loader
   Updater.DfuUploadFile(Path, 'tb_ldr_1939.bin');
-  Updater.DelayInMs(LoaderRebootDelay);
-  Updater.WaitForDevice(Ecr.Serial, LoaderRebootTimeout);
+  Updater.DelayInMs(LoaderRebootDelayInSeconds * 1000);
+  Updater.WaitForDevice(Ecr.Serial, LoaderRebootTimeoutInSeconds * 1000);
   Updater.CheckLoaderUpdated(1939);
   // Firmware
   Updater.DfuUploadFile(Path, 'tb_app_7098.bin');
-  Updater.DelayInMs(FirmwareRebootDelay);
-  Updater.WaitForDevice(Ecr.Serial, FirmwareRebootTimeout);
+  Updater.DelayInMs(FirmwareRebootDelayInSeconds * 1000);
+  Updater.WaitForDevice(Ecr.Serial, FirmwareRebootTimeoutInSeconds * 1000);
 end;
 
 procedure TFirmwareUpdaterTest.CheckConnection;
@@ -188,7 +188,7 @@ begin
 
     SearchParams.Port := PORT_COM;
     SearchParams.Serial := Ecr.Serial;
-    SearchParams.Timeout := FirmwareRebootTimeout;
+    SearchParams.Timeout := FirmwareRebootTimeoutInSeconds * 1000;
     Updater.DiscoverDevice(SearchParams);
     Driver.SaveParams;
   end;
@@ -212,7 +212,7 @@ begin
 
     SearchParams.Port := PORT_VCOM;
     SearchParams.Serial := Ecr.Serial;
-    SearchParams.Timeout := FirmwareRebootTimeout;
+    SearchParams.Timeout := FirmwareRebootTimeoutInSeconds * 1000;
     Updater.DiscoverDevice(SearchParams);
     Driver.SaveParams;
   end;
@@ -237,8 +237,8 @@ begin
     Driver.ConnectionType := CT_TCPSOCKET;
     Driver.IPAddress := '192.168.137.111';
     Driver.TCPPort := 7778;
-    Updater.DelayInMs(FirmwareRebootDelay);
-    Updater.WaitForDevice(Ecr.Serial, FirmwareRebootTimeout);
+    Updater.DelayInMs(FirmwareRebootDelayInSeconds * 1000);
+    Updater.WaitForDevice(Ecr.Serial, FirmwareRebootTimeoutInSeconds * 1000);
     Driver.SaveParams;
   end;
   CheckRndisConnection;
@@ -307,7 +307,7 @@ begin
   SearchParams.Serial := '';
   //SearchParams.Serial := '0478110006079411';
   //SearchParams.Serial := '0374360004103321';
-  SearchParams.Timeout := FirmwareRebootTimeout;
+  SearchParams.Timeout := FirmwareRebootTimeoutInSeconds * 1000;
   if not Updater.FindDeviceLocal(SearchParams) then
     raise Exception.Create('Устройство не найдено');
 end;
@@ -321,8 +321,8 @@ begin
   Ecr := Updater.ReadEcrInfo;
   // Firmware
   Updater.DfuUploadFile(Path, 'tb_app_7098.bin');
-  Updater.DelayInMs(FirmwareRebootDelay);
-  Updater.WaitForDevice(Ecr.Serial, FirmwareRebootTimeout);
+  Updater.DelayInMs(FirmwareRebootDelayInSeconds * 1000);
+  Updater.WaitForDevice(Ecr.Serial, FirmwareRebootTimeoutInSeconds * 1000);
 end;
 
 procedure TFirmwareUpdaterTest.TestSetConnectionType;
@@ -336,8 +336,8 @@ procedure TFirmwareUpdaterTest.UpdateLoader(const Serial, FileName: string;
   BootVer: Integer);
 begin
   Updater.DfuUploadFile(Updater.Path, FileName);
-  Updater.DelayInMs(LoaderRebootDelay);
-  Updater.WaitForDevice(Serial, LoaderRebootTimeout);
+  Updater.DelayInMs(LoaderRebootDelayInSeconds * 1000);
+  Updater.WaitForDevice(Serial, LoaderRebootTimeoutInSeconds * 1000);
   Updater.CheckLoaderUpdated(BootVer);
 end;
 
@@ -380,7 +380,7 @@ begin
   if (Ecr.FirmwareVersion <> 'C.1')or(Ecr.FirmwareBuild <> 62922) then
   begin
     Updater.DfuUploadFile(Updater.Path, 'sm_app_62922_c1.bin');
-    Updater.DelayInMs(LoaderRebootDelay);
+    Updater.DelayInMs(LoaderRebootDelayInSeconds * 1000);
     SearchParams.Serial := Ecr.Serial;
     SearchParams.Timeout := 300000;
     SearchParams.Port := PORT_VCOM;
@@ -553,7 +553,7 @@ begin
   CheckEquals(False, Updater.WaitForDFUDevice(0), 'WaitForDFUDevice');
   TickCount := GetTickCount;
   Driver.Check(Driver.SetDFUMode);
-  CheckEquals(True, Updater.WaitForDFUDevice(DFUDelayTime), 'WaitForDFUDevice');
+  CheckEquals(True, Updater.WaitForDFUDevice(DFUDelayTimeInSeconds * 1000), 'WaitForDFUDevice');
   TickCount := Integer(GetTickCount) - TickCount;
   Logger.Debug(Format('DFU device up time: %d ms', [TickCount]));
   Check(TickCount < 3000, 'DFU device up time > 3000 ms');
@@ -568,7 +568,7 @@ begin
   SearchParams.Serial := '';
   //SearchParams.Serial := '0478110006079411';
   //SearchParams.Serial := '0374360004103321';
-  SearchParams.Timeout := FirmwareRebootTimeout;
+  SearchParams.Timeout := FirmwareRebootTimeoutInSeconds * 1000;
   Updater.DiscoverDevice(SearchParams);
 end;
 
