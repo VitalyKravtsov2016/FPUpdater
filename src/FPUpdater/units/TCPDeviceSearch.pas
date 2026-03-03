@@ -8,7 +8,7 @@ uses
   // Indy
   IdBaseComponent, IdUDPBase, IdUDPServer, IdGlobal, IdSocketHandle,
   // This
-  MultiCastIPv6Receiver, TCPSearchRec, NetworkUtils, DebugUtils;
+  MultiCastIPv6Receiver, TCPSearchRec, NetworkUtils, DebugUtils, LogFile;
 
 type
   TOnFoundProc = procedure(AItem: TTCPSearchRec) of object;
@@ -122,7 +122,7 @@ procedure TTCPDeviceSearch.DeviceFound(const Data: string);
 var
   SR: TTCPSearchRec;
 begin
-  ODS('TTCPDeviceSearch.DeviceFound: ' + Data);
+  //Logger.Debug('TTCPDeviceSearch.DeviceFound: ' + Data);
   if SR.Parse(Data) then
   begin
     if IsRouteViaRNDIS(SR.IP) then

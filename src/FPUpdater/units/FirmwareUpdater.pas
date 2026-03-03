@@ -24,12 +24,15 @@ uses
   TCPDeviceSearch, TCPSearchRec;
 
 const
-  DFUDelayTime = 5000;
-  LoaderRebootDelay = 3000;
-  FirmwareRebootDelay = 10000;
-  RebootTimeout = 6000;
-  LoaderRebootTimeout = 60000;
-  FirmwareRebootTimeout = 60000;
+  COMConnectionTimeoutInMs = 1000;
+  TCPConnectionTimeoutInMs = 3000;
+
+  DFUDelayTimeInSeconds = 5;
+  LoaderRebootDelayInSeconds = 3;
+  RebootTimeoutInSeconds = 6;
+  LoaderRebootTimeoutInSeconds = 60;
+  FirmwareRebootDelayInSeconds = 10;
+  FirmwareRebootTimeoutInSeconds = 100;
 
   // TODO: Обновление параметров сервера КМ для ИНН ОФД ??
 
@@ -702,8 +705,8 @@ begin
         if ValidLoader(EcrInfo, Loader) then
         begin
           UploadFile(EcrInfo, FPath, Loader.FileName);
-          DelayInMs(LoaderRebootDelay);
-          WaitForDevice(EcrInfo.Serial, LoaderRebootTimeout);
+          DelayInMs(LoaderRebootDelayInSeconds * 1000);
+          WaitForDevice(EcrInfo.Serial, LoaderRebootTimeoutInSeconds * 1000);
           CheckLoaderUpdated(Loader.NewBootVer);
           EcrInfo.BootVer := Loader.NewBootVer;
         end;
@@ -714,10 +717,10 @@ begin
     if Firmware <> nil then
     begin
       UploadFile(EcrInfo, FPath, Firmware.FileName);
-      DelayInMs(FirmwareRebootDelay);
+      DelayInMs(FirmwareRebootDelayInSeconds * 1000);
       // Ищем устройство на порту HardwarePort
       SearchParams.Serial := EcrInfo.Serial;
-      SearchParams.Timeout := FirmwareRebootTimeout;
+      SearchParams.Timeout := FirmwareRebootTimeoutInSeconds * 1000;
       SearchParams.Port := EcrInfo.HardwarePort;
       DiscoverDevice(SearchParams);
       // Проверка, обновилось ли ПО
@@ -746,9 +749,9 @@ begin
       Driver.Disconnect;
       SetStatusText('Перезагрузка ККМ: OK');
       // Читаем параметры подключения
+      DelayInMs(FirmwareRebootDelayInSeconds * 1000);
       Driver.Check(Driver.LoadParams);
-      DelayInMs(FirmwareRebootDelay);
-      WaitForDevice(EcrInfo.Serial, FirmwareRebootTimeout);
+      WaitForDevice(EcrInfo.Serial, FirmwareRebootTimeoutInSeconds * 1000);
     end;
     for Item in FItems do
     begin
@@ -807,19 +810,26 @@ begin
   begin
     Driver.Disconnect;
     // Find TCP device
+    Logger.Debug('Поиск устройства по UDP...');
     if FindLocalTCPDevice(Device, DeviceSearchTimeout) then
     begin
+      Logger.Debug('Поиск устройства по UDP: OK');
+      Logger.Debug(Format('Найдено устройство: %s:%d', [Device.IP, Device.Port]));
+
       Driver.ConnectionType := CT_TCPSOCKET;
       Driver.IPAddress := Device.IP;
       Driver.PortNumber := Device.port;
+      Driver.Timeout := TCPConnectionTimeoutInMs;
       Driver.Check(Driver.Connect);
-      Exit;
+    end else
+    begin
+      // Find serial device
+      SearchParams.Serial := '';
+      SearchParams.Timeout := DeviceSearchTimeout;
+      SearchParams.Port := PORT_ANY;
+      DiscoverDevice(SearchParams);
     end;
-    // Find serial device
-    SearchParams.Serial := '';
-    SearchParams.Timeout := DeviceSearchTimeout;
-    SearchParams.Port := PORT_ANY;
-    DiscoverDevice(SearchParams);
+    Driver.SaveParams;
   end;
 end;
 
@@ -982,6 +992,7 @@ end;
 procedure TFirmwareUpdater.FiscalizeFS(Action: TActionFiscalizeFS);
 var
   RegNumber: string;
+  DriverTimeout: Integer;
 begin
   SetStatusText(Action.info + '...');
   SetCurrentDateTime;
@@ -997,6 +1008,7 @@ begin
   end;
   Driver.WriteTableInt(17, 1, 17, Action.FfdVersion);
   // Фискализируем
+  DriverTimeout := Driver.Timeout;
   Driver.Timeout := 10000;
   Driver.Inn := Action.Inn;
   Driver.KKTRegistrationNumber := RegNumber;
@@ -1004,7 +1016,7 @@ begin
   Driver.WorkMode := Action.WorkMode;
   Driver.Check(Driver.FNBuildRegistrationReport);
   Driver.WaitForPrinting;
-  Driver.Timeout := 1000;
+  Driver.Timeout := DriverTimeout;
   SetStatusText(Action.info + ': OK');
 end;
 
@@ -1023,7 +1035,7 @@ begin
     Driver.ConnectionType := CT_LOCAL;
     SearchParams.Port := PORT_VCOM;
     SearchParams.Serial := Ecr.Serial;
-    SearchParams.Timeout := FirmwareRebootTimeout;
+    SearchParams.Timeout := FirmwareRebootTimeoutInSeconds * 1000;
     DiscoverDevice(SearchParams);
   end;
 end;
@@ -1382,7 +1394,7 @@ begin
   end;
   Driver.Disconnect;
   // Ждём переход в DFU
-  WaitForDFUDevice(DFUDelayTime);
+  WaitForDFUDevice(DFUDelayTimeInSeconds * 1000);
   // Грузим файл
   SetStatusText('Запись файла ' + FileName);
   ResultCode := SystemUtils.ExecuteProcess(DfuUtilFile, ' -D ' + FirmwareFile, StdOut);
@@ -1514,10 +1526,10 @@ var
 begin
   SetStatusText('Ожидание устройства...');
 
-  Driver.Timeout := 1000;
   TickCount := GetTickCount;
   repeat
     CheckStopped;
+    Driver.Disconnect;
     if FindDevice(Serial) then
     begin
       Logger.Debug(Format('Устройство найдено за %d мс', [Integer(GetTickCount) - TickCount]));
@@ -1534,6 +1546,11 @@ end;
 function TFirmwareUpdater.FindDevice(const Serial: string): Boolean;
 begin
   Result := Connect = 0;
+  if not Result then
+  begin
+    //Logger.Debug(Format('Connect: %d, %s', [Driver.ResultCode, Driver.ResultCodeDescription]));
+  end;
+
   if Result then
   begin
     Result := Driver.ReadSerialNumber = 0;
@@ -1581,8 +1598,8 @@ procedure TFirmwareUpdater.DiscoverDevice(const Params: TSearchParams);
 var
   TickCount: Integer;
 begin
-  SetStatusText('Поиск устройства...');
-  Driver.Timeout := 1000;
+  SetStatusText('Поиск устройства по COM...');
+  //Driver.Timeout := 1000;
   TickCount := GetTickCount;
   repeat
     CheckStopped;
@@ -1629,7 +1646,7 @@ begin
         Driver.ProtocolType := 0; // Standard
         Driver.ComNumber := Port.PortNumber;
         Driver.BaudRate := Port.BaudRate;
-        Driver.Timeout := 1000;
+        Driver.Timeout := COMConnectionTimeoutInMs;
         Driver.Check(Driver.Connect);
         if Driver.BaudRate < BAUD_RATE_CODE_115200 then
         begin
@@ -1674,13 +1691,17 @@ begin
 end;
 
 procedure TFirmwareUpdater.SetBaudRate(BaudRate: Integer);
+var
+  DriverTimeout: Integer;
 begin
   // Logger.Debug('Set baudrate ' + IntToStr(ABaudrate));
   // Driver.PortNumber := 0;
+  DriverTimeout := Driver.Timeout;
   Driver.Timeout := 10000;
   Driver.BaudRate := BaudRate;
   Driver.Check(Driver.SetExchangeParam);
   Driver.BaudRate := BaudRate;
+  Driver.Timeout := DriverTimeout;
 end;
 
 procedure TFirmwareUpdater.SetStatusText(const Text: string);
