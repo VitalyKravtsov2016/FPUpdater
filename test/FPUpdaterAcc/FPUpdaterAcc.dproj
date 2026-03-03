@@ -3,7 +3,7 @@
         <ProjectGuid>{D68AC0D6-DEDC-4E01-8FAC-CA9039288978}</ProjectGuid>
         <MainSource>FPUpdaterAcc.dpr</MainSource>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Debug</Config>
+        <Config Condition="'$(Config)'==''">Release</Config>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Application</AppType>
         <FrameworkType>VCL</FrameworkType>
@@ -243,9 +243,9 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="DrvFRTst.todo" Configuration="Release" Class="ProjectFile">
+                <DeployFile LocalName="..\..\Bin\Win64\Release\FPUpdaterAcc.exe" Configuration="Release" Class="ProjectOutput">
                     <Platform Name="Win64">
-                        <RemoteDir>.\</RemoteDir>
+                        <RemoteName>FPUpdaterAcc.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
@@ -286,14 +286,14 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="DrvFRTst.todo" Configuration="Release" Class="ProjectFile">
-                    <Platform Name="Win32">
+                    <Platform Name="Win64">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="..\..\Bin\Win64\Release\FPUpdaterAcc.exe" Configuration="Release" Class="ProjectOutput">
-                    <Platform Name="Win64">
-                        <RemoteName>FPUpdaterAcc.exe</RemoteName>
+                <DeployFile LocalName="DrvFRTst.todo" Configuration="Release" Class="ProjectFile">
+                    <Platform Name="Win32">
+                        <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

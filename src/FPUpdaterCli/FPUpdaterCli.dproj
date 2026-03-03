@@ -4,7 +4,7 @@
     <ProjectVersion>19.2</ProjectVersion>
     <FrameworkType>VCL</FrameworkType>
     <Base>True</Base>
-    <Config Condition="'$(Config)'==''">Debug</Config>
+    <Config Condition="'$(Config)'==''">Release</Config>
     <Platform Condition="'$(Platform)'==''">Win64</Platform>
     <TargetedPlatforms>3</TargetedPlatforms>
     <AppType>Application</AppType>
@@ -118,6 +118,9 @@
   <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
     <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
     <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
+    <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+    <VerInfo_Locale>1033</VerInfo_Locale>
+    <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Cfg_2)'!=''">
     <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
@@ -144,12 +147,11 @@
     <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
     <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     <VerInfo_Locale>1033</VerInfo_Locale>
-    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.106;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.108;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     <Icon_MainIcon>MAINICON.ico</Icon_MainIcon>
     <VerInfo_Release>1</VerInfo_Release>
-    <VerInfo_Build>106</VerInfo_Build>
+    <VerInfo_Build>108</VerInfo_Build>
     <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
-    <DCC_ExeOutput>..\Bin\</DCC_ExeOutput>
     <PreBuildEventCancelOnError>false</PreBuildEventCancelOnError>
     <PostBuildEventCancelOnError>false</PostBuildEventCancelOnError>
   </PropertyGroup>
@@ -228,12 +230,6 @@
             <Overwrite>true</Overwrite>
           </Platform>
         </DeployFile>
-        <DeployFile LocalName="Win64\Release\FPUpdaterCli.exe" Configuration="Release" Class="ProjectOutput">
-          <Platform Name="Win64">
-            <RemoteName>FPUpdaterCli.exe</RemoteName>
-            <Overwrite>true</Overwrite>
-          </Platform>
-        </DeployFile>
         <DeployFile LocalName="FPUpdaterCli.todo" Configuration="Debug" Class="ProjectFile">
           <Platform Name="Win32">
             <RemoteDir>.\</RemoteDir>
@@ -249,6 +245,12 @@
         </DeployFile>
         <DeployFile LocalName="..\Bin\FPUpdaterCli.exe" Configuration="Debug" Class="ProjectOutput">
           <Platform Name="Win32">
+            <RemoteName>FPUpdaterCli.exe</RemoteName>
+            <Overwrite>true</Overwrite>
+          </Platform>
+        </DeployFile>
+        <DeployFile LocalName="Win64\Release\FPUpdaterCli.exe" Configuration="Release" Class="ProjectOutput">
+          <Platform Name="Win64">
             <RemoteName>FPUpdaterCli.exe</RemoteName>
             <Overwrite>true</Overwrite>
           </Platform>

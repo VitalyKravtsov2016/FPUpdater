@@ -33,6 +33,7 @@ const
   LoaderRebootTimeoutInSeconds = 60;
   FirmwareRebootDelayInSeconds = 10;
   FirmwareRebootTimeoutInSeconds = 100;
+  DeviceSearchTimeoutInSeconds = 5;
 
   // TODO: Обновление параметров сервера КМ для ИНН ОФД ??
 
@@ -796,8 +797,6 @@ var
   ResultCode: Integer;
   Device: TTCPSearchRec;
   SearchParams: TSearchParams;
-const
-  DeviceSearchTimeout = 3000;
 begin
   ResultCode := Connect;
   if ResultCode = 0 then Exit;
@@ -809,26 +808,40 @@ begin
   if ResultCode < 0 then
   begin
     Driver.Disconnect;
+    // Check 192.168.137.111:7778
+    Logger.Debug('Подключение к устройству 192.168.137.111:7778');
+    Driver.ConnectionType := CT_TCPSOCKET;
+    Driver.IPAddress := '192.168.137.111';
+    Driver.PortNumber := 7778;
+    Driver.Timeout := TCPConnectionTimeoutInMs;
+    if Driver.Connect = 0 then
+    begin
+      Driver.SaveParams;
+      Exit;
+    end;
     // Find TCP device
     Logger.Debug('Поиск устройства по UDP...');
-    if FindLocalTCPDevice(Device, DeviceSearchTimeout) then
+    if FindLocalTCPDevice(Device, DeviceSearchTimeoutInSeconds * 1000) then
     begin
-      Logger.Debug('Поиск устройства по UDP: OK');
       Logger.Debug(Format('Найдено устройство: %s:%d', [Device.IP, Device.Port]));
-
       Driver.ConnectionType := CT_TCPSOCKET;
       Driver.IPAddress := Device.IP;
       Driver.PortNumber := Device.port;
       Driver.Timeout := TCPConnectionTimeoutInMs;
-      Driver.Check(Driver.Connect);
+      if Driver.Connect = 0 then
+      begin
+        Driver.SaveParams;
+        Exit;
+      end;
     end else
     begin
-      // Find serial device
-      SearchParams.Serial := '';
-      SearchParams.Timeout := DeviceSearchTimeout;
-      SearchParams.Port := PORT_ANY;
-      DiscoverDevice(SearchParams);
+      Logger.Debug('Устройство не найдено');
     end;
+    // Find serial device
+    SearchParams.Serial := '';
+    SearchParams.Timeout := DeviceSearchTimeoutInSeconds * 1000;
+    SearchParams.Port := PORT_ANY;
+    DiscoverDevice(SearchParams);
     Driver.SaveParams;
   end;
 end;

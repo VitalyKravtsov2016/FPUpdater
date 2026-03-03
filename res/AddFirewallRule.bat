@@ -1,0 +1,1 @@
+netsh advfirewall firewall add rule name="c:\Projects\src\FPUpdater\src\Bin\Win64\Debug\FPUpdaterCli_x64.exe" dir=out program="FPUpdaterCli_x64.exe" action=allow protocol=udp localport=any
