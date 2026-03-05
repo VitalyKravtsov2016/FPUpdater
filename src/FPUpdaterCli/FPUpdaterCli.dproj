@@ -147,10 +147,10 @@
     <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
     <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     <VerInfo_Locale>1033</VerInfo_Locale>
-    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.109;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.111;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     <Icon_MainIcon>MAINICON.ico</Icon_MainIcon>
     <VerInfo_Release>1</VerInfo_Release>
-    <VerInfo_Build>109</VerInfo_Build>
+    <VerInfo_Build>111</VerInfo_Build>
     <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
     <PreBuildEventCancelOnError>false</PreBuildEventCancelOnError>
     <PostBuildEventCancelOnError>false</PostBuildEventCancelOnError>

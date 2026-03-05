@@ -3,19 +3,74 @@
 interface
 
 uses
-  // VCL
   System.SysUtils, WinAPI.Windows, AnsiStrings;
-
 
 function ExecuteProcess(const ExeName: string; const Parameters: string;
   var Output: string): Cardinal;
 
 implementation
 
+// Вспомогательная функция для чтения доступных данных
+procedure ReadPipeData(Pipe: THandle; var Output: string;
+  WaitForData: Boolean = False; TimeoutMs: DWORD = 5000);
+var
+  BytesRead: Cardinal;
+  Buffer: array[0..4095] of AnsiChar;
+  TotalOutput: AnsiString;
+  BytesAvailable: DWORD;
+  StartTime: DWORD;
+begin
+  TotalOutput := '';
+  StartTime := GetTickCount;
+
+  repeat
+    // Проверяем таймаут
+    if GetTickCount - StartTime > TimeoutMs then
+      Break;
+
+    // Проверяем наличие данных
+    if not WaitForData then
+    begin
+      if not PeekNamedPipe(Pipe, nil, 0, nil, @BytesAvailable, nil) then
+        Break;
+      if BytesAvailable = 0 then
+      begin
+        Sleep(10); // Не грузим процессор
+        Continue;
+      end;
+    end;
+
+    // Читаем данные
+    if ReadFile(Pipe, Buffer, SizeOf(Buffer) - 1, BytesRead, nil) then
+    begin
+      if BytesRead > 0 then
+      begin
+        Buffer[BytesRead] := #0;
+        OemToAnsi(@Buffer[0], @Buffer[0]);
+        TotalOutput := TotalOutput + AnsiStrings.StrPas(Buffer);
+      end;
+    end
+    else
+    begin
+      // ERROR_BROKEN_PIPE означает, что процесс закрыл свой конец трубы
+      if GetLastError = ERROR_BROKEN_PIPE then
+        Break
+      else
+        RaiseLastOSError;
+    end;
+
+    // Если не ждем данные, выходим после первого чтения
+    if not WaitForData then
+      Break;
+
+  until BytesRead = 0;
+
+  Output := Output + String(TotalOutput);
+end;
+
 function ExecuteProcess(const ExeName: string; const Parameters: string;
   var Output: string): Cardinal;
 var
-  BytesRead: Cardinal;
   CommandLine: string;
   WorkDir: string;
   Handle: Boolean;
@@ -24,14 +79,20 @@ var
   PI: TProcessInformation;
   StdOutPipeRead: THandle;
   StdOutPipeWrite: THandle;
-  Buffer: array[0..255] of AnsiChar;
 begin
   Output := '';
+
+  // Настройка безопасности для наследования дескрипторов
   SA.nLength := SizeOf(SA);
   SA.bInheritHandle := True;
   SA.lpSecurityDescriptor := nil;
-  CreatePipe(StdOutPipeRead, StdOutPipeWrite, @SA, 0);
+
+  // Создаем пайп для чтения вывода
+  if not CreatePipe(StdOutPipeRead, StdOutPipeWrite, @SA, 0) then
+    RaiseLastOSError;
+
   try
+    // Настраиваем запуск процесса
     FillChar(SI, SizeOf(SI), 0);
     SI.cb := SizeOf(SI);
     SI.dwFlags := STARTF_USESHOWWINDOW or STARTF_USESTDHANDLES;
@@ -42,31 +103,38 @@ begin
 
     WorkDir := ExtractFilePath(ExeName);
     CommandLine := ExeName + ' ' + Parameters;
-    Handle := CreateProcess(nil, PChar(CommandLine), nil, nil, True, 0, nil,
-      PChar(WorkDir), SI, PI);
+
+    // Запускаем процесс
+    Handle := CreateProcess(nil, PChar(CommandLine), nil, nil, True,
+      CREATE_NO_WINDOW, nil, PChar(WorkDir), SI, PI);
+
+    // Закрываем нашу копию трубы для записи
     CloseHandle(StdOutPipeWrite);
+
     if not Handle then
       raise Exception.Create(SysErrorMessage(GetLastError));
 
     try
-      while True do
+      // Читаем вывод пока процесс работает
+      while WaitForSingleObject(PI.hProcess, 100) = WAIT_TIMEOUT do
       begin
-        if not ReadFile(StdOutPipeRead, Buffer, 255, BytesRead, nil) then Break;
-        if BytesRead = 0 then Break;
-        Buffer[BytesRead] := #0;
-        OemToAnsi(@Buffer[0], @Buffer[0]);
-        Output := Output + String(AnsiStrings.StrPas(Buffer));
+        ReadPipeData(StdOutPipeRead, Output);
       end;
-      WaitForSingleObject(PI.hProcess, INFINITE);
+
+      // Финальное чтение после завершения процесса
+      ReadPipeData(StdOutPipeRead, Output, True);
+
+      // Получаем код возврата
       GetExitCodeProcess(PI.hProcess, Result);
+
     finally
       CloseHandle(PI.hThread);
       CloseHandle(PI.hProcess);
     end;
+
   finally
     CloseHandle(StdOutPipeRead);
   end;
 end;
-
 
 end.

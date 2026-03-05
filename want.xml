@@ -195,9 +195,14 @@ See http://www.suigeneris.org/want/ for details.
 			<include name="${setup}/Bin/Win64/FPUpdaterCli.exe"/>
 		</copy>
 		<delete file="${setup}/setup.iss"/>
+		
 		<move tofile="${basepath}/dist/Test/Archive.zip">
 			<include name="${setup}/bin/Archive.zip"/>
 		</move>
+		
+		<copy tofile="${basepath}/dist/Test/dfu-util-static.exe">
+			<include name="${setup}/bin/dfu-util/win64/dfu-util-static.exe"/>
+		</copy>
 	</target>
 	
 	<target name="beeline_work_setup64">
@@ -228,6 +233,10 @@ See http://www.suigeneris.org/want/ for details.
 		<move tofile="${basepath}/dist/Work/Archive.zip">
 			<include name="${setup}/bin/Archive.zip"/>
 		</move>
+		
+		<copy tofile="${basepath}/dist/Work/dfu-util-static.exe">
+			<include name="${setup}/bin/dfu-util/win64/dfu-util-static.exe"/>
+		</copy>
 	</target>
 	
 	<target name="build">

@@ -214,7 +214,9 @@ Source: "Bin\${Arch}\FPUpdater.exe"; DestDir: "{app}\Bin"; Flags: ignoreversion 
 Source: "Bin\${Arch}\FPUpdaterCli.exe"; DestDir: "{app}\Bin"; Flags: ignoreversion ${Archbit}; 
 Source: "Bin\Archive.zip"; DestDir: "{app}\Bin"; Flags: ignoreversion ${Archbit}; 
 ; DFU drivers
-Source: "Bin\DFU\Driver\*"; DestDir: "{app}\Bin\DFU\Driver"; Flags: recursesubdirs createallsubdirs; AfterInstall: InstallDrivers
+Source: "Bin\dfu-driver\*"; DestDir: "{app}\Bin\dfu-driver"; Flags: recursesubdirs createallsubdirs; AfterInstall: InstallDrivers
+; DFU utility 
+Source: "Bin\dfu-util\${Arch}\dfu-util-static.exe"; DestDir: "{app}\Bin"; Flags: ignoreversion ${Archbit}; 
 [Icons]
 ; Version history
 Name: "{group}\{cm:VersionHistory}"; Filename: "{app}\History.txt"; 

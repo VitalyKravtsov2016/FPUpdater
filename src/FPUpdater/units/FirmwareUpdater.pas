@@ -1407,7 +1407,8 @@ begin
   if not FileExists(FirmwareFile) then
     raise Exception.CreateFmt('Файл "%s" не найден.', [FirmwareFile]);
 
-  DfuUtilFile := Path + 'dfu-util-static.exe';
+
+  DfuUtilFile := ExtractFilePath(ParamStr(0)) + 'dfu-util-static.exe';
   if not FileExists(DfuUtilFile) then
     raise Exception.CreateFmt('Файл "%s" не найден.', [DfuUtilFile]);
 
@@ -1445,7 +1446,7 @@ var
   DfuUtilFile: string;
   ResultCode: Integer;
 begin
-  DfuUtilFile := Path + 'dfu-util-static.exe';
+  DfuUtilFile := ExtractFilePath(ParamStr(0))+ 'dfu-util-static.exe';
   if not FileExists(DfuUtilFile) then
     raise Exception.CreateFmt('Файл "%s" не найден.', [DfuUtilFile]);
 
