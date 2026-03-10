@@ -124,11 +124,6 @@ begin
     if IsWindowsVersionNew(Version) then
     begin
       InstallDriver(ExpandConstant('{app}') + '\Bin\DFU\Driver\new', 'lpc-composite89-dfu.inf');
-      InstallDriver(ExpandConstant('{app}') + '\Bin\Drivers\usb_drivers', 'BOOTLOADER_DFU_FS_Mode.inf');
-      InstallDriver(ExpandConstant('{app}') + '\Bin\Drivers\usb_drivers', 'FR_USB-Serial_port_(IF).inf');
-      InstallDriver(ExpandConstant('{app}') + '\Bin\Drivers\usb_drivers', 'FR_USB-Serial_port_(IF_with_cdc-eth).inf');
-      InstallDriver(ExpandConstant('{app}') + '\Bin\Drivers\usb_drivers', 'FR_USB-Serial_port_(IF_with_ncm).inf');
-      InstallDriver(ExpandConstant('{app}') + '\Bin\Drivers\usb_drivers', 'FR_USB-Serial_port_(PPP).inf');
     end;
 end;
 
@@ -214,7 +209,7 @@ Source: "Bin\${Arch}\FPUpdater.exe"; DestDir: "{app}\Bin"; Flags: ignoreversion 
 Source: "Bin\${Arch}\FPUpdaterCli.exe"; DestDir: "{app}\Bin"; Flags: ignoreversion ${Archbit}; 
 Source: "Bin\Archive.zip"; DestDir: "{app}\Bin"; Flags: ignoreversion ${Archbit}; 
 ; DFU drivers
-Source: "Bin\dfu-driver\*"; DestDir: "{app}\Bin\dfu-driver"; Flags: recursesubdirs createallsubdirs; AfterInstall: InstallDrivers
+Source: "Bin\dfu\*"; DestDir: "{app}\Bin\dfu"; Flags: recursesubdirs createallsubdirs; AfterInstall: InstallDrivers
 ; DFU utility 
 Source: "Bin\dfu-util\${Arch}\dfu-util-static.exe"; DestDir: "{app}\Bin"; Flags: ignoreversion ${Archbit}; 
 [Icons]
