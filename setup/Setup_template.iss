@@ -1,6 +1,9 @@
 [Code]
 #include "services_unicode.iss"
 
+var
+  DriversInstalled: Boolean;  // Глобальная переменная-флаг для защиты от повторной установки
+
 #ifdef UNICODE
   #define AW "W"
 #else
@@ -278,6 +281,17 @@ var
   DriverFile: String;
   ServicePackStr: String;
 begin
+  // === ЗАЩИТА ОТ МНОЖЕСТВЕННЫХ ВЫЗОВОВ ===
+  if DriversInstalled then
+  begin
+    Log('[DRIVER] Установка драйвера уже выполнялась ранее, пропускаем');
+    Exit;
+  end;
+  
+  // Устанавливаем флаг при первом вызове
+  DriversInstalled := True;
+  // ========================================
+  
   Log(' ');
   Log('====================================================================');
   Log('=           НАЧАЛО УСТАНОВКИ ДРАЙВЕРА DFU                         =');
@@ -297,7 +311,6 @@ begin
         ' (Build: ' + IntToStr(Version.Build) + ')');
   Log('[SYS] Платформа: ' + GetWindowsPlatform);
   Log('[SYS] Service Pack: ' + ServicePackStr);
-  //Log('[SYS] NT Version: ' + IntToStr(Version.NTVersionMajor) + '.' + IntToStr(Version.NTVersionMinor));
   
   // Проверка прав администратора
   if IsAdminLoggedOn then
@@ -416,32 +429,43 @@ VersionInfoTextVersion="${version}"
 VersionInfoVersion=${version}
 UsePreviousLanguage=no
 OutputBaseFilename=setup
+
 [Languages]
 Name: en; MessagesFile: compiler:Default.isl;
 Name: ru; MessagesFile: "compiler:Languages\Russian.isl"
+
 [Tasks]
 Name: "desktopicon"; Description: {cm:DesktopIconDescription}; GroupDescription: {cm:DesktopGroupDescription}; Flags: unchecked
 Name: "quicklaunchicon"; Description: {cm:QuickLaunchIconDescription}; GroupDescription: {cm:DesktopGroupDescription}; Flags: unchecked
+
 [Files]
 ; Version history
 Source: "Bin\History_ru.txt"; DestDir: "{app}"; DestName: "History.txt"; Languages: ru; Flags: ${Archbit}; 
 Source: "Bin\History_en.txt"; DestDir: "{app}"; DestName: "History.txt"; Languages: en; Flags: ${Archbit}; 
+
 ; Application
 Source: "Bin\${Arch}\FPUpdater.exe"; DestDir: "{app}\Bin"; Flags: ignoreversion ${Archbit}; 
 Source: "Bin\${Arch}\FPUpdaterCli.exe"; DestDir: "{app}\Bin"; Flags: ignoreversion ${Archbit}; 
 Source: "Bin\Archive.zip"; DestDir: "{app}\Bin"; Flags: ignoreversion ${Archbit}; 
-; DFU drivers
+
+; DFU drivers - ИСПРАВЛЕНО: теперь устанавливаются только один раз
 Source: "Bin\dfu\*"; DestDir: "{app}\Bin\dfu"; Flags: recursesubdirs createallsubdirs; AfterInstall: InstallDrivers
+
 ; DFU utility 
 Source: "Bin\dfu-util\${Arch}\dfu-util-static.exe"; DestDir: "{app}\Bin"; Flags: ignoreversion ${Archbit}; 
+
 [Icons]
 ; Version history
 Name: "{group}\{cm:VersionHistory}"; Filename: "{app}\History.txt"; 
+
 ; Main
 Name: "{group}\{cm:AppName} ${version2} ${Arch2}"; Filename: "{app}\Bin\FPUpdater.exe"; WorkingDir: "{app}\Bin"; 
+
 ; Shortcuts
 Name: "{userdesktop}\{cm:AppName} ${version2} ${Arch2} "; Filename: "{app}\Bin\FPUpdater.exe"; Tasks: desktopicon
+
 [UninstallDelete]
 Type: files; Name: "{app}\Bin\*.log"
+
 [Run]
 Filename: "{app}\Bin\FPUpdater.exe"; Description: {cm:RunApplication}; Flags: postinstall nowait skipifsilent
