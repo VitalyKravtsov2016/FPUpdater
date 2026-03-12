@@ -65,4 +65,7 @@ begin
   Logger.Info('FPUpdaterCli ' + GetModuleVersion + ', утилита для обновления ФР, ООО «Торговый Баланс М», 2026');
 
   AutoUpdateEcr;
+
+  WriteLn('Для завершения нажмите Enter');
+  ReadLn;
 end.

@@ -147,10 +147,10 @@
     <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
     <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     <VerInfo_Locale>1033</VerInfo_Locale>
-    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.121;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+    <VerInfo_Keys>CompanyName=;FileDescription=FPUpdater;FileVersion=1.0.1.124;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.FPUpdater;ProductName=FPUpdater;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     <Icon_MainIcon>MAINICON.ico</Icon_MainIcon>
     <VerInfo_Release>1</VerInfo_Release>
-    <VerInfo_Build>121</VerInfo_Build>
+    <VerInfo_Build>124</VerInfo_Build>
     <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
     <PreBuildEventCancelOnError>false</PreBuildEventCancelOnError>
     <PostBuildEventCancelOnError>false</PostBuildEventCancelOnError>
@@ -217,22 +217,15 @@
         </Excluded_Packages>
       </Delphi.Personality>
       <Deployment Version="3">
-        <DeployFile LocalName="$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_44.png" Configuration="Release" Class="UWP_DelphiLogo44">
+        <DeployFile LocalName="FPUpdaterCli.todo" Configuration="Debug" Class="ProjectFile">
           <Platform Name="Win32">
-            <RemoteDir>Assets\</RemoteDir>
-            <RemoteName>Logo44x44.png</RemoteName>
+            <RemoteDir>.\</RemoteDir>
             <Overwrite>true</Overwrite>
           </Platform>
         </DeployFile>
         <DeployFile LocalName="..\Bin\FPUpdaterCli.exe" Configuration="Release" Class="ProjectOutput">
           <Platform Name="Win32">
             <RemoteName>FPUpdaterCli.exe</RemoteName>
-            <Overwrite>true</Overwrite>
-          </Platform>
-        </DeployFile>
-        <DeployFile LocalName="FPUpdaterCli.todo" Configuration="Debug" Class="ProjectFile">
-          <Platform Name="Win32">
-            <RemoteDir>.\</RemoteDir>
             <Overwrite>true</Overwrite>
           </Platform>
         </DeployFile>
@@ -252,6 +245,13 @@
         <DeployFile LocalName="Win64\Release\FPUpdaterCli.exe" Configuration="Release" Class="ProjectOutput">
           <Platform Name="Win64">
             <RemoteName>FPUpdaterCli.exe</RemoteName>
+            <Overwrite>true</Overwrite>
+          </Platform>
+        </DeployFile>
+        <DeployFile LocalName="$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_44.png" Configuration="Release" Class="UWP_DelphiLogo44">
+          <Platform Name="Win32">
+            <RemoteDir>Assets\</RemoteDir>
+            <RemoteName>Logo44x44.png</RemoteName>
             <Overwrite>true</Overwrite>
           </Platform>
         </DeployFile>

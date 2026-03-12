@@ -3,7 +3,10 @@
 interface
 
 uses
-  System.SysUtils, WinAPI.Windows, AnsiStrings;
+  // VCL
+  System.SysUtils, WinAPI.Windows, AnsiStrings,
+  // This
+  LogFile;
 
 function ExecuteProcess(const ExeName: string; const Parameters: string;
   var Output: string): Cardinal;
@@ -49,14 +52,9 @@ begin
         OemToAnsi(@Buffer[0], @Buffer[0]);
         TotalOutput := TotalOutput + AnsiStrings.StrPas(Buffer);
       end;
-    end
-    else
+    end else
     begin
-      // ERROR_BROKEN_PIPE означает, что процесс закрыл свой конец трубы
-      if GetLastError = ERROR_BROKEN_PIPE then
-        Break
-      else
-        RaiseLastOSError;
+      Break;
     end;
 
     // Если не ждем данные, выходим после первого чтения
@@ -89,7 +87,10 @@ begin
 
   // Создаем пайп для чтения вывода
   if not CreatePipe(StdOutPipeRead, StdOutPipeWrite, @SA, 0) then
+  begin
+    //Logger.Debug('Failed CreatePipe');
     RaiseLastOSError;
+  end;
 
   try
     // Настраиваем запуск процесса
@@ -112,7 +113,10 @@ begin
     CloseHandle(StdOutPipeWrite);
 
     if not Handle then
+    begin
+      //Logger.Debug('Failed CreateProcess');
       raise Exception.Create(SysErrorMessage(GetLastError));
+    end;
 
     try
       // Читаем вывод пока процесс работает

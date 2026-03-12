@@ -1394,11 +1394,14 @@ end;
 
 procedure TFirmwareUpdater.DfuUploadFile(const Path, FileName: string);
 var
+  i: Integer;
   ResultCode: Integer;
   DfuUtilFile: string;
   FirmwareFile: string;
   StdOut: string;
   StartTime: TDateTime;
+const
+  MaxRepeatCount = 3;
 begin
   StartTime := Now;
   Logger.Debug(Format('DFU, запись файла "%s"', [FileName]));
@@ -1428,10 +1431,15 @@ begin
   // Ждём переход в DFU
   WaitForDFUDevice(DFUDelayTimeInSeconds * 1000);
   // Грузим файл
-  SetStatusText('Запись файла ' + FileName);
-  ResultCode := SystemUtils.ExecuteProcess(DfuUtilFile, ' -D ' + FirmwareFile, StdOut);
-  if ResultCode <> 0 then
-    raise Exception.CreateFmt('Ошибка загрузки прошивки. %s, %s', [SysErrorMessage(GetLastError), StdOut]);
+  for i := 1 to MaxRepeatCount do
+  begin
+    SetStatusText('Запись файла ' + FileName);
+    ResultCode := SystemUtils.ExecuteProcess(DfuUtilFile, ' -D ' + FirmwareFile, StdOut);
+    if ResultCode = 0 then Break;
+    if (ResultCode <> 0)and(i = MaxRepeatCount) then
+      raise Exception.CreateFmt('Ошибка загрузки прошивки. %s, %s', [
+        SysErrorMessage(GetLastError), StdOut]);
+  end;
 
   if Pos('Done!', StdOut) = 0 then
   begin
@@ -1446,6 +1454,8 @@ var
   DfuUtilFile: string;
   ResultCode: Integer;
 begin
+  //Logger.Debug(Format('RunDfuUtil("%s", %s)', [Path, Params]));
+
   DfuUtilFile := ExtractFilePath(ParamStr(0))+ 'dfu-util-static.exe';
   if not FileExists(DfuUtilFile) then
     raise Exception.CreateFmt('Файл "%s" не найден.', [DfuUtilFile]);
@@ -1453,6 +1463,8 @@ begin
   ResultCode := SystemUtils.ExecuteProcess(DfuUtilFile, Params, Result);
   if ResultCode <> 0 then
     raise Exception.CreateFmt('Ошибка выполнения. %s, %s', [SysErrorMessage(GetLastError), Result]);
+
+  //Logger.Debug('RunDfuUtil: OK');
 end;
 
 function TFirmwareUpdater.WaitForDFUDevice(Timeout: Cardinal): Boolean;
@@ -1474,7 +1486,14 @@ end;
 
 function TFirmwareUpdater.IsDFUDevicePresent: Boolean;
 begin
-  Result := Pos('DFU', RunDfuUtil(FPath, '-l')) <> 0;
+  try
+    Result := Pos('Found DFU:', RunDfuUtil(FPath, '-l')) <> 0;
+  except
+    on E: Exception do
+    begin
+      Result := False;
+    end;
+  end;
 end;
 
 procedure TFirmwareUpdater.XModemUploadFile(ComNumber: Integer; const FileName: string);
