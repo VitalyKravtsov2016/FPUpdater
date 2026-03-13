@@ -8,6 +8,20 @@
 
 *******************************************************************
 
+  FPUpdater_1.0_38.exe
+  13 March 2026 15:30
+  
+  [-] Changes timeout to wait DFU device
+  
+*******************************************************************
+
+  FPUpdater_1.0_38.exe
+  13 March 2026 12:15
+
+  [+] Changed value RestoreCashRegister to false in rules.json
+  
+*******************************************************************
+
   FPUpdater_1.0_37.exe
   13 March 2026 11:15
 

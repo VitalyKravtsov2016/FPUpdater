@@ -27,7 +27,7 @@ const
   COMConnectionTimeoutInMs = 1000;
   TCPConnectionTimeoutInMs = 3000;
 
-  DFUDelayTimeInSeconds = 5;
+  DFUDelayTimeInSeconds = 20;
   LoaderRebootDelayInSeconds = 3;
   RebootTimeoutInSeconds = 6;
   LoaderRebootTimeoutInSeconds = 60;
@@ -1483,6 +1483,7 @@ function TFirmwareUpdater.WaitForDFUDevice(Timeout: Cardinal): Boolean;
 var
   StartTime: Cardinal;
 begin
+  Logger.Debug('Ожидание DFU устройства...');
   StartTime := GetTickCount;
   while True do
   begin
@@ -1494,6 +1495,10 @@ begin
       Break;
     Sleep(100); // Проверяем каждые 100 мс
   end;
+  if Result then
+    Logger.Debug('Ожидание DFU устройства: OK')
+  else
+    Logger.Debug('Ожидание DFU устройства: не найдено');
 end;
 
 function TFirmwareUpdater.IsDFUDevicePresent: Boolean;
