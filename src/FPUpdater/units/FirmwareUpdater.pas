@@ -1053,11 +1053,15 @@ end;
 
 procedure TFirmwareUpdater.SetVComConnection;
 var
-  Ecr: TECRInfo;
+  Serial: string;
   SearchParams: TSearchParams;
 begin
   if Driver.ConnectionType <> CT_LOCAL then
   begin
+    Serial := '';
+    if Driver.ReadSerialNumber = 0 then
+      Serial := Driver.SerialNumber;
+
     Driver.WriteTableInt(21, 1, 1, 0); // Режим ppp
     Driver.WriteTableInt(21, 1, 9, 0); // Rndis active = 0
     Driver.RebootKKT;
@@ -1065,7 +1069,7 @@ begin
 
     Driver.ConnectionType := CT_LOCAL;
     SearchParams.Port := PORT_VCOM;
-    SearchParams.Serial := Ecr.Serial;
+    SearchParams.Serial := Serial;
     SearchParams.Timeout := FirmwareRebootTimeoutInSeconds * 1000;
     DiscoverDevice(SearchParams);
   end;
@@ -1194,7 +1198,8 @@ end;
 
 procedure TFirmwareUpdater.DeleteFiles;
 begin
-  TDirectory.Delete(FPath, True);
+  if (FPath <> '') and DirectoryExists(FPath) then
+    TDirectory.Delete(FPath, True);
 end;
 
 procedure TFirmwareUpdater.DownloadFiles;
@@ -1429,7 +1434,8 @@ begin
   end;
   Driver.Disconnect;
   // Ждём переход в DFU
-  WaitForDFUDevice(DFUDelayTimeInSeconds * 1000);
+  if not WaitForDFUDevice(DFUDelayTimeInSeconds * 1000) then
+    raise Exception.Create('Устройство DFU не обнаружено');
   // Грузим файл
   for i := 1 to MaxRepeatCount do
   begin
@@ -1526,14 +1532,14 @@ end;
 
 procedure TFirmwareUpdater.DelayInMs(DelayInMs: Integer);
 var
-  TickCount: Integer;
+  TickCount: Cardinal;
 begin
   SetStatusText(Format('Задержка %d мс...', [DelayInMs]));
   TickCount := GetTickCount;
   repeat
     CheckStopped;
     Sleep(100);
-  until Integer(GetTickCount) > TickCount + DelayInMs;
+  until (GetTickCount - TickCount) >= Cardinal(DelayInMs);
   SetStatusText(Format('Задержка %d мс: OK', [DelayInMs]));
 end;
 
@@ -1573,7 +1579,7 @@ end;
 
 procedure TFirmwareUpdater.WaitForDevice(const Serial: string; TimeoutInMs: Integer);
 var
-  TickCount: Integer;
+  TickCount: Cardinal;
 begin
   SetStatusText('Ожидание устройства...');
 
@@ -1583,13 +1589,13 @@ begin
     Driver.Disconnect;
     if FindDevice(Serial) then
     begin
-      Logger.Debug(Format('Устройство найдено за %d мс', [Integer(GetTickCount) - TickCount]));
+      Logger.Debug(Format('Устройство найдено за %d мс', [GetTickCount - TickCount]));
       Logger.Debug('Проверка состояния ККМ');
       Driver.Check(Driver.ResetECR);
       Exit;
     end;
     Sleep(1000);
-  until Integer(GetTickCount) > TickCount + TimeoutInMs;
+  until (GetTickCount - TickCount) >= Cardinal(TimeoutInMs);
   raise Exception.CreateFmt('Устройство %s не найдено', [Serial]);
   SetStatusText('Ожидание устройства: OK');
 end;
@@ -1647,7 +1653,7 @@ end;
 
 procedure TFirmwareUpdater.DiscoverDevice(const Params: TSearchParams);
 var
-  TickCount: Integer;
+  TickCount: Cardinal;
 begin
   SetStatusText('Поиск устройства по COM...');
   //Driver.Timeout := 1000;
@@ -1656,13 +1662,13 @@ begin
     CheckStopped;
     if FindDeviceLocal(Params) then
     begin
-      Logger.Debug(Format('Устройство найдено за %d мс', [Integer(GetTickCount) - TickCount]));
+      Logger.Debug(Format('Устройство найдено за %d мс', [GetTickCount - TickCount]));
       Logger.Debug('Проверка состояния ККМ');
       Exit;
     end;
 
     Sleep(100);
-  until Integer(GetTickCount) > TickCount + Params.Timeout;
+  until (GetTickCount - TickCount) >= Cardinal(Params.Timeout);
 
   raise Exception.CreateFmt('Устройство %s не найдено', [Params.Serial]);
 end;
@@ -1998,6 +2004,7 @@ function TFirmwareUpdater.FindOfdParams(const OfdInn: string; var OfdParams: TOf
 var
   Ofd: TOfdParams;
 begin
+  Result := False;
   for Ofd in OfdParamsArray do
   begin
     Result := Ofd.Inn = Trim(OfdInn);
