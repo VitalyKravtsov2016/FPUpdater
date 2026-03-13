@@ -8,6 +8,15 @@
 
 *******************************************************************
 
+  FPUpdater_1.0_37.exe
+  13 March 2026 11:15
+
+  [+] fix getting temp path with TPath.GetTempPath
+  [+] fix update risks: DFU, timeouts and search parameters
+  [+] fix(cli+dfu): make updater automation-safe and robust process execution
+
+*******************************************************************
+
   FPUpdater_1.0_36.exe
   12 March 2026 13:15
   

@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>1899.12.30 00:00:00.000.415,=C:\Projects\src\fwupdater2\src\fwupdater2\units\GlobalConst.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.118,=C:\Projects\src\FPUpdater\src\FPUpdaterCli\FPUpdaterCli.rc</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.415,=C:\Projects\src\fwupdater2\src\fwupdater2\units\GlobalConst.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.638,C:\Projects\src\drvfr\fwupdater\forms\fmuMain.dfm=C:\Projects\src\drvfr\fwupdater\Unit1.dfm</Transaction>
     <Transaction>1899.12.30 00:00:00.000.393,C:\Projects\src\drvfr\fwupdater\forms\msgformunit.pas=C:\Projects\src\drvfr\fwupdater\forms\fmuUnsupported.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.361,C:\Projects\src\FPUpdater\src\FPUpdater\units\TextEncoding.pas=</Transaction>
@@ -19,8 +19,8 @@
     <Transaction>1899.12.30 00:00:00.000.947,C:\Projects\src\FPUpdater\src\FPUpdater\units\FileUtils.pas=</Transaction>
     <Transaction>1899.12.30 00:00:00.000.697,=C:\Projects\src\drvfr\fwupdater\Unit1.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.237,C:\Projects\src\fwupdater2\src\fwupdater2\fwupdater.dproj=C:\Projects\src\fwupdater2\src\fwupdater2\fwupdater2.dproj</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.174,=C:\Projects\src\FPUpdater\src\FPUpdater\units\MultiCastIPv6Receiver.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.614,=C:\Projects\src\fwupdater2\src\fwupdater2\units\XModem.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.174,=C:\Projects\src\FPUpdater\src\FPUpdater\units\MultiCastIPv6Receiver.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.023,=C:\Projects\src\FPUpdater\src\FPUpdater\units\DebugUtils.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.356,C:\Projects\src\drvfr\fwupdater\units\FirmwareUpdater.pas=C:\Projects\src\drvfr\fwupdater\Unit1.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.033,=C:\Projects\src\fwupdater2\src\fwupdater2\units\PrinterTypes.pas</Transaction>
@@ -32,8 +32,8 @@
     <Transaction>1899.12.30 00:00:00.000.164,=C:\Projects\src\FPUpdater\src\FPUpdaterCli\FPUpdaterCli.todo</Transaction>
     <Transaction>1899.12.30 00:00:00.000.762,C:\Projects\src\FPUpdater\src\FPUpdater\units\RNDISAdapter.pas=</Transaction>
     <Transaction>1899.12.30 00:00:00.000.344,C:\Projects\src\fwupdater2\src\fwupdater2\units\SystemUtils.pas=C:\Projects\src\fwupdater2\src\fwupdater2\units\execproc.pas</Transaction>
-    <Transaction>1899.12.30 00:00:00.000.248,=C:\Projects\src\fwupdater2\src\fwupdater2\units\FileUtils.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.700,=C:\Projects\src\FPUpdater\src\FPUpdater\units\TCPSearchRec.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.248,=C:\Projects\src\fwupdater2\src\fwupdater2\units\FileUtils.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.990,=C:\Projects\src\fwupdater2\src\fwupdater2\units\DeviceSearch.pas</Transaction>
     <Transaction>1899.12.30 00:00:00.000.393,C:\Projects\src\drvfr\fwupdater\forms\msgformunit.dfm=C:\Projects\src\drvfr\fwupdater\forms\fmuUnsupported.dfm</Transaction>
     <Transaction>1899.12.30 00:00:00.000.819,C:\Projects\src\fwupdater2\src\fwupdater2\units\UpdateItem.pas=C:\Projects\src\fwupdater2\src\fwupdater2\units\UpdatePolicy.pas</Transaction>
