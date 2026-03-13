@@ -439,7 +439,13 @@ begin
   Result := IncludeTrailingPathDelimiter(GetUserCompanyPath) + 'Tables';
 end;
 
-function CheckDFU: Boolean;
+function CreateTempWorkPath: string;
+begin
+  Result := IncludeTrailingPathDelimiter(
+    TPath.Combine(TPath.GetTempPath, Copy(TPath.GetRandomFileName, 1, 8)));
+end;
+
+function CheckDFUDriverInstalled: Boolean;
 var
   Reg: TRegistry;
 const
@@ -1190,7 +1196,7 @@ end;
 
 procedure TFirmwareUpdater.LoadArchive(const FileName: string);
 begin
-  FPath := GetEnvironmentVariable('TEMP') + '\' + Copy(TPath.GetRandomFileName, 1, 8) + '\';
+  FPath := CreateTempWorkPath;
   ForceDirectories(FPath);
   UnzipArhive(FPath, FileName);
   LoadFiles(FPath);
@@ -1210,7 +1216,7 @@ begin
   if FFilesDownloaded then
     Exit;
 
-  FPath := GetEnvironmentVariable('TEMP') + '\' + Copy(TPath.GetRandomFileName, 1, 8) + '\';
+  FPath := CreateTempWorkPath;
 
   ForceDirectories(FPath);
   // Если обновления есть - скачиваем архив
@@ -1223,7 +1229,7 @@ begin
 
   if FParams.ArchiveURL <> '' then
   begin
-    RemoteArchivePath := GetEnvironmentVariable('TEMP') + '\' + Copy(TPath.GetRandomFileName, 1, 8) + '\';
+    RemoteArchivePath := CreateTempWorkPath;
     ForceDirectories(RemoteArchivePath);
     if DownloadArchive(FParams.ArchiveURL, RemoteArchivePath  + 'arhive.zip') then
     begin
@@ -1422,7 +1428,7 @@ begin
 
   (*
     SetStatusText('Проверка драйвера DFU');
-    if not CheckDFU then
+    if not CheckDFUDriverInstalled then
     raise Exception.Create('Не установлен драйвер DFU, прошивка невозможна.');
   *)
 
