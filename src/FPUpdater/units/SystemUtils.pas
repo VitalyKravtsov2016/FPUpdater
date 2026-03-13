@@ -103,10 +103,12 @@ begin
     SI.hStdError := StdOutPipeWrite;
 
     WorkDir := ExtractFilePath(ExeName);
-    CommandLine := ExeName + ' ' + Parameters;
+    CommandLine := '"' + ExeName + '"';
+    if Parameters <> '' then
+      CommandLine := CommandLine + ' ' + Parameters;
 
     // Запускаем процесс
-    Handle := CreateProcess(nil, PChar(CommandLine), nil, nil, True,
+    Handle := CreateProcess(PChar(ExeName), PChar(CommandLine), nil, nil, True,
       CREATE_NO_WINDOW, nil, PChar(WorkDir), SI, PI);
 
     // Закрываем нашу копию трубы для записи

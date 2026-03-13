@@ -1434,16 +1434,16 @@ begin
   for i := 1 to MaxRepeatCount do
   begin
     SetStatusText('Запись файла ' + FileName);
-    ResultCode := SystemUtils.ExecuteProcess(DfuUtilFile, ' -D ' + FirmwareFile, StdOut);
+    ResultCode := SystemUtils.ExecuteProcess(DfuUtilFile, ' -D "' + FirmwareFile + '"', StdOut);
     if ResultCode = 0 then Break;
     if (ResultCode <> 0)and(i = MaxRepeatCount) then
-      raise Exception.CreateFmt('Ошибка загрузки прошивки. %s, %s', [
-        SysErrorMessage(GetLastError), StdOut]);
+      raise Exception.CreateFmt('Ошибка загрузки прошивки. Код=%d, %s', [
+        ResultCode, StdOut]);
   end;
 
   if Pos('Done!', StdOut) = 0 then
   begin
-    raise Exception('Не удалось загрузить прошивку в ККТ.'#13#10 + StdOut);
+    raise Exception.Create('Не удалось загрузить прошивку в ККТ.'#13#10 + StdOut);
   end;
   SetStatusText('DFU, запись успешно выполнена');
   Logger.Debug(Format('DFU, запись выполнена за %d мс.', [MilliSecondsBetween(Now, StartTime)]));
@@ -1462,7 +1462,7 @@ begin
 
   ResultCode := SystemUtils.ExecuteProcess(DfuUtilFile, Params, Result);
   if ResultCode <> 0 then
-    raise Exception.CreateFmt('Ошибка выполнения. %s, %s', [SysErrorMessage(GetLastError), Result]);
+    raise Exception.CreateFmt('Ошибка выполнения. Код=%d, %s', [ResultCode, Result]);
 
   //Logger.Debug('RunDfuUtil: OK');
 end;
